@@ -6,7 +6,7 @@ onAuthStateChanged(auth, async (user) => {
         loadReferralStats(user.uid);
         loadReferralList(user.uid);
     } else {
-        window.location.href = "index.html";
+        window.location.href = "index"; // Clean URL use karein
     }
 });
 
@@ -20,44 +20,31 @@ async function loadReferralStats(uid) {
             const data = userDoc.data();
             let myCode = data.myReferCode;
 
-            // ✅ SELF REPAIR: Code missing hai to generate karo
+            // SELF REPAIR: Code missing hai to generate karo
             if (!myCode) {
-                console.log("Code missing, generating new one...");
                 myCode = "ANVI" + Math.floor(10000 + Math.random() * 90000);
                 await updateDoc(userRef, { myReferCode: myCode });
             }
 
             // --- UI Updates ---
-            
-            // A. Referral Code
             const codeEl = document.getElementById('my-refer-code');
             if (codeEl) codeEl.innerText = myCode;
 
-            // B. Total Count
-            const count = data.totalReferrals || 0;
             const countEl = document.getElementById('total-ref-count');
-            if(countEl) countEl.innerText = count;
+            if(countEl) countEl.innerText = data.totalReferrals || 0;
 
-            // C. Total Earnings
             const earningsEl = document.getElementById('total-ref-earnings');
-            const income = data.referIncome || (count * 100); // Agar referIncome field hai to wo use karo, nahi to calculate karo
+            const income = data.referIncome || ((data.totalReferrals || 0) * 100);
             if(earningsEl) earningsEl.innerText = income;
 
-            // D. ✅ DAILY LIMIT SHOW KARO (New Feature)
+            // DAILY LIMIT logic
             const todayStr = new Date().toISOString().split('T')[0];
             let dailyCount = data.todayReferCount || 0;
-            
-            // Agar purani date hai, to display ke liye 0 dikhao
-            if (data.lastReferDate !== todayStr) {
-                dailyCount = 0;
-            }
+            if (data.lastReferDate !== todayStr) dailyCount = 0;
 
-            // HTML mein ek element bana lena id="daily-limit-text"
             const dailyEl = document.getElementById('daily-limit-text');
             if (dailyEl) {
                 dailyEl.innerText = `${dailyCount} / 10 Today`;
-                
-                // Color change agar limit poori ho gayi
                 if (dailyCount >= 10) {
                     dailyEl.style.color = "red";
                     dailyEl.innerText = "Limit Reached (10/10)";
@@ -69,20 +56,17 @@ async function loadReferralStats(uid) {
     }
 }
 
-// 2. Load List (History)
+// 2. Load List (History) - Same as your code
 async function loadReferralList(uid) {
     const listContainer = document.getElementById('referral-list');
     if (!listContainer) return;
-
     try {
         const q = query(collection(db, "users", uid, "my_referrals"), orderBy("date", "desc"));
         const querySnapshot = await getDocs(q);
-
         if (querySnapshot.empty) {
             listContainer.innerHTML = `<div style="text-align: center; padding: 2rem; color: #999;">No referrals yet</div>`;
             return;
         }
-
         let html = "";
         querySnapshot.forEach((doc) => {
             const item = doc.data();
@@ -98,21 +82,21 @@ async function loadReferralList(uid) {
             </div>`;
         });
         listContainer.innerHTML = html;
-    } catch (error) {
-        console.error("List Error:", error);
-    }
+    } catch (error) { console.error("List Error:", error); }
 }
 
-// 3. Button Logic (Copy & Share)
+// 3. Button Logic (Copy & Share) - ✅ UPDATED FOR AUTO-FILL
 const copyBtn = document.getElementById('copy-btn');
 if (copyBtn) {
     copyBtn.addEventListener('click', () => {
         const codeText = document.getElementById('my-refer-code')?.innerText;
-        if (!codeText || codeText === "..." || codeText === "Generating...") return;
+        if (!codeText || codeText.includes(".")) return;
 
-        navigator.clipboard.writeText(codeText).then(() => {
+        // Copying CLEAN LINK instead of just code
+        const shareLink = `${window.location.origin}/register?ref=${codeText}`;
+        navigator.clipboard.writeText(shareLink).then(() => {
             const original = copyBtn.innerHTML;
-            copyBtn.innerHTML = `<i class="ri-check-line"></i> Copied`;
+            copyBtn.innerHTML = `<i class="ri-check-line"></i> Link Copied`;
             setTimeout(() => copyBtn.innerHTML = original, 2000);
         });
     });
@@ -122,19 +106,22 @@ const shareBtn = document.getElementById('share-btn');
 if (shareBtn) {
     shareBtn.addEventListener('click', async () => {
         const codeText = document.getElementById('my-refer-code')?.innerText;
-        if (!codeText || codeText === "..." || codeText === "Generating...") return;
+        if (!codeText || codeText.includes(".")) return;
 
+        // ✅ AUTO-FILL LINK GENERATION
+        const cleanURL = window.location.origin + "/register?ref=" + codeText;
+        
         const shareData = {
             title: 'Join AnviPayz',
-            text: `Use my Referral Code: *${codeText}* to get 100 Bonus Coins!`,
-            url: window.location.origin + "/register.html"
+            text: `Hey! Join AnviPayz & earn daily rewards. 💰 Use my code: ${codeText} to get 100 Bonus Coins! 🎁`,
+            url: cleanURL
         };
 
         if (navigator.share) {
             try { await navigator.share(shareData); } catch (err) {}
         } else {
-            alert("Link copied!");
-            navigator.clipboard.writeText(`${shareData.text} \n${shareData.url}`);
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareData.text + " " + shareData.url)}`;
+            window.open(waUrl, '_blank');
         }
     });
 }
