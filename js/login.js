@@ -1,5 +1,9 @@
-// 1. Imports mein 'setPersistence' aur 'browserLocalPersistence' add karein
-import { auth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "./firebase-config.js";
+// 1. Auth object lao apni config file se
+import { auth } from "./firebase-config.js";
+
+// 2. 🛠️ FIX: Baaki saare tools seedha Firebase URL se import karo
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const loginForm = document.getElementById('login-form');
 
@@ -16,17 +20,17 @@ if (loginForm) {
             btn.style.opacity = "0.7";
             btn.disabled = true;
 
-            // --- 🛠️ FIX: Forcefully Local Persistence Set karo ---
-            // Ye line browser ko bolegi: "Tab band hone par bhi Login rakhna"
+            // --- 🛠️ FIX: Ab ye line chalegi ---
+            // Browser ko force karo ki wo login yaad rakhe
             await setPersistence(auth, browserLocalPersistence);
 
-            // 2. Ab Login karo
+            // Ab Login karo
             await signInWithEmailAndPassword(auth, email, password);
 
-            // 3. Time note kar lo (3-Din wale logic ke liye)
+            // Time note kar lo
             localStorage.setItem('anvi_last_active', Date.now());
 
-            // 4. Success Redirect
+            // Success Redirect
             window.location.href = "home.html";
 
         } catch (error) {
