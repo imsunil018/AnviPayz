@@ -1,9 +1,10 @@
-// 1. Auth object lao apni config file se
-import { auth } from "./firebase-config.js";
-
-// 2. 🛠️ FIX: Baaki saare tools seedha Firebase URL se import karo
-import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// 1. Sab kuch apne local config file se import karein
+import { 
+    auth, 
+    signInWithEmailAndPassword, 
+    setPersistence, 
+    browserLocalPersistence 
+} from "./firebase-config.js";
 
 const loginForm = document.getElementById('login-form');
 
@@ -16,30 +17,33 @@ if (loginForm) {
         const btn = document.getElementById('login-btn');
 
         try {
+            // UI Feedback
             btn.innerText = "Verifying...";
             btn.style.opacity = "0.7";
             btn.disabled = true;
 
-            // --- 🛠️ FIX: Ab ye line chalegi ---
-            // Browser ko force karo ki wo login yaad rakhe
+            // --- 🛠️ FIX: Persistence Set karo (Permanent Login) ---
+            // Isse tab band karne par bhi logout nahi hoga
             await setPersistence(auth, browserLocalPersistence);
 
-            // Ab Login karo
+            // 2. Firebase Authentication
             await signInWithEmailAndPassword(auth, email, password);
 
-            // Time note kar lo
+            // 3. Time note kar lo (Inactivity check ke liye)
             localStorage.setItem('anvi_last_active', Date.now());
 
-            // Success Redirect
+            // 4. Dashboard par bhejo
             window.location.href = "home.html";
 
         } catch (error) {
             console.error("Login Error:", error);
             
+            // Reset Button on Failure
             btn.innerText = "Log In";
             btn.style.opacity = "1";
             btn.disabled = false;
             
+            // User-friendly Error Messages
             if(error.code === "auth/invalid-credential" || error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
                 alert("Incorrect Email or Password.");
             } else if (error.code === "auth/too-many-requests") {
