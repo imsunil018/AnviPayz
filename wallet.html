@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet - AnviPayz</title>
+    
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('anvi-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+
+    <style>
+        .wallet-header-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            text-align: center;
+            position: relative;
+            margin: -2rem -2rem 0 -2rem; 
+            padding: 2rem 1.5rem 5rem 1.5rem;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+
+        .floating-stats {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-top: -40px; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-separator {
+            width: 1px;
+            background: var(--border);
+            position: absolute;
+            left: 50%;
+            top: 15%;
+            bottom: 35%;
+        }
+
+        .mini-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .mini-stat-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .spent-bar-container {
+            grid-column: span 2;
+            background: var(--bg-body);
+            padding: 10px 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .wallet-header-bg {
+                margin: -1rem -1rem 0 -1rem; 
+                padding: 1.5rem 1rem 4rem 1rem;
+                border-radius: 0 0 25px 25px;
+            }
+            .floating-stats {
+                padding: 1rem;
+                gap: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="overlay"></div>
+
+        <aside class="sidebar">
+            <div class="brand"><i class="ri-wallet-3-fill"></i> AnviPayz</div>
+            <nav class="nav-links">
+                <a href="home.html" class="nav-item"><i class="ri-home-5-line"></i> Dashboard</a>
+                <a href="tasks.html" class="nav-item"><i class="ri-task-line"></i> Tasks</a>
+                <a href="wallet.html" class="nav-item active"><i class="ri-wallet-line"></i> Wallet</a>
+                <a href="refer.html" class="nav-item"><i class="ri-share-forward-line"></i> Refer & Earn</a>
+                <a href="notifications.html" class="nav-item"><i class="ri-notification-3-line"></i> Notifications</a>
+                <a href="support.html" class="nav-item"><i class="ri-customer-service-2-line"></i> Support</a>
+            </nav>
+            <div class="nav-footer">
+                <a href="index.html" class="nav-item" style="color: #ef4444;"><i class="ri-logout-box-r-line"></i> Logout</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <div class="mobile-header">
+                <button class="icon-btn" id="menu-btn"><i class="ri-menu-line"></i></button>
+                <div class="brand" style="margin:0; font-size:1.2rem;">Wallet</div>
+                <button class="icon-btn mobile-theme-toggle"><i class="ri-moon-line"></i></button>
+            </div>
+
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>My Wallet</h1>
+                    <p style="color:var(--text-muted)">Earnings overview.</p>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" id="theme-toggle"><i class="ri-moon-line"></i></button>
+                </div>
+            </header>
+
+            <div class="wallet-header-bg">
+                <div style="margin-bottom: 0.5rem; opacity: 0.9; font-size: 0.9rem;">TOTAL BALANCE</div>
+                
+                <h1 id="wallet-balance" style="font-size: 3rem; font-weight: 800; line-height: 1.1; margin-bottom: 0.5rem;">0</h1>
+                
+                <div style="font-size: 0.85rem; opacity: 0.8; background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 12px; border-radius: 20px;">
+                    <i class="ri-shield-check-line"></i> Safe & Secure
+                </div>
+            </div>
+
+            <div class="floating-stats">
+                <div class="stat-separator"></div>
+
+                <div style="text-align: center;">
+                    <div class="mini-stat-label">
+                        <i class="ri-group-fill" style="color: #8b5cf6;"></i> Referrals
+                    </div>
+                    <div id="wallet-refer-count" class="mini-stat-value">0</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <div class="mini-stat-label">
+                        <i class="ri-task-fill" style="color: #10b981;"></i> Tasks
+                    </div>
+                    <div id="wallet-task-count" class="mini-stat-value">0</div>
+                </div>
+
+                <div class="spent-bar-container">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="background: #fee2e2; padding: 6px; border-radius: 50%; color: #ef4444; display: flex;">
+                            <i class="ri-smartphone-line"></i>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Used in Recharge</span>
+                    </div>
+                    <span style="font-weight: 700; color: #ef4444;">-0</span>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 2rem;">
+                Recent Transactions
+            </div>
+
+            <div class="card" id="transaction-list">
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <div class="spinner" style="width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+                    Loading history...
+                </div>
+            </div>
+            
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+            <footer class="app-footer">
+                <a href="legal.html#privacy" target="_blank">Privacy Policy</a>
+                <span>•</span>
+                <a href="legal.html#terms" target="_blank">Terms & Conditions</a>
+                <span>•</span>
+                <a href="legal.html#disclaimer" target="_blank">Disclaimer</a>
+            </footer>
+        </main>
+
+        <nav class="mobile-nav">
+            <a href="home.html" class="mobile-nav-item"><i class="ri-home-5-line"></i><span>Home</span></a>
+            <a href="tasks.html" class="mobile-nav-item"><i class="ri-task-line"></i><span>Tasks</span></a>
+            <a href="wallet.html" class="mobile-nav-item active"><i class="ri-wallet-line"></i><span>Wallet</span></a>
+        </nav>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script type="module" src="js/wallet.js"></script>
+</body>
+</html>
