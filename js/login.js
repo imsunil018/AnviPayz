@@ -5,12 +5,12 @@ const loginForm = document.getElementById('login-form');
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById('login-email').value.trim(); // Extra space hatane ke liye trim()
+    const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const btn = document.getElementById('login-btn');
 
     try {
-        // 1. Security: Button disable karo taaki user baar baar click na kare
+        // 1. Security: Button disable
         btn.innerText = "Verifying...";
         btn.style.opacity = "0.7";
         btn.disabled = true;
@@ -18,6 +18,11 @@ loginForm.addEventListener('submit', async (e) => {
         // 2. Firebase check
         await signInWithEmailAndPassword(auth, email, password);
         
+        // --- ✨ NEW ADDITION: START ---
+        // Login successful hai, to abhi ka Time note kar lo
+        localStorage.setItem('anvi_last_active', Date.now());
+        // --- ✨ NEW ADDITION: END ---
+
         // 3. Success -> Redirect
         window.location.href = "home.html";
 
