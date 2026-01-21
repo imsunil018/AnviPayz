@@ -1,46 +1,48 @@
-import { auth, signInWithEmailAndPassword } from "./firebase-config.js";
+// 1. Imports mein 'setPersistence' aur 'browserLocalPersistence' add karein
+import { auth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "./firebase-config.js";
 
 const loginForm = document.getElementById('login-form');
 
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const btn = document.getElementById('login-btn');
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const btn = document.getElementById('login-btn');
 
-    try {
-        // 1. Security: Button disable
-        btn.innerText = "Verifying...";
-        btn.style.opacity = "0.7";
-        btn.disabled = true;
+        try {
+            btn.innerText = "Verifying...";
+            btn.style.opacity = "0.7";
+            btn.disabled = true;
 
-        // 2. Firebase check
-        await signInWithEmailAndPassword(auth, email, password);
-        
-        // --- ✨ NEW ADDITION: START ---
-        // Login successful hai, to abhi ka Time note kar lo
-        localStorage.setItem('anvi_last_active', Date.now());
-        // --- ✨ NEW ADDITION: END ---
+            // --- 🛠️ FIX: Forcefully Local Persistence Set karo ---
+            // Ye line browser ko bolegi: "Tab band hone par bhi Login rakhna"
+            await setPersistence(auth, browserLocalPersistence);
 
-        // 3. Success -> Redirect
-        window.location.href = "home.html";
+            // 2. Ab Login karo
+            await signInWithEmailAndPassword(auth, email, password);
 
-    } catch (error) {
-        console.error("Login Error:", error);
-        
-        // Reset Button
-        btn.innerText = "Log In";
-        btn.style.opacity = "1";
-        btn.disabled = false;
+            // 3. Time note kar lo (3-Din wale logic ke liye)
+            localStorage.setItem('anvi_last_active', Date.now());
 
-        // Human readable errors
-        if(error.code === "auth/invalid-credential" || error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
-            alert("Incorrect Email or Password.");
-        } else if (error.code === "auth/too-many-requests") {
-            alert("Too many failed attempts. Please try again later.");
-        } else {
-            alert("Error: " + error.message);
+            // 4. Success Redirect
+            window.location.href = "home.html";
+
+        } catch (error) {
+            console.error("Login Error:", error);
+            
+            btn.innerText = "Log In";
+            btn.style.opacity = "1";
+            btn.disabled = false;
+            
+            if(error.code === "auth/invalid-credential" || error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+                alert("Incorrect Email or Password.");
+            } else if (error.code === "auth/too-many-requests") {
+                alert("Too many failed attempts. Please try again later.");
+            } else {
+                alert("Error: " + error.message);
+            }
         }
-    }
-});
+    });
+}
