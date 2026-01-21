@@ -5,12 +5,15 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   onAuthStateChanged,
-  signOut
+  signOut,
+  setPersistence,           // ✅ Naya tool add kiya
+  browserLocalPersistence   // ✅ Naya tool add kiya
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 import {
   getFirestore,
   doc,
-  setDoc,    // ✅ 1. YAHAN IMPORT KIYA
+  setDoc,
   getDoc,
   updateDoc,
   collection,
@@ -23,9 +26,9 @@ import {
   limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Aapki App Configuration
+// ✅ AAPKI NEW UPDATED CONFIGURATION
 const firebaseConfig = {
-  apiKey: "AIzaSyCESmNhN_Ct-kOFVW8rk6_lu_XDA4ASxbU",
+  apiKey: "AIzaSyCYPHQN5fbIb2pXZyxtx9UDwQ5SBgvJ3Yk", // Nayi restricted key
   authDomain: "anvipayz-7f367.firebaseapp.com",
   projectId: "anvipayz-7f367",
   storageBucket: "anvipayz-7f367.firebasestorage.app",
@@ -38,12 +41,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Export (Taaki baaki files use kar sakein)
+// Export sab ek saath
 export {
   auth, db,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  signOut,
+  setPersistence,           // ✅ Export kiya taaki login.js use kar sake
+  browserLocalPersistence,   // ✅ Export kiya taaki login.js use kar sake
   doc,
-  setDoc,    // ✅ 2. YAHAN EXPORT KIYA (Ab Tasks.js isko use kar payega)
+  setDoc,
   getDoc,
   updateDoc,
   collection,
