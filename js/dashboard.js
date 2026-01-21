@@ -2,8 +2,36 @@ import { auth, db, onAuthStateChanged, doc, getDoc, signOut, collection, query, 
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        
+        // --- ✨ 3-DAY INACTIVITY CHECK: START ---
+        const lastActiveTime = localStorage.getItem('anvi_last_active');
+        const currentTime = Date.now();
+        const threeDaysInMs = 3 * 24 * 60 * 60 * 1000; // 3 Din (Milliseconds mein)
+
+        if (lastActiveTime) {
+            const diff = currentTime - parseInt(lastActiveTime);
+
+            // Agar 3 din se zyada ho gaya hai (Session Expired)
+            if (diff > threeDaysInMs) {
+                alert("⚠️ Session Expired: You haven't opened the app in 3 days. Please login again.");
+                
+                await signOut(auth); // Firebase se logout
+                localStorage.removeItem('anvi_last_active'); // Time hatao
+                window.location.href = "index.html"; // Login page par bhejo
+                return; // Code yahin rok do, aage data load mat karo
+            }
+        }
+
+        // Agar user active hai, to Time Update kar do (Reset Timer)
+        // Iska matlab jab tak wo roz app kholta rahega, kabhi logout nahi hoga.
+        localStorage.setItem('anvi_last_active', currentTime);
+        // --- ✨ 3-DAY CHECK: END ---
+
+
+        // User Valid hai, ab Data Load karo
         updateUserData(user.uid);
         loadRecentHistory(user.uid);
+
     } else {
         const path = window.location.pathname;
         if (!path.includes("index.html") && !path.includes("register.html")) {
@@ -27,20 +55,18 @@ async function updateUserData(uid) {
             const idBalance = document.getElementById('user-balance');
             if (idBalance) idBalance.innerText = data.balance || 0;
 
-            // 3. ✅ Refer Count (Home Page par ab Ginti dikhegi)
-            // HTML me id="refer-income" hai, hum usme Count daal rahe hain
+            // 3. Refer Count
             const referIncEl = document.getElementById('refer-income');
             if (referIncEl) {
-                referIncEl.innerText = data.totalReferrals || 0; // Paise ki jagah Ginti
-                // Label ko bhi fix kar dete hain agar JS se ho sake
+                referIncEl.innerText = data.totalReferrals || 0;
                 const label = referIncEl.previousElementSibling?.querySelector('.stat-label');
                 if(label) label.innerText = "Total Refers"; 
             }
 
-            // 4. ✅ Task Count (Home Page par ab Ginti dikhegi)
+            // 4. Task Count
             const taskIncEl = document.getElementById('task-income');
             if (taskIncEl) {
-                taskIncEl.innerText = data.totalTasks || 0; // Paise ki jagah Ginti
+                taskIncEl.innerText = data.totalTasks || 0;
                 const label = taskIncEl.previousElementSibling?.querySelector('.stat-label');
                 if(label) label.innerText = "Tasks Done";
             }
@@ -103,6 +129,10 @@ const logoutBtn = document.querySelector('a[href="index.html"]');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if(confirm("Logout?")) signOut(auth).then(() => window.location.href = "index.html");
+        if(confirm("Logout?")) signOut(auth).then(() => {
+            // Logout par time clear kar do
+            localStorage.removeItem('anvi_last_active'); 
+            window.location.href = "index.html";
+        });
     });
 }
