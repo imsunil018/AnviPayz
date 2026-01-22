@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AnviPayz</title>
+
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <meta name="description"
+        content="AnviPayz - The best rewards platform. Complete simple daily tasks, watch videos, and earn coins instantly. Safe, secure, and fast.">
+    <meta name="keywords"
+        content="AnviPayz, earn money online, daily rewards, task app, watch and earn, referral bonus, fintech app">
+    <meta name="author" content="AnviPayz Team">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="AnviPayz - Earn Daily Rewards">
+    <meta property="og:description"
+        content="Join AnviPayz today! Complete tasks and build your coin balance. Sign up now for a bonus.">
+    <meta property="og:image" content="https://anvipayz.vercel.app/banner.jpg">
+    <meta property="og:url" content="https://anvipayz.vercel.app">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AnviPayz - Earn Daily Rewards">
+    <meta name="twitter:description" content="Start earning coins by doing simple tasks. Join the community now!">
+    <meta name="twitter:image" content="https://anvipayz.vercel.app/banner.jpg">
+
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('anvi-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link href="css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AnviPayz",
+      "operatingSystem": "Web",
+      "applicationCategory": "FinanceApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR"
+      },
+      "description": "AnviPayz allows users to manage tasks, earn reward coins, and track referrals easily."
+    }
+    </script>
+
+    <style>
+        /* Login options ko ek line mein force karne ke liye */
+.login-meta {
+    flex-direction: row !important; /* Column hone se rokega */
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* Mobile par thoda adjust karne ke liye */
+@media (max-width: 480px) {
+    .login-meta label, 
+    .login-meta a {
+        font-size: 0.75rem !important;
+    }
+}
+    </style>
+</head>
+
+<body>
+    <div class="auth-wrapper">
+        <div class="card auth-card">
+            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">AnviPayz</h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Welcome back! Log in to continue.</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <div class="form-group login-meta"
+                    style="display: flex; align-items: center; justify-content: space-between; margin: 1rem 0; width: 100%;">
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="remember-me" style="width: 16px; height: 16px; cursor: pointer;">
+                        <label for="remember-me"
+                            style="font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">Remember me</label>
+                    </div>
+
+                    <a href="forgot.html"
+                        style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">Forgot
+                        Password?</a>
+                </div>
+
+
+
+                <button type="submit" id="login-btn" class="btn-primary">Log In</button>
+            </form>
+
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                Don't have an account? <a href="register.html" style="color: var(--primary); font-weight: 600;">Sign
+                    Up</a>
+            </p>
+        </div>
+    </div>
+    <script type="module" src="js/login.js"></script>
+</body>
+
+</html>

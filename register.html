@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Account - AnviPayz</title>
+
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <meta name="description"
+        content="Sign up for AnviPayz and start earning. Create your account today to get daily rewards and referral bonuses.">
+    <meta name="keywords" content="AnviPayz register, sign up, create account, earn money app">
+    <meta name="author" content="AnviPayz Team">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="Join AnviPayz - Start Earning Today">
+    <meta property="og:description" content="Create a free account and start your earning journey with AnviPayz.">
+    <meta property="og:image" content="https://anvipayz.vercel.app/banner.jpg">
+    <meta property="og:url" content="https://anvipayz.vercel.app/register.html">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Join AnviPayz">
+    <meta name="twitter:description" content="Create a free account and start your earning journey with AnviPayz.">
+    <meta name="twitter:image" content="https://anvipayz.vercel.app/banner.jpg">
+
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('anvi-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link href="css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AnviPayz",
+      "applicationCategory": "FinanceApplication",
+      "description": "Sign up page for AnviPayz application."
+    }
+    </script>
+
+
+    
+</head>
+
+<body>
+    <div class="auth-wrapper">
+        <div class="card auth-card">
+            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">Create Account</h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Join AnviPayz & Start Earning.</p>
+
+            <form id="register-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="register-name" class="form-input" placeholder="e.g. Rahul Kumar" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="register-email" class="form-input" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="register-password" class="form-input"
+                        placeholder="Min. 8 chars (Use A-z, 0-9, @#$)" required>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">At least 8 chars, 1 uppercase, 1 number
+                        & 1 special char.</small>
+                </div>
+                <div class="form-group">
+                    <label>Referral Code <span
+                            style="color:var(--text-muted); font-weight:400;">(Optional)</span></label>
+                    <input type="text" id="register-refer" class="form-input" placeholder="e.g. ANVI2024">
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px; margin: 1.5rem 0;">
+                    <input type="checkbox" id="terms-check" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="terms-check" style="font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
+                        I agree to the <a href="legal.html" target="_blank"
+                            style="color: var(--primary); font-weight: 600;">Terms</a>
+                        & <a href="legal.html" target="_blank"
+                            style="color: var(--primary); font-weight: 600;">Privacy Policy</a>.
+                    </label>
+                </div>
+                <button type="submit" id="register-btn" class="btn-primary">Create Account</button>
+            </form>
+
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                Already have an account? <a href="index.html" style="color: var(--primary); font-weight: 600;">Log
+                    In</a>
+            </p>
+        </div>
+    </div>
+    <script type="module" src="js/register.js"></script>
+
+</body>
+
+</html>
