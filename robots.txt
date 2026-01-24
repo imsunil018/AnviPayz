@@ -6,4 +6,5 @@ Disallow: /wallet.html
 Disallow: /refer.html
 
 
-Sitemap: https://anvipay.com/sitemap.xml
+Sitemap: https://www.anvipayz.com/sitemap.xml
+
