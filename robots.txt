@@ -5,4 +5,5 @@ Disallow: /tasks.html
 Disallow: /wallet.html
 Disallow: /refer.html
 
-Sitemap: https://anvipayz.vercel.app/sitemap.xml
+
+Sitemap: https://anvipay.com/sitemap.xml
