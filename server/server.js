@@ -5,10 +5,10 @@ const helmet = require('helmet');
 const connectDB = require('./config/db');
 
 const NODE_ENV = String(process.env.NODE_ENV || 'development').trim().toLowerCase();
-const ALLOWED_ORIGINS = [
-    'https://anvi-payz-main-preview.vercel.app',
-    'http://127.0.0.1:5501'
-];
+// const ALLOWED_ORIGINS = [
+//     'https://anvi-payz-main-preview.vercel.app',
+//     'http://127.0.0.1:5501'
+// ];
 const allowedOrigins = [...ALLOWED_ORIGINS];
 const requiredEnv = ['MONGO_URI', 'JWT_SECRET'];
 
@@ -30,18 +30,29 @@ app.use(helmet({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const ALLOWED_ORIGINS = [
+    'https://anvi-payz-main-preview.vercel.app',
+    'http://127.0.0.1:5501',
+    'http://localhost:5501',
+    'http://127.0.0.1:5502',
+    'http://localhost:5502',
+    'https://anvipayz-main-preview-production.up.railway.app'
+];
+
 app.use(cors({
-    origin(origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-            return;
+    origin: function(origin, callback){
+
+        if(!origin) return callback(null,true);
+
+        if(ALLOWED_ORIGINS.includes(origin)){
+            return callback(null,true);
         }
 
-        callback(new Error('CORS origin denied'));
+        console.log("Blocked:", origin);
+
+        return callback(new Error("CORS blocked"));
     },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    credentials:true
 }));
 
 const GLOBAL_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
