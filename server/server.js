@@ -6,13 +6,14 @@ const connectDB = require('./config/db');
 
 const NODE_ENV = String(process.env.NODE_ENV || 'development').trim().toLowerCase();
 const ALLOWED_ORIGINS = [
-    "https://anvi-payz-main-preview.vercel.app",
+    "https://anvipayz-main-preview.vercel.app/",
     "http://localhost:5500",
     "http://127.0.0.1:5500",
     "http://localhost:5501",
     "http://127.0.0.1:5501",
     "http://localhost:5502",
-    "http://127.0.0.1:5502"
+    "http://127.0.0.1:5502",
+    "https://anvipayz-main-preview.onrender.com/",
 ];
 const allowedOrigins = [...ALLOWED_ORIGINS];
 const requiredEnv = ['MONGO_URI', 'JWT_SECRET'];
