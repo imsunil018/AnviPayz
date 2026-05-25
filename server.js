@@ -26,10 +26,13 @@ const {
 const envResult = require('dotenv').config({ path: path.join(__dirname, '.env') });
 const NODE_ENV = String(process.env.NODE_ENV || 'development').trim().toLowerCase();
 const ALLOWED_ORIGINS = [
-    'https://anvi-payz-main-preview.vercel.app',
-    'http://127.0.0.1:5501',
-    'http://localhost:5501',
-    'https://anvipayz-main-preview-production.up.railway.app'
+    "https://anvi-payz-main-preview.vercel.app",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:5501",
+    "http://127.0.0.1:5501",
+    "http://localhost:5502",
+    "http://127.0.0.1:5502"
 ];
 
 if (envResult.error) {
@@ -55,7 +58,7 @@ if (missingEnv.length > 0) {
     process.exit(1);
 }
 
-console.log(`[Config] Port: ${process.env.PORT || 5050}`);
+console.log(`[Config] Port: ${process.env.PORT || 5000}`);
 console.log(`[Config] Environment: ${NODE_ENV}`);
 console.log(`[Config] Allowed frontend origins: ${allowedOrigins.join(', ')}`);
 
@@ -67,16 +70,14 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 app.use(cors({
-    origin(origin, callback) {
-        const isAllowed = !origin || allowedOrigins.includes(origin);
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
 
-        if (isAllowed) {
-            callback(null, true);
-            return;
+        if (ALLOWED_ORIGINS.includes(origin)) {
+            return callback(null, true);
         }
 
-        console.warn(`[CORS] Origin denied: ${origin}`);
-        callback(new Error('CORS origin denied'));
+        return callback(new Error("CORS blocked"));
     },
     credentials: true
 }));
@@ -1848,14 +1849,13 @@ app.get('/api/admin/activity', async (req, res) => {
 
 // Static assets are served at the top of the file for performance.
 
-const PORT = parseInt(process.env.PORT, 10) || 5050;
-const HOST = process.env.HOST || '0.0.0.0';
+const PORT = process.env.PORT || 5000;
 
 if (!isServerless) {
-    const server = app.listen(PORT, HOST, () => {
+    const server = app.listen(PORT, () => {
         console.log('\n========================================================');
         console.log('ANVIPAYZ BACKEND IS LIVE');
-        console.log(`URL: http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+        console.log(`URL: http://localhost:${PORT}`);
         console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
         console.log(`Test URL: http://localhost:${PORT}/api/test`);
         console.log('========================================================\n');

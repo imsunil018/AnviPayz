@@ -294,19 +294,28 @@
         </div>
 
         <script>
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            const root = document.documentElement;
-            const currentTheme = root.getAttribute('data-theme');
-            const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            root.setAttribute('data-theme', nextTheme);
-            localStorage.setItem('anvi-theme', nextTheme);
-            document.querySelector('#theme-toggle i').className = nextTheme === 'dark' ? 'ri-moon-line' : 'ri-sun-line';
-        });
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const root = document.documentElement;
+                const currentTheme = root.getAttribute('data-theme');
+                const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', nextTheme);
+                localStorage.setItem('anvi-theme', nextTheme);
+                const icon = document.querySelector('#theme-toggle i');
+                if (icon) {
+                    icon.className = nextTheme === 'dark' ? 'ri-moon-line' : 'ri-sun-line';
+                }
+            });
+        }
 
         // Set initial icon
         window.addEventListener('DOMContentLoaded', () => {
             const theme = document.documentElement.getAttribute('data-theme');
-            document.querySelector('#theme-toggle i').className = theme === 'dark' ? 'ri-moon-line' : 'ri-sun-line';
+            const icon = document.querySelector('#theme-toggle i');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'ri-moon-line' : 'ri-sun-line';
+            }
         });
     </script>
     </body>

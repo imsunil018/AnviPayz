@@ -1,8 +1,6 @@
-const API_BASE_URL =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-        ? "http://localhost:5000"
-        : "https://anvipayz-main-preview-production.up.railway.app";
+const API_BASE_URL = (typeof API_URL === "string" && API_URL.trim())
+    ? API_URL.trim().replace(/\/+$/, "")
+    : "";
 
 export const ADMIN_API_BASE = `${API_BASE_URL}/api/admin`;
 const ADMIN_TOKEN_KEY = "anvi-admin-token";

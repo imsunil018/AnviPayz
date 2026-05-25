@@ -14,27 +14,34 @@ function normalizeApiBase(value) {
         .replace(/\/api$/, "");
 }
 
-const API_BASE_FALLBACK_REMOTE = "https://anvipayz-main-preview-production.up.railway.app";
-const API_BASE_LOCAL = "http://localhost:5000";
+const API_BASE_CONFIG = (typeof API_URL === "string" && API_URL.trim())
+    ? normalizeApiBase(API_URL)
+    : "";
+const API_BASE_LOCAL = API_BASE_CONFIG || "";
+const API_BASE_FALLBACK_REMOTE = API_BASE_CONFIG || "";
 function pickInitialApiBase() {
     try {
         const forced = normalizeApiBase(localStorage.getItem("anvi-api-base"));
         if (forced) {
-            return forced;
+            const isForcedLocal = forced.startsWith("http://localhost") || forced.startsWith("http://127.0.0.1");
+            const isForcedRemote = API_BASE_FALLBACK_REMOTE && forced === API_BASE_FALLBACK_REMOTE;
+            if (isForcedLocal || isForcedRemote) {
+                return forced;
+            }
         }
     } catch (_) {
         // ignore
     }
 
     if (!isLocalDev) {
-        return API_BASE_FALLBACK_REMOTE;
+        return API_BASE_FALLBACK_REMOTE || API_BASE_LOCAL;
     }
 
     // Live Server / static hosts on 127.0.0.1 often don't run the backend on `:5000`.
     // Default to remote to avoid a slow failing request on every page load.
     const port = String(window.location.port || "");
     if (window.location.protocol !== "file:" && port && port !== "5000") {
-        return API_BASE_FALLBACK_REMOTE;
+        return API_BASE_FALLBACK_REMOTE || API_BASE_LOCAL;
     }
 
     return API_BASE_LOCAL;

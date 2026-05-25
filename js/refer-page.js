@@ -51,11 +51,15 @@
             // ignore
         }
 
-        const isLocal = window.location.protocol === "file:" ||
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1";
+        try {
+            if (typeof API_URL === "string" && API_URL.trim()) {
+                return API_URL.trim().replace(/\/+$/, "");
+            }
+        } catch (error) {
+            // ignore
+        }
 
-        return (isLocal ? "http://localhost:5000" : "https://anvipayz-main-preview-production.up.railway.app");
+        return "";
     }
 
     function getToken() {
