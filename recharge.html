@@ -6,6 +6,69 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Recharge - AnviPayz</title>
 
+        <style>
+            #anvi-splash {
+                position: fixed;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                background: #0f172a;
+                color: #ffffff;
+                z-index: 9999;
+                opacity: 1;
+                pointer-events: none;
+                animation: anviSplashOut 350ms ease forwards;
+                animation-delay: 1200ms;
+            }
+
+            #anvi-splash .inner {
+                display: grid;
+                gap: 12px;
+                place-items: center;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+                letter-spacing: 0.2px;
+            }
+
+            #anvi-splash .spinner {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                border: 3px solid rgba(255, 255, 255, 0.25);
+                border-top-color: #ffffff;
+                animation: anviSpin 800ms linear infinite;
+            }
+
+            html[data-theme="light"] #anvi-splash {
+                background: #ffffff;
+                color: #0f172a;
+            }
+
+            html[data-theme="light"] #anvi-splash .spinner {
+                border-color: rgba(15, 23, 42, 0.2);
+                border-top-color: #0f172a;
+            }
+
+            @keyframes anviSpin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes anviSplashOut {
+                to {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #anvi-splash {
+                    animation-duration: 1ms;
+                    animation-delay: 0ms;
+                }
+            }
+        </style>
+
         <script>
         (function () {
             const root = document.documentElement;
@@ -36,6 +99,12 @@
             --rx-surface-soft: rgba(248, 250, 252, 0.86);
             --rx-border: rgba(14, 165, 233, 0.2);
             font-family: "Manrope", sans-serif;
+        }
+
+        .page-recharge .rx-shell {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 14px 24px;
         }
 
         .page-recharge .rx-hero {
@@ -152,10 +221,16 @@
             gap: 16px;
         }
 
+        .page-recharge .rx-right {
+            position: sticky;
+            top: 108px;
+        }
+
         .page-recharge .rx-card {
             border-radius: 22px;
             border: 1px solid var(--rx-border) !important;
             background: linear-gradient(148deg, var(--rx-surface), var(--rx-surface-soft)) !important;
+            padding: 18px 18px 16px;
         }
 
         .page-recharge .rx-title {
@@ -178,6 +253,83 @@
             color: #334155;
             font-size: 0.78rem;
             font-weight: 700;
+        }
+
+        .page-recharge .rx-stepper {
+            display: flex;
+            gap: 10px;
+            margin: 12px 0 6px;
+            flex-wrap: wrap;
+        }
+
+        .page-recharge .rx-step {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(14, 165, 233, 0.25);
+            background: rgba(14, 165, 233, 0.08);
+            color: #0b3b5d;
+            font-size: 0.74rem;
+            font-weight: 800;
+        }
+
+        .page-recharge .rx-step span {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: linear-gradient(135deg, var(--rx-primary), var(--rx-primary-2));
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        .page-recharge .rx-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .page-recharge .rx-input {
+            position: relative;
+            display: grid;
+        }
+
+        .page-recharge .rx-input i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(15, 74, 116, 0.9);
+            font-size: 1.08rem;
+            pointer-events: none;
+        }
+
+        [data-theme="dark"] .page-recharge .rx-input i {
+            color: rgba(197, 229, 255, 0.92);
+        }
+
+        .page-recharge .rx-input .form-input {
+            padding-left: 42px;
+            border-radius: 16px;
+            min-height: 46px;
+            font-weight: 750;
+            letter-spacing: -0.01em;
+            border: 1px solid rgba(14, 165, 233, 0.18);
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        [data-theme="dark"] .page-recharge .rx-input .form-input {
+            background: rgba(6, 12, 24, 0.55);
+            border-color: rgba(84, 171, 245, 0.36);
+        }
+
+        .page-recharge .rx-input .form-input:focus {
+            outline: none;
+            border-color: rgba(14, 165, 233, 0.55);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.16);
         }
 
         .page-recharge .rx-quick-row {
@@ -213,6 +365,19 @@
             margin-top: 14px;
             width: 100%;
             background: linear-gradient(135deg, var(--rx-primary), var(--rx-primary-2), var(--rx-accent)) !important;
+        }
+
+        .page-recharge .rx-submit--dock {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 48px;
+            border-radius: 18px;
+            font-weight: 850;
+            letter-spacing: -0.01em;
+            max-width: 520px;
+            margin: 18px auto 0;
         }
 
         .page-recharge .rx-filter-row {
@@ -458,6 +623,10 @@
             .page-recharge .rx-layout {
                 grid-template-columns: 1fr;
             }
+
+            .page-recharge .rx-right {
+                position: static;
+            }
         }
 
         @media (max-width: 620px) {
@@ -504,11 +673,35 @@
             .page-recharge .rx-filter-row {
                 grid-template-columns: 1fr;
             }
+
+            .page-recharge .rx-shell {
+                padding: 0 12px 120px;
+            }
+
+            .page-recharge #recharge-pay-btn {
+                position: fixed;
+                left: 12px;
+                right: 12px;
+                bottom: calc(12px + env(safe-area-inset-bottom, 0px) + 74px);
+                z-index: 60;
+                border-radius: 18px;
+                box-shadow: 0 16px 30px rgba(2, 6, 23, 0.32);
+            }
+
+            .page-recharge .rx-submit--dock {
+                display: inline-flex;
+            }
         }
     </style>
     </head>
 
     <body>
+        <div id="anvi-splash" role="status" aria-live="polite" aria-label="Loading">
+            <div class="inner">
+                <div class="spinner" aria-hidden="true"></div>
+                <div>Loading…</div>
+            </div>
+        </div>
 
         <div class="app-container">
             <div class="overlay"></div>
@@ -581,70 +774,88 @@
                     </div>
                 </header>
 
-                <section class="card rx-hero">
-                    <div>
-                        <h2>Mobile Recharge with Paytm Test Checkout</h2>
-                        <p>Use this screen to run end-to-end test payments and
-                            apply token discount at checkout. Recharge se
-                            token earn nahi hota.</p>
-                        <div class="rx-hero-row">
-                            <span class="rx-pill"><i
-                                    class="ri-shield-check-line"></i> Secure
-                                Flow</span>
-                            <span class="rx-pill"><i
-                                    class="ri-wallet-3-line"></i> Token
-                                Estimate</span>
-                            <span class="rx-pill"><i class="ri-rocket-line"></i>
-                                Fast UX</span>
+                <div class="rx-shell">
+                    <section class="card rx-hero">
+                        <div>
+                            <h2>Mobile Recharge</h2>
+                            <p>Quick recharge flow with optional token discount
+                                at checkout (test mode).</p>
+                            <div class="rx-hero-row">
+                                <span class="rx-pill"><i
+                                        class="ri-shield-check-line"></i>
+                                    Secure</span>
+                                <span class="rx-pill"><i
+                                        class="ri-wallet-3-line"></i> Token
+                                    Discount</span>
+                                <span class="rx-pill"><i
+                                        class="ri-flashlight-fill"></i>
+                                    Fast</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="rx-phone">
-                        <div class="rx-phone-head"><span>Recharge
-                                Preview</span><span>Test</span></div>
-                        <div class="rx-phone-card">
-                            <p>Selected Plan</p>
-                            <h4 id="rx-mini-plan">No plan selected</h4>
+                        <div class="rx-phone">
+                            <div class="rx-phone-head"><span>Preview</span><span>Test</span></div>
+                            <div class="rx-phone-card">
+                                <p>Selected Plan</p>
+                                <h4 id="rx-mini-plan">No plan selected</h4>
+                            </div>
+                            <div class="rx-phone-card">
+                                <p>Amount</p>
+                                <h4 id="rx-mini-amount">Rs 0</h4>
+                            </div>
+                            <div class="rx-phone-card">
+                                <p>Token Discount</p>
+                                <h4 id="rx-mini-token-discount">- Rs 0</h4>
+                            </div>
                         </div>
-                        <div class="rx-phone-card">
-                            <p>Amount</p>
-                            <h4 id="rx-mini-amount">Rs 0</h4>
-                        </div>
-                        <div class="rx-phone-card">
-                            <p>Token Discount</p>
-                            <h4 id="rx-mini-token-discount">- Rs 0</h4>
-                        </div>
-                    </div>
-                </section>
+                    </section>
 
-                <section class="rx-layout">
-                    <div class="rx-left">
+                    <section class="rx-layout">
+                        <div class="rx-left">
                         <section class="card rx-card">
                             <h3 class="rx-title">Enter Recharge Details</h3>
                             <p class="rx-sub">Step 1: Fill required info and
                                 choose amount.</p>
+                            <div class="rx-stepper" aria-label="Recharge steps">
+                                <div class="rx-step"><span>1</span> Details</div>
+                                <div class="rx-step"><span>2</span> Plan</div>
+                                <div class="rx-step"><span>3</span> Pay</div>
+                            </div>
                             <form id="recharge-form">
-                                <label class="rx-label">Mobile Number</label>
-                                <input type="tel" id="recharge-mobile"
-                                    class="form-input"
-                                    placeholder="Enter 10-digit mobile number"
-                                    maxlength="10" required>
+                                <div class="rx-field">
+                                    <label class="rx-label" for="recharge-mobile">Mobile Number</label>
+                                    <div class="rx-input">
+                                        <i class="ri-phone-line"></i>
+                                        <input type="tel" id="recharge-mobile"
+                                            class="form-input"
+                                            placeholder="Enter 10-digit mobile number"
+                                            maxlength="10" required>
+                                    </div>
+                                </div>
 
-                                <label class="rx-label">Operator</label>
-                                <select id="recharge-operator"
-                                    class="form-input" required>
+                                <div class="rx-field">
+                                    <label class="rx-label" for="recharge-operator">Operator</label>
+                                    <div class="rx-input">
+                                        <i class="ri-sim-card-line"></i>
+                                        <select id="recharge-operator"
+                                            class="form-input" required>
                                     <option value>Select Operator</option>
                                     <option value="Jio">Jio</option>
                                     <option value="Airtel">Airtel</option>
                                     <option value="Vi">Vi</option>
                                     <option value="BSNL">BSNL</option>
-                                </select>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div id="operator-warning"
                                     class="rx-warning"></div>
 
-                                <label class="rx-label">State / Circle</label>
-                                <select id="recharge-circle" class="form-input"
-                                    required>
+                                <div class="rx-field">
+                                    <label class="rx-label" for="recharge-circle">State / Circle</label>
+                                    <div class="rx-input">
+                                        <i class="ri-map-pin-line"></i>
+                                        <select id="recharge-circle" class="form-input"
+                                            required>
                                     <option value>Select State / Circle</option>
                                     <option value="All India" selected>All
                                         India</option>
@@ -703,13 +914,20 @@
                                         value="Lakshadweep">Lakshadweep</option>
                                     <option
                                         value="Puducherry">Puducherry</option>
-                                </select>
+                                        </select>
+                                    </div>
+                                </div>
 
-                                <label class="rx-label">Amount (INR)</label>
-                                <input type="number" id="recharge-amount"
-                                    class="form-input"
-                                    placeholder="Enter amount"
-                                    min="10" max="5000" required>
+                                <div class="rx-field">
+                                    <label class="rx-label" for="recharge-amount">Amount (INR)</label>
+                                    <div class="rx-input">
+                                        <i class="ri-money-rupee-circle-line"></i>
+                                        <input type="number" id="recharge-amount"
+                                            class="form-input"
+                                            placeholder="Enter amount"
+                                            min="10" max="5000" required>
+                                    </div>
+                                </div>
 
                                 <div class="rx-token-panel">
                                     <div class="rx-token-head">
@@ -723,11 +941,14 @@
                                             id="use-token-discount">
                                         Apply token discount on this recharge
                                     </label>
-                                    <input type="number"
-                                        id="token-discount-input"
-                                        class="form-input"
-                                        placeholder="Enter tokens to use"
-                                        min="0" step="1" disabled>
+                                    <div class="rx-input">
+                                        <i class="ri-coin-line"></i>
+                                        <input type="number"
+                                            id="token-discount-input"
+                                            class="form-input"
+                                            placeholder="Enter tokens to use"
+                                            min="0" step="1" disabled>
+                                    </div>
                                     <p id="token-max-note"
                                         class="rx-token-note">Max discount
                                         updates after amount entry.
@@ -745,11 +966,6 @@
                                         data-quick="666">Rs 666</button>
                                 </div>
 
-                                <button type="submit" id="recharge-pay-btn"
-                                    class="btn-primary rx-submit">
-                                    <i class="ri-secure-payment-line"></i> Pay
-                                    Securely (Test)
-                                </button>
                             </form>
                         </section>
 
@@ -833,7 +1049,13 @@
                             </div>
                         </section>
                     </div>
-                </section>
+                    </section>
+
+                    <button type="submit" form="recharge-form" id="recharge-pay-btn"
+                        class="btn-primary rx-submit rx-submit--dock">
+                        <i class="ri-secure-payment-line"></i> Pay Securely (Test)
+                    </button>
+                </div>
 
                 <footer class="app-footer">
                     <a href="privacy.html">Privacy Policy</a>
@@ -855,17 +1077,15 @@
                         class="ri-flashlight-fill"></i><span>Recharge</span></a>
                 <a href="tasks.html" class="mobile-nav-item"><i
                         class="ri-task-line"></i><span>Tasks</span></a>
-                <a href="spin.html" class="mobile-nav-item">
-                    <i class="ri-refresh-line"></i>
-                    <span>Spin</span>
-                </a>
+                <a href="refer.html" class="mobile-nav-item"><i
+                        class="ri-share-forward-line"></i><span>Refer</span></a>
             </nav>
         </div>
 
         <script
             src="https://securegw-stage.paytm.in/merchantpgpui/checkoutjs/merchants/ihspTt95063699267134.js"></script>
-        <script src="config.js"></script>
-        <script defer src="js/auth.js?v=20260525-1"></script>
+        <script src="config.js?v=20260528-1"></script>
+        <script defer src="js/auth.js?v=20260525-2"></script>
     </body>
 
 </html>

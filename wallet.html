@@ -6,6 +6,69 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Wallet - AnviPayz</title>
 
+        <style>
+            #anvi-splash {
+                position: fixed;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                background: #0f172a;
+                color: #ffffff;
+                z-index: 9999;
+                opacity: 1;
+                pointer-events: none;
+                animation: anviSplashOut 350ms ease forwards;
+                animation-delay: 1200ms;
+            }
+
+            #anvi-splash .inner {
+                display: grid;
+                gap: 12px;
+                place-items: center;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+                letter-spacing: 0.2px;
+            }
+
+            #anvi-splash .spinner {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                border: 3px solid rgba(255, 255, 255, 0.25);
+                border-top-color: #ffffff;
+                animation: anviSpin 800ms linear infinite;
+            }
+
+            html[data-theme="light"] #anvi-splash {
+                background: #ffffff;
+                color: #0f172a;
+            }
+
+            html[data-theme="light"] #anvi-splash .spinner {
+                border-color: rgba(15, 23, 42, 0.2);
+                border-top-color: #0f172a;
+            }
+
+            @keyframes anviSpin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes anviSplashOut {
+                to {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #anvi-splash {
+                    animation-duration: 1ms;
+                    animation-delay: 0ms;
+                }
+            }
+        </style>
+
         <script>
         (function () {
             const root = document.documentElement;
@@ -31,9 +94,14 @@
             }
 
             .wallet-header-bg {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.2rem;
                 padding: 1.1rem 1rem 2.6rem;
                 border-radius: 0 0 24px 24px;
-                margin: -0.75rem -0.9rem 0;
+                margin: -0.75rem -1rem 0;
                 background:
                     radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.18), transparent 42%),
                     radial-gradient(circle at 86% 12%, rgba(49, 196, 141, 0.26), transparent 46%),
@@ -43,23 +111,83 @@
             }
 
             .wallet-hero-kicker {
-                font-size: 0.7rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                width: fit-content;
+                padding: 0.35rem 0.65rem;
+                border-radius: 999px;
+                font-size: 0.72rem;
+                font-weight: 850;
                 letter-spacing: 0.12em;
-                color: rgba(255, 255, 255, 0.82);
+                color: rgba(255, 255, 255, 0.9);
+                background: rgba(2, 6, 23, 0.18);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
 
             .wallet-hero-value {
-                font-size: clamp(2.2rem, 9vw, 3rem);
-                margin: 0.4rem 0 0.6rem;
-                letter-spacing: -0.02em;
+                position: relative;
+                display: inline-flex;
+                align-items: baseline;
+                gap: 0.5rem;
+                font-family: "Space Grotesk", "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+                font-size: clamp(2.45rem, 10vw, 3.35rem);
+                font-weight: 900;
+                letter-spacing: -0.03em;
+                line-height: 1.04;
+                margin: 0.55rem 0 0.75rem;
+                font-variant-numeric: tabular-nums;
+                color: rgba(255, 255, 255, 0.98);
+                text-shadow: 0 18px 42px rgba(2, 6, 23, 0.35);
+            }
+
+            @supports (-webkit-background-clip: text) {
+                .wallet-hero-value {
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(237, 245, 255, 0.88));
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    color: transparent;
+                }
+            }
+
+            .wallet-hero-value::after {
+                content: "";
+                position: absolute;
+                inset: auto auto -12px -10px;
+                width: 120px;
+                height: 54px;
+                border-radius: 999px;
+                background: radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.32), transparent 62%);
+                filter: blur(6px);
+                opacity: 0.55;
+                pointer-events: none;
             }
 
             .wallet-hero-pill {
                 border-radius: 999px;
-                padding: 0.45rem 0.85rem;
-                background: rgba(2, 6, 23, 0.22);
-                border: 1px solid rgba(255, 255, 255, 0.22);
-                backdrop-filter: blur(10px);
+                padding: 0.55rem 0.95rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.55rem;
+                background: linear-gradient(135deg, rgba(2, 6, 23, 0.22), rgba(255, 255, 255, 0.06));
+                border: 1px solid rgba(255, 255, 255, 0.24);
+                box-shadow: 0 16px 34px rgba(2, 6, 23, 0.22);
+                backdrop-filter: blur(12px) saturate(140%);
+                -webkit-backdrop-filter: blur(12px) saturate(140%);
+            }
+
+            .wallet-hero-pill strong {
+                font-weight: 900;
+                letter-spacing: -0.01em;
+            }
+
+            .wallet-hero-pill-badge {
+                width: 1.2rem;
+                height: 1.2rem;
+                box-shadow: 0 10px 22px rgba(245, 158, 11, 0.22);
             }
 
             .wallet-stats-grid {
@@ -243,9 +371,9 @@
             }
 
             html[data-theme="light"] .wallet-hero-pill {
-                background: rgba(255, 255, 255, 0.25);
-                border-color: rgba(255, 255, 255, 0.65);
-                color: #ffffff;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.14));
+                border-color: rgba(255, 255, 255, 0.7);
+                color: rgba(255, 255, 255, 0.98);
             }
 
             html[data-theme="light"] .wallet-stats-grid .stat-card {
@@ -318,13 +446,22 @@
             }
 
             @media (max-width: 520px) {
+                .mobile-header {
+                    top: 0.5rem;
+                    padding: calc(0.6rem + env(safe-area-inset-top)) 0.85rem 0.7rem;
+                    border-radius: 20px;
+                }
+
                 .wallet-header-bg {
-                    margin: -0.6rem -0.75rem 0;
+                    margin: -0.6rem -1rem 0;
                     padding: 1rem 0.9rem 2.2rem;
+                    align-items: center;
+                    text-align: center;
                 }
 
                 .wallet-stats-grid {
                     gap: 0.55rem;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
 
                 .wallet-stats-grid .stat-card {
@@ -360,12 +497,30 @@
                     min-height: 3.8rem;
                     font-size: 1.05rem;
                 }
+
+                .wallet-hero-value::after {
+                    left: 50%;
+                    transform: translateX(-50%);
+                    inset: auto auto -12px auto;
+                }
+            }
+
+            @media (max-width: 360px) {
+                .wallet-stats-grid {
+                    grid-template-columns: 1fr;
+                }
             }
         </style>
 
     </head>
 
     <body>
+        <div id="anvi-splash" role="status" aria-live="polite" aria-label="Loading">
+            <div class="inner">
+                <div class="spinner" aria-hidden="true"></div>
+                <div>Loading…</div>
+            </div>
+        </div>
         <div class="app-container">
             <div class="overlay"></div>
 
@@ -567,16 +722,14 @@
 
                 <a href="tasks.html" class="mobile-nav-item"><i
                         class="ri-task-line"></i><span>Tasks</span></a>
-                <a href="spin.html" class="mobile-nav-item">
-                    <i class="ri-refresh-line"></i>
-                    <span>Spin</span>
-                </a>
+                <a href="refer.html" class="mobile-nav-item"><i
+                        class="ri-share-forward-line"></i><span>Refer</span></a>
             </nav>
         </div>
 
-        <script src="config.js"></script>
+        <script src="config.js?v=20260528-1"></script>
 
-        <script defer src="js/auth.js?v=20260525-1"></script>
+        <script defer src="js/auth.js?v=20260525-2"></script>
     </body>
 
 </html>

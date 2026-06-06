@@ -94,6 +94,27 @@
             .sort((a, b) => (b.referrals - a.referrals) || (b.points - a.points));
     }
 
+    function normalizeReferralTiers(payload) {
+        const defaultTiers = [
+            { referrals: 15, points: 1000 },
+            { referrals: 25, points: 2000 },
+            { referrals: 50, points: 6000 }
+        ];
+
+        const list = Array.isArray(payload?.milestoneRewards) && payload.milestoneRewards.length
+            ? payload.milestoneRewards
+            : defaultTiers;
+
+        return list.map((item) => ({
+            referrals: toNumber(item.referrals ?? item.goal ?? item.milestone ?? 0, 0),
+            points: toNumber(item.points ?? item.bonusPoints ?? item.reward ?? 0, 0),
+            claimed: Boolean(item.claimed),
+            remaining: Math.max(0, toNumber(item.remaining, 0))
+        }))
+            .filter((tier) => tier.referrals > 0 && tier.points > 0)
+            .sort((a, b) => a.referrals - b.referrals);
+    }
+
     function renderLeaderboard(listEl, entries, rankCard) {
         if (!listEl) {
             return;
@@ -159,36 +180,89 @@
         const goalEl = $("progress-goal");
         const fillEl = $("progress-fill");
         const statusEl = $("bonus-status");
+        const tiers = normalizeReferralTiers(payload);
 
         if (!currentEl || !goalEl || !fillEl) {
             return;
         }
 
         const totalReferrals = toNumber(payload?.totalReferrals, 0);
-        const milestone = Math.max(toNumber(payload?.bonusMilestone, 15), 1);
-        const cycleProgress = totalReferrals % milestone;
-        const displayProgress = cycleProgress === 0 && totalReferrals > 0 ? milestone : cycleProgress;
-        const remaining = cycleProgress === 0 ? milestone : (milestone - cycleProgress);
-        const ratio = Math.min(displayProgress / milestone, 1);
-        const milestoneBonusPoints = toNumber(payload?.milestoneBonusPoints, 1000);
+        const nextTier = tiers.find((tier) => totalReferrals < tier.referrals) || null;
+        const previousTier = [...tiers].reverse().find((tier) => totalReferrals >= tier.referrals) || null;
+        const goal = Math.max(1, nextTier?.referrals || previousTier?.referrals || totalReferrals || 1);
+        const displayProgress = Math.min(totalReferrals, goal);
+        const remaining = nextTier ? Math.max(0, nextTier.referrals - totalReferrals) : 0;
+        const ratio = Math.min(displayProgress / goal, 1);
+        const milestoneLabel = nextTier
+            ? `${formatNumber(nextTier.points)} points at ${formatNumber(nextTier.referrals)} referrals`
+            : "All referral reward tiers unlocked";
 
         if (titleEl) {
-            titleEl.textContent = `Bonus Progress (every ${milestone} referrals)`;
+            titleEl.textContent = nextTier
+                ? `Bonus Progress toward ${formatNumber(nextTier.referrals)} referrals`
+                : "Bonus Progress";
         }
 
         currentEl.textContent = formatNumber(displayProgress);
-        goalEl.textContent = formatNumber(milestone);
+        goalEl.textContent = formatNumber(goal);
         fillEl.style.width = `${Math.round(ratio * 100)}%`;
 
         if (statusEl) {
-            if (totalReferrals > 0 && totalReferrals % milestone === 0) {
-                statusEl.textContent = `Milestone unlocked! +${formatNumber(milestoneBonusPoints)} points credited.`;
+            if (nextTier) {
+                statusEl.textContent = `Next reward: +${formatNumber(nextTier.points)} points at ${formatNumber(nextTier.referrals)} referrals. ${formatNumber(remaining)} more referral${remaining === 1 ? "" : "s"} needed.`;
+                statusEl.classList.remove("unlocked");
+            } else if (tiers.length) {
+                statusEl.textContent = `Milestone unlocked! ${milestoneLabel}.`;
                 statusEl.classList.add("unlocked");
             } else {
-                statusEl.textContent = `Invite ${formatNumber(remaining)} more friends to unlock +${formatNumber(milestoneBonusPoints)} bonus points.`;
+                statusEl.textContent = "Invite more friends to unlock rewards.";
                 statusEl.classList.remove("unlocked");
             }
         }
+    }
+
+    function renderReferralTiers(payload) {
+        const container = $("referral-tier-grid");
+        if (!container) {
+            return;
+        }
+
+        const totalReferrals = toNumber(payload?.totalReferrals, 0);
+        const tiers = normalizeReferralTiers(payload);
+
+        if (!tiers.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="ri-award-line"></i>
+                    <p>Referral reward tiers will appear here once data loads.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = tiers.map((tier) => {
+            const unlocked = totalReferrals >= tier.referrals || tier.claimed;
+            const remaining = Math.max(0, tier.referrals - totalReferrals);
+            const accent = unlocked ? "#10b981" : "#7c89ff";
+            const label = unlocked ? "Unlocked" : `${formatNumber(remaining)} more to go`;
+            return `
+                <div class="card" style="border-color:${accent}33; box-shadow:0 12px 30px rgba(0,0,0,0.08);">
+                    <div class="feature-head" style="align-items:flex-start;">
+                        <div class="feature-icon" style="background:${accent}14;color:${accent};">
+                            <i class="ri-trophy-line"></i>
+                        </div>
+                        <div class="feature-copy">
+                            <h3>${formatNumber(tier.referrals)} Referrals</h3>
+                            <p>Extra <strong>${formatNumber(tier.points)}</strong> points on top of the base <strong>250 / referral</strong>.</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:0.6rem; margin-top:1rem; flex-wrap:wrap;">
+                        <div class="status-pill success">${label}</div>
+                        <div class="status-pill success">+${formatNumber(tier.points)} Bonus</div>
+                    </div>
+                </div>
+            `;
+        }).join("");
     }
 
     function formatLongDate(value) {
@@ -265,51 +339,8 @@
             return;
         }
 
-        const listEl = $("leaderboard-list");
-        const toggleAll = $("toggle-all");
-        const toggleWeekly = $("toggle-weekly");
-        const rankCard = $("your-rank-card");
-        const networkEl = $("referral-list");
-
-        const payload = await fetchReferralPayload();
-        if (!payload) {
-            return;
-        }
-
-        renderBonusProgress(payload);
-
-        const renderCurrent = () => {
-            const mode = toggleWeekly?.classList.contains("active") ? "weekly" : "all";
-            const entries = mode === "weekly" ? payload.weeklyLeaderboard : payload.leaderboard;
-            renderLeaderboard(listEl, entries, rankCard);
-        };
-
-        // Render once now, then keep in sync when toggles are clicked.
-        renderCurrent();
-        setTimeout(renderCurrent, 600);
-
-        toggleAll?.addEventListener("click", () => {
-            setTimeout(renderCurrent, 0);
-        });
-        toggleWeekly?.addEventListener("click", () => {
-            setTimeout(renderCurrent, 0);
-        });
-
-        const rerenderNetwork = () => renderNetwork(networkEl, payload.network);
-        rerenderNetwork();
-        setTimeout(rerenderNetwork, 600);
-
-        const whatsappBtn = $("whatsapp-btn");
-        if (whatsappBtn && !whatsappBtn.dataset.bound) {
-            whatsappBtn.dataset.bound = "1";
-            whatsappBtn.addEventListener("click", () => {
-                const referralCode = $("my-refer-code")?.textContent || "";
-                const shareUrl = buildShareUrl(referralCode);
-                const text = `Join AnviPayz using my referral code ${String(referralCode || "").trim().toUpperCase()} and earn bonus points! ${shareUrl}`;
-                const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                window.open(waUrl, "_blank", "noopener,noreferrer");
-            });
-        }
+        const payload = (await fetchReferralPayload()) || {};
+        renderReferralTiers(payload);
     }
 
     document.addEventListener("DOMContentLoaded", () => {

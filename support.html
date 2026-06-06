@@ -5,6 +5,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support - AnviPayz</title>
+    <style>
+        #anvi-splash {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: #0f172a;
+            color: #ffffff;
+            z-index: 9999;
+            opacity: 1;
+            pointer-events: none;
+            animation: anviSplashOut 350ms ease forwards;
+            animation-delay: 1200ms;
+        }
+
+        #anvi-splash .inner {
+            display: grid;
+            gap: 12px;
+            place-items: center;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            letter-spacing: 0.2px;
+        }
+
+        #anvi-splash .spinner {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            border-top-color: #ffffff;
+            animation: anviSpin 800ms linear infinite;
+        }
+
+        html[data-theme="light"] #anvi-splash {
+            background: #ffffff;
+            color: #0f172a;
+        }
+
+        html[data-theme="light"] #anvi-splash .spinner {
+            border-color: rgba(15, 23, 42, 0.2);
+            border-top-color: #0f172a;
+        }
+
+        @keyframes anviSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes anviSplashOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #anvi-splash {
+                animation-duration: 1ms;
+                animation-delay: 0ms;
+            }
+        }
+    </style>
     <script>
         (function () {
             const root = document.documentElement;
@@ -20,6 +82,12 @@
 </head>
 
 <body>
+    <div id="anvi-splash" role="status" aria-live="polite" aria-label="Loading">
+        <div class="inner">
+            <div class="spinner" aria-hidden="true"></div>
+            <div>Loading…</div>
+        </div>
+    </div>
     <div class="app-container">
         <div class="overlay"></div>
 
@@ -185,9 +253,9 @@
         </nav>
     </div>
 
-    <script src="config.js"></script>
+    <script src="config.js?v=20260528-1"></script>
 
-    <script defer src="js/auth.js?v=20260525-1"></script>
+    <script defer src="js/auth.js?v=20260525-2"></script>
     <script>
         (function () {
             const form = document.getElementById('support-form');

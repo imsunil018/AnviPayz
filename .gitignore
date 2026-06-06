@@ -1,29 +1,53 @@
+# Node / environment
+node_modules/
+
+# Environment files (never commit secrets)
 .env
 .env.local
+.env.development
+.env.production
 .env.*
 !.env.example
 
-*.local
+# Build / output
+dist/
+build/
+coverage/
+
+# Hosting platforms / deployment artifacts
+.vercel/
+.render/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets, TLS keys and certificates
 *.pem
 *.key
 *.crt
 *.p12
 *.pfx
 
+# Misc - local-only config or generated files
+*.local
+.tmpcfg/
+
+# Ignore common secret-like filenames
 *secret*
 *secrets*
 *credentials*
 *serviceAccount*
 
-.tmpcfg/
-.vercel/
-.firebase/
-.firebase-config/
-
-node_modules/
-dist/
-build/
-*.log
-.DS_Store
-
-logs/
+# Keep application source code tracked; this file only excludes generated, secret, and local files

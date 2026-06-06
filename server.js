@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
@@ -11,6 +12,7 @@ const authRoutes = require('./server/routes/auth');
 const userRoutes = require('./server/routes/user');
 const User = require('./server/models/User');
 const Task = require('./server/models/Task');
+const AppMeta = require('./server/models/AppMeta');
 const AdminEvent = require('./server/models/AdminEvent');
 const Notification = require('./server/models/Notification');
 const NotificationRead = require('./server/models/NotificationRead');
@@ -70,6 +72,7 @@ app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
 }));
+app.use(compression());
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
@@ -99,7 +102,8 @@ app.use(express.static(__dirname, {
             const ext = path.extname(filePath).toLowerCase();
 
             if (ext === '.html') {
-                res.setHeader('Cache-Control', 'no-store');
+                // Allow caching but always revalidate so deployments roll out safely.
+                res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
                 return;
             }
 
@@ -165,14 +169,16 @@ app.use('/api', (req, res, next) => {
         if (due && !deletionSweepInFlight) {
             deletionSweepInFlight = true;
             lastDeletionSweepAt = Date.now();
-            Promise.resolve()
-                .then(() => runScheduledDeletionSweep())
-                .catch((error) => {
-                    console.warn('Scheduled deletion sweep failed:', error?.message || String(error));
-                })
-                .finally(() => {
-                    deletionSweepInFlight = false;
-                });
+            // Trigger the sweep without blocking the current API request
+            setImmediate(() => {
+                runScheduledDeletionSweep()
+                    .catch((error) => {
+                        console.warn('Scheduled deletion sweep failed:', error?.message || String(error));
+                    })
+                    .finally(() => {
+                        deletionSweepInFlight = false;
+                    });
+            });
         }
     } catch (error) {
         console.warn('Scheduled deletion sweep scheduling failed:', error?.message || String(error));
@@ -225,22 +231,114 @@ app.use('/api/user', userRoutes);
 const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const DEFAULT_TASK_SEEDS = [
     {
+        seedKey: 'daily-checkin',
         title: 'Daily Check-in',
         description: 'Open the app once a day to keep your streak active.',
         rewardPoints: 10,
         taskType: 'daily'
     },
     {
+        seedKey: 'watch-tutorial',
         title: 'Watch Tutorial',
         description: 'Watch the guided tutorial for 10 seconds.',
         rewardPoints: 15,
         taskType: 'video'
     },
     {
+        seedKey: 'invite-a-friend',
         title: 'Invite a Friend',
         description: 'Invite one friend and grow your reward network.',
         rewardPoints: 50,
         taskType: 'task'
+    }
+];
+const DEFAULT_SURVEY_SEEDS = [
+    {
+        seedKey: 'survey-product-feedback',
+        title: 'Product Feedback Survey',
+        description: 'Share your opinion about the app experience.',
+        rewardPoints: 50,
+        taskType: 'survey',
+        questions: [
+            {
+                id: 'q1',
+                text: 'How satisfied are you with AnviPayz?',
+                type: 'radio',
+                options: ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied']
+            },
+            {
+                id: 'q2',
+                text: 'Which feature do you use the most?',
+                type: 'radio',
+                options: ['Daily Check-in', 'Spin & Win', 'Refer & Earn', 'Tasks']
+            },
+            {
+                id: 'q3',
+                text: 'Would you recommend AnviPayz to friends?',
+                type: 'radio',
+                options: ['Definitely Yes', 'Probably Yes', 'Not Sure', 'No']
+            }
+        ]
+    },
+    {
+        seedKey: 'survey-user-experience',
+        title: 'User Experience Survey',
+        description: 'Tell us how easy the app is to navigate.',
+        rewardPoints: 75,
+        taskType: 'survey',
+        questions: [
+            {
+                id: 'q1',
+                text: 'How easy is it to navigate the app?',
+                type: 'radio',
+                options: ['Very Easy', 'Easy', 'Average', 'Difficult']
+            },
+            {
+                id: 'q2',
+                text: 'Do you find the interface user-friendly?',
+                type: 'radio',
+                options: ['Yes, very', 'Somewhat', 'Not really', 'No']
+            },
+            {
+                id: 'q3',
+                text: 'What would you like to improve?',
+                type: 'text',
+                placeholder: 'Your suggestions...'
+            }
+        ]
+    },
+    {
+        seedKey: 'survey-market-research',
+        title: 'Market Research Survey',
+        description: 'Help us shape upcoming features and reward campaigns.',
+        rewardPoints: 100,
+        taskType: 'survey',
+        questions: [
+            {
+                id: 'q1',
+                text: 'How did you hear about AnviPayz?',
+                type: 'radio',
+                options: ['Friend/Referral', 'Social Media', 'Google Search', 'Other']
+            },
+            {
+                id: 'q2',
+                text: 'What is your primary goal on AnviPayz?',
+                type: 'radio',
+                options: ['Earn Money', 'Entertainment', 'Learn & Grow', 'Other']
+            },
+            {
+                id: 'q3',
+                text: 'How often do you use the app?',
+                type: 'radio',
+                options: ['Daily', 'Few times a week', 'Weekly', 'Rarely']
+            },
+            {
+                id: 'q4',
+                text: 'Any additional feedback?',
+                type: 'text',
+                placeholder: 'Share your thoughts...'
+            }
+        ]
     }
 ];
 const STATIC_REWARD_RULES = Object.freeze({
@@ -287,12 +385,16 @@ const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
 const REWARD_TOKEN_TTL = '5m';
 const CONVERT_RATIO_POINTS = 1000;
 const MIN_CONVERTIBLE_POINTS_STEP = 10;
+const DAILY_GOAL_BONUS_POINTS = 50;
 
 // Referral Bonus Constants
 const REFER_POINTS_PER_USER = 250;           // 250 points per successful referral
 const REFER_NEW_USER_POINTS = 150;            // 150 points for the new user (on signup via referral code)
-const REFER_BONUS_MILESTONE = 15;             // Bonus milestone every 15 referrals
-const REFER_BONUS_POINTS = 1000;              // 1000 points per milestone
+const REFERRAL_BONUS_TIERS = Object.freeze([
+    { referrals: 15, points: 1000 },
+    { referrals: 25, points: 2000 },
+    { referrals: 50, points: 6000 }
+]);
 const REFER_DAILY_LIMIT = 10;                 // Max 10 referrals per day
 
 let taskCatalogPromise = null;
@@ -416,6 +518,37 @@ function sanitizeTaskIdentifier(value) {
     return String(value || '').trim();
 }
 
+function normalizeSurveyQuestions(value) {
+    const source = Array.isArray(value)
+        ? value
+        : (typeof value === 'string' ? safeJsonParse(value, []) : []);
+
+    return source
+        .filter((question) => question && typeof question === 'object')
+        .map((question, index) => ({
+            id: String(question.id || question.key || `q${index + 1}`).trim(),
+            text: String(question.text || question.title || '').trim(),
+            type: String(question.type || 'radio').trim().toLowerCase() === 'text' ? 'text' : 'radio',
+            options: Array.isArray(question.options)
+                ? question.options.map((option) => String(option || '').trim()).filter(Boolean)
+                : [],
+            placeholder: String(question.placeholder || '').trim()
+        }))
+        .filter((question) => question.text);
+}
+
+function safeJsonParse(value, fallback = null) {
+    if (typeof value !== 'string') {
+        return fallback;
+    }
+
+    try {
+        return JSON.parse(value);
+    } catch (_) {
+        return fallback;
+    }
+}
+
 function buildSlugBase(value) {
     return String(value || '')
         .trim()
@@ -499,24 +632,18 @@ async function ensureTaskCatalog() {
     }
 
     taskCatalogPromise = (async () => {
+        const catalogFlags = await loadTaskCatalogFlags();
         const totalTasks = await Task.countDocuments();
-        if (totalTasks === 0) {
-            const usedSlugs = new Set();
-            await Task.insertMany(DEFAULT_TASK_SEEDS.map((task) => ({
-                ...task,
-                slug: (() => {
-                    const base = buildSlugBase(task.title) || 'task';
-                    let slug = base;
-                    let index = 1;
-                    while (usedSlugs.has(slug)) {
-                        slug = `${base}-${index}`;
-                        index += 1;
-                    }
-                    usedSlugs.add(slug);
-                    return slug;
-                })(),
-                status: 'active'
-            })));
+        const hasSurveyTasks = await Task.exists({ taskType: 'survey' });
+
+        if (totalTasks === 0 && !catalogFlags.taskCatalogSeededV1) {
+            await seedTaskCatalog(DEFAULT_TASK_SEEDS);
+            await setTaskCatalogFlag('taskCatalogSeededV1', true);
+        }
+
+        if (!hasSurveyTasks && !catalogFlags.surveyCatalogSeededV1) {
+            await seedTaskCatalog(DEFAULT_SURVEY_SEEDS);
+            await setTaskCatalogFlag('surveyCatalogSeededV1', true);
         }
 
         await ensureTaskSlugs();
@@ -525,6 +652,72 @@ async function ensureTaskCatalog() {
     });
 
     return taskCatalogPromise;
+}
+
+async function loadTaskCatalogFlags() {
+    try {
+        const doc = await AppMeta.findOne({ key: 'taskCatalogFlags' }).lean();
+        return doc && typeof doc.value === 'object' && doc.value
+            ? doc.value
+            : {};
+    } catch (_) {
+        return {};
+    }
+}
+
+async function setTaskCatalogFlag(flagKey, value) {
+    try {
+        const current = await loadTaskCatalogFlags();
+        const next = {
+            ...current,
+            [flagKey]: Boolean(value)
+        };
+
+        await AppMeta.findOneAndUpdate(
+            { key: 'taskCatalogFlags' },
+            { $set: { value: next } },
+            { upsert: true, new: true }
+        );
+    } catch (error) {
+        console.warn('Task catalog flag update failed:', error.message);
+    }
+}
+
+async function seedTaskCatalog(seeds) {
+    const usedSlugs = new Set((await Task.find({ slug: { $nin: [null, ''] } }).select('slug').lean()).map((item) => String(item.slug)));
+
+    for (const seed of seeds) {
+        const seedKey = String(seed.seedKey || '').trim();
+        if (!seedKey) {
+            continue;
+        }
+
+        const existing = await Task.findOne({ seedKey }).lean();
+        if (existing) {
+            continue;
+        }
+
+        let slug = buildSlugBase(seed.title) || 'task';
+        let attempt = 1;
+        while (usedSlugs.has(slug) || await Task.exists({ slug })) {
+            slug = `${buildSlugBase(seed.title) || 'task'}-${attempt}`;
+            attempt += 1;
+        }
+        usedSlugs.add(slug);
+
+        await Task.create({
+            title: seed.title,
+            slug,
+            seedKey,
+            description: seed.description || '',
+            link: seed.link || '',
+            rewardPoints: Number(seed.rewardPoints || 0),
+            taskType: String(seed.taskType || 'task').toLowerCase(),
+            status: 'active',
+            notifyUsers: Boolean(seed.notifyUsers),
+            questions: normalizeSurveyQuestions(seed.questions)
+        });
+    }
 }
 
 async function ensureTaskSlugs() {
@@ -616,6 +809,7 @@ function serializeUser(user) {
         phone: user.phone,
         avatarUrl: user.avatarUrl || '',
         points: user.points || 0,
+        lifetimeXp: getUserLifetimeXp(user),
         tokens: roundTo(user.tokens || 0, 2),
         referralEarnings: user.referralEarnings || 0,
         taskEarnings: user.taskEarnings || 0,
@@ -623,6 +817,7 @@ function serializeUser(user) {
         referralCode: user.referralCode,
         joinedAt: user.joinedAt,
         lastLogin: user.lastLogin,
+        lastDailyLoginRewardAt: user.lastDailyLoginRewardAt || null,
         emailVerifiedAt: user.emailVerifiedAt || user.joinedAt || null,
         loginCount: user.loginCount || 0,
         ...getDeletionMetadata(user)
@@ -630,16 +825,24 @@ function serializeUser(user) {
 }
 
 function serializeTask(task) {
+    const source = task && typeof task.toObject === 'function'
+        ? task.toObject()
+        : (task || {});
+
     return {
-        _id: task._id,
-        id: task._id,
-        title: task.title,
-        description: task.description || '',
-        link: task.link || '',
-        rewardPoints: task.rewardPoints || 0,
-        taskType: task.taskType || 'task',
-        status: task.status || 'active',
-        createdAt: task.createdAt || new Date()
+        _id: source._id,
+        id: source._id,
+        title: source.title,
+        description: source.description || '',
+        link: source.link || '',
+        rewardPoints: source.rewardPoints || 0,
+        taskType: source.taskType || 'task',
+        status: source.status || 'active',
+        createdAt: source.createdAt || new Date(),
+        updatedAt: source.updatedAt || source.createdAt || new Date(),
+        seedKey: source.seedKey || '',
+        notifyUsers: Boolean(source.notifyUsers),
+        questions: normalizeSurveyQuestions(source.questions)
     };
 }
 
@@ -677,14 +880,14 @@ async function calculateUserRank(userId) {
     try {
         const users = await User.find({}).select('referralCode _id');
         const referralCounts = buildReferralCountMap(users);
-        
+
         const rankings = users
             .map(u => ({
                 userId: String(u._id),
                 refCount: referralCounts.get(u.referralCode) || 0
             }))
             .sort((a, b) => b.refCount - a.refCount);
-        
+
         const rank = rankings.findIndex(r => r.userId === String(userId)) + 1;
         return rank > 0 ? rank : users.length;
     } catch (error) {
@@ -732,12 +935,271 @@ function getUserTokensConverted(user) {
     return Number(user.tokens || 0);
 }
 
+function getUserLifetimeXp(user) {
+    const directValue = Number(user?.lifetimeXp);
+    if (Number.isFinite(directValue) && directValue > 0) {
+        return directValue;
+    }
+
+    const activity = Array.isArray(user?.activity) ? user.activity : [];
+    const activityTotal = activity.reduce((sum, entry) => {
+        const entryType = String(entry?.type || '').toLowerCase();
+        if (entryType === 'convert' || entryType === 'level') {
+            return sum;
+        }
+
+        const amount = Number(entry?.amount || 0);
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return sum;
+        }
+
+        if (String(entry?.direction || '').toLowerCase() === 'debit') {
+            return sum;
+        }
+
+        return sum + amount;
+    }, 0);
+
+    return Math.max(0, activityTotal);
+}
+
+function addLifetimeXp(user, points) {
+    const amount = Number(points || 0);
+    if (Number.isFinite(amount) && amount > 0) {
+        user.lifetimeXp = Number(user.lifetimeXp || 0) + amount;
+    }
+}
+
+function getReferralTierClaimKey(referrals) {
+    return `referral-tier-${referrals}`;
+}
+
+function getReferralBonusPoints(referralCount) {
+    const count = Math.max(0, Math.floor(Number(referralCount || 0)));
+    return REFERRAL_BONUS_TIERS.reduce((sum, tier) => sum + (count >= tier.referrals ? tier.points : 0), 0);
+}
+
+function getLevelUpBonusPoints(level) {
+    const targetLevel = Math.max(2, Math.floor(Number(level || 2)));
+    return 150 + ((targetLevel - 2) * 25);
+}
+
+function hasReferralTierClaim(user, referrals) {
+    const claimKey = getReferralTierClaimKey(referrals);
+    const existingKeys = Array.isArray(user?.rewardClaimKeys) ? user.rewardClaimKeys : [];
+    if (existingKeys.includes(claimKey)) {
+        return true;
+    }
+
+    if (referrals === 15 && existingKeys.some((key) => String(key || '').startsWith('referral-bonus-'))) {
+        return true;
+    }
+
+    return false;
+}
+
+function getMissingReferralTierRewards(user, referralCount) {
+    const count = Math.max(0, Math.floor(Number(referralCount || 0)));
+    return REFERRAL_BONUS_TIERS
+        .filter((tier) => count >= tier.referrals && !hasReferralTierClaim(user, tier.referrals))
+        .map((tier) => ({
+            referrals: tier.referrals,
+            points: tier.points,
+            claimKey: getReferralTierClaimKey(tier.referrals)
+        }));
+}
+
+async function syncReferralTierRewards(user, referralCount) {
+    const rewards = getMissingReferralTierRewards(user, referralCount);
+    if (!rewards.length) {
+        return rewards;
+    }
+
+    const existingKeys = new Set(Array.isArray(user.rewardClaimKeys) ? user.rewardClaimKeys : []);
+    for (const reward of rewards) {
+        existingKeys.add(reward.claimKey);
+        user.points = Number(user.points || 0) + reward.points;
+        user.referralEarnings = Number(user.referralEarnings || 0) + reward.points;
+        addLifetimeXp(user, reward.points);
+        prependActivity(user, {
+            title: `Referral milestone bonus`,
+            message: `${reward.referrals} referral milestone unlocked. Bonus credited.`,
+            amount: reward.points,
+            type: 'referral',
+            taskId: reward.claimKey,
+            time: new Date()
+        });
+    }
+
+    user.rewardClaimKeys = Array.from(existingKeys).slice(0, 250);
+    await user.save();
+    return rewards;
+}
+
+function getReferralMilestoneState(referralCount) {
+    const count = Math.max(0, Math.floor(Number(referralCount || 0)));
+    const tiers = REFERRAL_BONUS_TIERS.map((tier) => ({
+        referrals: tier.referrals,
+        points: tier.points,
+        claimed: count >= tier.referrals
+    }));
+    const nextTier = tiers.find((tier) => !tier.claimed) || null;
+    const previousTier = [...tiers].reverse().find((tier) => tier.claimed) || null;
+    const start = previousTier ? previousTier.referrals : 0;
+    const currentProgress = Math.max(0, count - start);
+    const goal = nextTier ? Math.max(1, nextTier.referrals - start) : Math.max(1, start || count || 1);
+    const remaining = nextTier ? Math.max(0, nextTier.referrals - count) : 0;
+
+    return {
+        tiers,
+        nextTier,
+        previousTier,
+        currentProgress,
+        goal,
+        remaining,
+        totalBonusPoints: getReferralBonusPoints(count)
+    };
+}
+
+function getXpThreshold(level) {
+    const thresholds = [0, 1000, 3000, 7000, 15000];
+    if (level <= thresholds.length) {
+        return thresholds[level - 1];
+    }
+
+    let threshold = thresholds[thresholds.length - 1];
+    let increment = 8000;
+    for (let nextLevel = thresholds.length + 1; nextLevel <= level; nextLevel += 1) {
+        increment = Math.round(increment * 1.9);
+        threshold += increment;
+    }
+    return threshold;
+}
+
+function getXpLevel(xp) {
+    let level = 1;
+    while (xp >= getXpThreshold(level + 1)) {
+        level += 1;
+    }
+
+    const currentThreshold = getXpThreshold(level);
+    const nextThreshold = getXpThreshold(level + 1);
+    const progress = Math.max(0, Math.min(100, ((xp - currentThreshold) / Math.max(1, nextThreshold - currentThreshold)) * 100));
+
+    return {
+        xp,
+        level,
+        currentThreshold,
+        nextThreshold,
+        progress: Math.round(progress)
+    };
+}
+
+function collectLevelRewards(user, previousXp, nextXp) {
+    const previousLevel = getXpLevel(previousXp).level;
+    const nextLevel = getXpLevel(nextXp).level;
+    const rewards = [];
+
+    for (let level = previousLevel + 1; level <= nextLevel; level += 1) {
+        const claimKey = `xp-level-${level}`;
+        if (hasClaimKey(user, claimKey)) {
+            continue;
+        }
+
+        rewards.push({
+            level,
+            points: getLevelUpBonusPoints(level),
+            claimKey
+        });
+    }
+
+    return rewards;
+}
+
 function buildUserStats(user) {
     return {
         points: user.points || 0,
         referralEarnings: user.referralEarnings || 0,
         taskRewards: user.taskEarnings || 0,
         surveyEarnings: user.surveyEarnings || 0
+    };
+}
+
+function getDailyGoalClaimKey(dayKey = indiaDateKey()) {
+    return `daily-goal:${dayKey}`;
+}
+
+function getCompletedTaskIdsForDay(activity, dayKey = indiaDateKey()) {
+    const entries = Array.isArray(activity) ? activity : [];
+    const completedTaskIds = new Set();
+
+    for (const entry of entries) {
+        if (String(entry?.type || '').toLowerCase() !== 'task') {
+            continue;
+        }
+
+        const taskId = sanitizeTaskIdentifier(entry?.taskId);
+        if (!taskId) {
+            continue;
+        }
+
+        const amount = Number(entry?.amount || 0);
+        if (!Number.isFinite(amount) || amount <= 0) {
+            continue;
+        }
+
+        if (String(entry?.direction || '').toLowerCase() === 'debit') {
+            continue;
+        }
+
+        if (indiaDateKey(entry?.time || Date.now()) !== dayKey) {
+            continue;
+        }
+
+        completedTaskIds.add(taskId);
+    }
+
+    return completedTaskIds;
+}
+
+function getDailyGoalEligibleTaskIdsForDay(activity, dayKey = indiaDateKey()) {
+    const completedTaskIds = getCompletedTaskIdsForDay(activity, dayKey);
+    completedTaskIds.delete('daily-login');
+    completedTaskIds.delete('daily-goal-bonus');
+    return completedTaskIds;
+}
+
+function buildDailyGoalBonus(user, reward = null) {
+    const source = String(reward?.source || '').trim().toLowerCase();
+    if (source !== 'task') {
+        return null;
+    }
+
+    const dayKey = indiaDateKey();
+    const claimKey = getDailyGoalClaimKey(dayKey);
+    if (hasClaimKey(user, claimKey)) {
+        return null;
+    }
+
+    const completedTaskIds = getDailyGoalEligibleTaskIdsForDay(user?.activity, dayKey);
+    const rewardTaskId = sanitizeTaskIdentifier(reward?.taskId);
+    if (rewardTaskId && rewardTaskId !== 'daily-login' && rewardTaskId !== 'daily-goal-bonus') {
+        completedTaskIds.add(rewardTaskId);
+    }
+
+    if (completedTaskIds.size < 2) {
+        return null;
+    }
+
+    return {
+        points: DAILY_GOAL_BONUS_POINTS,
+        claimKey,
+        title: 'Daily goal bonus',
+        message: 'Daily goal completed. Bonus credited successfully.',
+        taskId: 'daily-goal-bonus',
+        rewardType: 'task',
+        earningsField: 'taskEarnings',
+        source: 'task'
     };
 }
 
@@ -788,14 +1250,13 @@ async function buildReferralPayload(user) {
         joinedAt: { $gte: weekStart }
     }).select('referredByCode');
     const weeklyReferralCounts = buildReferralCountMap(weeklyReferredUsers);
-
-    const calculateBonusPoints = (referralCount) => Math.floor(Math.max(Number(referralCount || 0), 0) / REFER_BONUS_MILESTONE) * REFER_BONUS_POINTS;
+    const referralState = getReferralMilestoneState(referralCounts.get(user.referralCode) || 0);
 
     const leaderboard = allUsers
         .map(u => {
             const refCount = referralCounts.get(u.referralCode) || 0;
             const baseEarnings = refCount * REFER_POINTS_PER_USER;
-            const bonusPoints = calculateBonusPoints(refCount);
+            const bonusPoints = getReferralBonusPoints(refCount);
             return {
                 id: u._id,
                 username: u.name,
@@ -829,12 +1290,11 @@ async function buildReferralPayload(user) {
         .slice(0, 10);
 
     const userRefCount = referralCounts.get(user.referralCode) || 0;
-    const bonusPoints = calculateBonusPoints(userRefCount);
+    const syncedRewards = await syncReferralTierRewards(user, userRefCount);
+    const bonusPoints = getReferralBonusPoints(userRefCount);
     const computedEarnings = (userRefCount * REFER_POINTS_PER_USER) + bonusPoints;
     const storedEarnings = Number(user.referralEarnings || 0);
     const totalEarnings = storedEarnings > 0 ? storedEarnings : computedEarnings;
-    const bonusCycleProgress = userRefCount % REFER_BONUS_MILESTONE;
-    const bonusRemaining = bonusCycleProgress === 0 ? REFER_BONUS_MILESTONE : (REFER_BONUS_MILESTONE - bonusCycleProgress);
 
     return {
         user: serializeUser(user),
@@ -843,12 +1303,22 @@ async function buildReferralPayload(user) {
         totalEarnings,
         referralPointsPerJoin: REFER_POINTS_PER_USER,
         newUserSignupBonus: REFER_NEW_USER_POINTS,
-        bonusMilestone: REFER_BONUS_MILESTONE,
-        milestoneBonusPoints: REFER_BONUS_POINTS,
-        bonusCycleProgress,
-        bonusRemaining,
-        bonusUnlocked: userRefCount >= REFER_BONUS_MILESTONE,
+        milestoneRewards: referralState.tiers.map((tier) => ({
+            referrals: tier.referrals,
+            points: tier.points,
+            claimed: tier.claimed,
+            remaining: Math.max(0, tier.referrals - userRefCount)
+        })),
+        bonusMilestone: referralState.nextTier?.referrals || REFERRAL_BONUS_TIERS[REFERRAL_BONUS_TIERS.length - 1].referrals,
+        milestoneBonusPoints: referralState.nextTier?.points || REFERRAL_BONUS_TIERS[REFERRAL_BONUS_TIERS.length - 1].points,
+        bonusCycleProgress: referralState.currentProgress,
+        bonusRemaining: referralState.remaining,
+        bonusUnlocked: userRefCount >= REFERRAL_BONUS_TIERS[0].referrals,
         bonusPoints,
+        nextMilestone: referralState.nextTier,
+        nextMilestoneRemaining: referralState.remaining,
+        syncedRewards,
+        totalBonusPoints: referralState.totalBonusPoints,
         pendingRewards: 0,
         todayReferrals: referredUsers.filter((item) => indiaDateKey(item.joinedAt || Date.now()) === indiaDateKey()).length,
         dailyLimit: REFER_DAILY_LIMIT,
@@ -949,20 +1419,24 @@ function resolveRewardDefinition({ source, taskId, task, userId, spinRewardToken
         };
     }
 
-    if (task && source === 'task') {
-        const claimMode = inferTaskClaimMode(task.taskType, String(task._id));
+    if (task && (source === 'task' || source === 'survey')) {
+        const taskIdStr = String(task._id || task.id);
+        const taskType = String(task.taskType || 'task').trim().toLowerCase();
+        const claimMode = inferTaskClaimMode(taskType, taskIdStr);
+        const isSurvey = source === 'survey' || taskType === 'survey';
+
         return {
-            source: 'task',
+            source: isSurvey ? 'survey' : 'task',
             title: task.title || 'Task reward',
             points: Math.floor(Number(task.rewardPoints || 0)),
-            rewardType: 'task',
-            earningsField: 'taskEarnings',
+            rewardType: isSurvey ? 'survey' : 'task',
+            earningsField: isSurvey ? 'surveyEarnings' : 'taskEarnings',
             claimKey: buildClaimKey({
-                source: 'task',
-                taskId: String(task._id),
+                source: isSurvey ? 'survey' : 'task',
+                taskId: taskIdStr,
                 claimMode
             }),
-            taskId: String(task._id),
+            taskId: taskIdStr,
             message: `${task.title || 'Task reward'} credited successfully.`
         };
     }
@@ -1066,7 +1540,7 @@ async function awardPoints(req, res, forcedSource = null) {
         const user = await getAuthenticatedUser(req);
         enforceUserRateLimit(user._id, 'reward-award', { limit: 12, windowMs: 60 * 1000 });
         const source = String(forcedSource || req.body?.source || 'task').trim().toLowerCase();
-        const taskId = normalizeTaskIdentifier(req.body?.taskId);
+        const taskId = normalizeTaskIdentifier(req.body?.taskId || req.body?.surveyId);
         let task = null;
 
         if (taskId && mongoose.isValidObjectId(taskId)) {
@@ -1090,6 +1564,40 @@ async function awardPoints(req, res, forcedSource = null) {
         }
 
         const rewardTitle = reward.title || buildRewardTitle(reward.source, task?.title);
+        const previousLifetimeXp = getUserLifetimeXp(user);
+        const dailyGoalBonus = buildDailyGoalBonus(user, reward);
+        const dailyGoalBonusPoints = Number(dailyGoalBonus?.points || 0);
+        const nextLifetimeXp = previousLifetimeXp + reward.points + dailyGoalBonusPoints;
+        const levelRewards = collectLevelRewards(user, previousLifetimeXp, nextLifetimeXp);
+        const levelRewardPoints = levelRewards.reduce((sum, item) => sum + Number(item.points || 0), 0);
+        const rewardClaimKeys = [];
+        if (reward.claimKey) {
+            rewardClaimKeys.push(reward.claimKey);
+        }
+        if (dailyGoalBonus?.claimKey) {
+            rewardClaimKeys.push(dailyGoalBonus.claimKey);
+        }
+        rewardClaimKeys.push(...levelRewards.map((item) => item.claimKey));
+        const dailyGoalEntry = dailyGoalBonus ? {
+            title: dailyGoalBonus.title,
+            message: dailyGoalBonus.message,
+            amount: dailyGoalBonus.points,
+            type: dailyGoalBonus.rewardType,
+            direction: 'credit',
+            status: 'completed',
+            time: new Date(),
+            taskId: dailyGoalBonus.taskId
+        } : null;
+        const levelRewardEntries = levelRewards.map((levelReward) => ({
+            title: `Level ${levelReward.level} bonus`,
+            message: `Level ${levelReward.level} crossed. Bonus credited successfully.`,
+            amount: levelReward.points,
+            type: 'level',
+            direction: 'credit',
+            status: 'completed',
+            time: new Date(),
+            taskId: `xp-level-${levelReward.level}`
+        }));
         const activityEntry = {
             title: rewardTitle,
             message: reward.message || `${rewardTitle} credited successfully.`,
@@ -1100,27 +1608,44 @@ async function awardPoints(req, res, forcedSource = null) {
             time: new Date(),
             taskId: reward.taskId || taskId || normalizeTaskIdentifier(task?._id)
         };
+        const earningsFieldTotals = {};
+        earningsFieldTotals[reward.earningsField] = Number(earningsFieldTotals[reward.earningsField] || 0) + reward.points;
+        if (dailyGoalBonus?.earningsField) {
+            earningsFieldTotals[dailyGoalBonus.earningsField] = Number(earningsFieldTotals[dailyGoalBonus.earningsField] || 0) + dailyGoalBonus.points;
+        }
+        const earningsFieldUpdate = Object.fromEntries(Object.entries(earningsFieldTotals).map(([field, amount]) => ([
+            field,
+            { $add: [{ $ifNull: [`$${field}`, 0] }, amount] }
+        ])));
+        const guardedClaimKeys = [];
+        if (reward.claimKey) {
+            guardedClaimKeys.push(reward.claimKey);
+        }
+        if (dailyGoalBonus?.claimKey) {
+            guardedClaimKeys.push(dailyGoalBonus.claimKey);
+        }
 
         const updatePipeline = [{
             $set: {
-                points: { $add: [{ $ifNull: ['$points', 0] }, reward.points] },
-                [reward.earningsField]: { $add: [{ $ifNull: [`$${reward.earningsField}`, 0] }, reward.points] },
+                points: { $add: [{ $ifNull: ['$points', 0] }, reward.points + dailyGoalBonusPoints + levelRewardPoints] },
+                lifetimeXp: { $add: [{ $ifNull: ['$lifetimeXp', 0] }, reward.points + dailyGoalBonusPoints + levelRewardPoints] },
+                ...earningsFieldUpdate,
                 activity: {
                     $slice: [
                         {
                             $concatArrays: [
-                                [activityEntry],
+                                [activityEntry, ...(dailyGoalEntry ? [dailyGoalEntry] : []), ...levelRewardEntries],
                                 { $ifNull: ['$activity', []] }
                             ]
                         },
                         50
                     ]
                 },
-                ...(reward.claimKey ? {
+                ...(rewardClaimKeys.length ? {
                     rewardClaimKeys: {
                         $setUnion: [
                             { $ifNull: ['$rewardClaimKeys', []] },
-                            [reward.claimKey]
+                            rewardClaimKeys
                         ]
                     }
                 } : {})
@@ -1130,7 +1655,7 @@ async function awardPoints(req, res, forcedSource = null) {
         const updatedUser = await User.findOneAndUpdate(
             {
                 _id: user._id,
-                ...(reward.claimKey ? { rewardClaimKeys: { $ne: reward.claimKey } } : {})
+                ...(guardedClaimKeys.length ? { rewardClaimKeys: { $nin: guardedClaimKeys } } : {})
             },
             updatePipeline,
             { new: true }
@@ -1141,6 +1666,7 @@ async function awardPoints(req, res, forcedSource = null) {
         }
 
         let notification = null;
+        let dailyGoalNotification = null;
         try {
             const rewardNotice = buildRewardNotification(reward.source, rewardTitle, reward.points);
             notification = await createUserNotification({
@@ -1159,14 +1685,42 @@ async function awardPoints(req, res, forcedSource = null) {
             console.warn('Reward notification create failed:', notificationError.message);
         }
 
+        if (dailyGoalBonus) {
+            try {
+                const goalNotice = buildRewardNotification('task', dailyGoalBonus.title, dailyGoalBonus.points);
+                dailyGoalNotification = await createUserNotification({
+                    userId: updatedUser._id,
+                    title: goalNotice.title,
+                    message: goalNotice.message,
+                    type: goalNotice.type,
+                    link: goalNotice.link,
+                    meta: {
+                        taskId: dailyGoalBonus.taskId,
+                        points: dailyGoalBonus.points,
+                        source: 'task',
+                        bonusType: 'daily-goal'
+                    }
+                });
+            } catch (notificationError) {
+                console.warn('Daily goal notification create failed:', notificationError.message);
+            }
+        }
+
         console.log(`Added ${reward.points} points to ${updatedUser.email} for ${reward.source}`);
         res.json({
             success: true,
             user: serializeUser(updatedUser),
             stats: buildUserStats(updatedUser),
             activityEntry: serializeActivityEntry(activityEntry),
+            dailyGoalBonus: dailyGoalBonus ? {
+                title: dailyGoalBonus.title,
+                message: dailyGoalBonus.message,
+                points: dailyGoalBonus.points
+            } : null,
+            levelRewards: levelRewards.map((item) => ({ level: item.level, points: item.points })),
             history: serializeActivityList(updatedUser.activity).slice(0, 12),
-            notification: notification ? serializeNotification(notification) : null
+            notification: notification ? serializeNotification(notification) : null,
+            dailyGoalNotification: dailyGoalNotification ? serializeNotification(dailyGoalNotification) : null
         });
     } catch (error) {
         sendRouteError(res, error, 'Add points error:');
@@ -1179,6 +1733,10 @@ app.post('/api/add-points', async (req, res) => {
 
 app.post('/api/tasks/complete', async (req, res) => {
     await awardPoints(req, res, 'task');
+});
+
+app.post('/api/surveys/submit', async (req, res) => {
+    await awardPoints(req, res, 'survey');
 });
 
 app.post('/api/spin', async (req, res) => {
@@ -1248,19 +1806,21 @@ app.get('/api/referrals', async (req, res) => {
 app.get('/api/me', async (req, res) => {
     try {
         const user = await getAuthenticatedUser(req);
-        
+
         // Ensure user has referral code
         if (!user.referralCode) {
             await user.ensureReferralCode();
             await user.save();
             console.log(`✅ Generated referral code for user ${user.email}:`, user.referralCode);
         }
-        
+
         const referralCounts = buildReferralCountMap(await User.find({}));
         const userRefCount = referralCounts.get(user.referralCode) || 0;
-        const bonusPoints = Math.floor(Math.max(Number(userRefCount || 0), 0) / REFER_BONUS_MILESTONE) * REFER_BONUS_POINTS;
+        const syncedRewards = await syncReferralTierRewards(user, userRefCount);
+        const referralState = getReferralMilestoneState(userRefCount);
+        const bonusPoints = referralState.totalBonusPoints;
         const totalPoints = (userRefCount * REFER_POINTS_PER_USER) + bonusPoints;
-        
+
         res.json({
             success: true,
             refCode: user.referralCode,
@@ -1269,7 +1829,16 @@ app.get('/api/me', async (req, res) => {
             tokens: user.tokens || 0,
             dailyLimit: REFER_DAILY_LIMIT,
             rank: await calculateUserRank(user._id),
-            bonus: bonusPoints
+            bonus: bonusPoints,
+            milestoneRewards: referralState.tiers.map((tier) => ({
+                referrals: tier.referrals,
+                points: tier.points,
+                claimed: tier.claimed,
+                remaining: Math.max(0, tier.referrals - userRefCount)
+            })),
+            nextMilestone: referralState.nextTier,
+            nextMilestoneRemaining: referralState.remaining,
+            syncedRewards
         });
     } catch (error) {
         sendRouteError(res, error, 'Me API error:');
@@ -1686,6 +2255,7 @@ app.post('/api/admin/users/:id/gift', async (req, res) => {
         }
 
         user.points = Number(user.points || 0) + points;
+        user.lifetimeXp = Number(user.lifetimeXp || 0) + points;
         prependActivity(user, {
             title,
             message: `${title} added by admin.`,
@@ -1723,6 +2293,7 @@ app.post('/api/admin/users/gift-all', async (req, res) => {
 
         for (const user of users) {
             user.points = Number(user.points || 0) + points;
+            user.lifetimeXp = Number(user.lifetimeXp || 0) + points;
             prependActivity(user, {
                 title,
                 message,
@@ -1767,10 +2338,18 @@ app.post('/api/admin/tasks', async (req, res) => {
         const description = String(req.body?.description || '').trim();
         const rewardPoints = Math.floor(Number(req.body?.rewardPoints || 0));
         const taskType = String(req.body?.taskType || 'task').trim().toLowerCase();
+        const status = String(req.body?.status || 'active').trim().toLowerCase();
+        const questions = normalizeSurveyQuestions(req.body?.questions);
         const notifyUsers = Boolean(req.body?.notifyUsers);
 
-        if (!title || !link || !Number.isFinite(rewardPoints) || rewardPoints <= 0) {
-            return res.status(400).json({ message: 'Fill all required task fields.' });
+        if (!title || !Number.isFinite(rewardPoints) || rewardPoints <= 0) {
+            return res.status(400).json({
+                message: 'Fill all required task fields. Title and reward points (greater than 0) are mandatory.'
+            });
+        }
+
+        if (taskType === 'survey' && !questions.length) {
+            return res.status(400).json({ message: 'Add at least one survey question.' });
         }
 
         const slug = await buildUniqueTaskSlug(title);
@@ -1778,12 +2357,14 @@ app.post('/api/admin/tasks', async (req, res) => {
         const task = await Task.create({
             title,
             slug,
+            seedKey: '',
             link,
             description,
             rewardPoints,
             taskType,
             notifyUsers,
-            status: 'active'
+            status,
+            questions
         });
 
         if (notifyUsers) {
@@ -1813,6 +2394,65 @@ app.post('/api/admin/tasks', async (req, res) => {
         });
     } catch (error) {
         sendRouteError(res, error, 'Admin create task error:');
+    }
+});
+
+app.put('/api/admin/tasks/:id', async (req, res) => {
+    try {
+        verifyAdminRequest(req);
+        const task = await Task.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found.' });
+        }
+
+        const title = String(req.body?.title || '').trim();
+        const link = String(req.body?.link || '').trim();
+        const description = String(req.body?.description || '').trim();
+        const rewardPoints = Math.floor(Number(req.body?.rewardPoints || 0));
+        const taskType = String(req.body?.taskType || 'task').trim().toLowerCase();
+        const status = String(req.body?.status || task.status || 'active').trim().toLowerCase();
+        const questions = normalizeSurveyQuestions(req.body?.questions);
+        const notifyUsers = Boolean(req.body?.notifyUsers);
+
+        if (!title || !Number.isFinite(rewardPoints) || rewardPoints <= 0) {
+            return res.status(400).json({
+                message: 'Fill all required task fields. Title and reward points (greater than 0) are mandatory.'
+            });
+        }
+
+        if (taskType === 'survey' && !questions.length) {
+            return res.status(400).json({ message: 'Add at least one survey question.' });
+        }
+
+        if (title !== task.title) {
+            task.slug = await buildUniqueTaskSlug(title);
+        }
+
+        task.title = title;
+        task.link = link;
+        task.description = description;
+        task.rewardPoints = rewardPoints;
+        task.taskType = taskType;
+        task.status = status;
+        task.notifyUsers = notifyUsers;
+        task.questions = questions;
+
+        await task.save();
+
+        await logAdminEvent(`Updated task "${title}".`, 'task-update', {
+            taskId: String(task._id),
+            rewardPoints,
+            taskType,
+            status
+        });
+
+        res.json({
+            success: true,
+            task: serializeTask(task)
+        });
+    } catch (error) {
+        sendRouteError(res, error, 'Admin update task error:');
     }
 });
 

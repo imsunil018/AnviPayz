@@ -144,8 +144,12 @@ const state = {
     activity: normalizeActivity(readStore(STORAGE_KEYS.activity, [])),
     spinning: false,
     wheelRotation: 0,
-    watchTimer: null
+    watchTimer: null,
+    taskRefreshTimer: null,
+    taskRefreshBound: false
 };
+
+const taskCatalog = globalThis.AnviTaskCatalog || null;
 
 function getSafeToken() {
     const token = normalizeTokenValue(state.token);
@@ -462,8 +466,11 @@ async function initApp() {
     }
 
     initShellInteractions();
-    await hydrateUser();
+
+    // Show cached user data immediately to reduce splash time
     renderCommonUserState();
+    // Fetch fresh user data in the background
+    hydrateUser().then(() => renderCommonUserState()).catch(() => null);
 
     // Keep unread badge in sync across pages/sessions.
     // (No-op on failure; local cache still works as fallback.)
@@ -1034,19 +1041,53 @@ function initAuthPages() {
 
                 state.user = normalizeUser(data?.user || data);
                 persistUser(state.user);
+                if (data?.history?.length || data?.transactions?.length || data?.activityEntry) {
+                    syncActivityState(data.history || data.transactions || [data.activityEntry], { replace: true });
+                }
 
                 showToast("Login successful!", "success");
 
-                if (data.welcomeReward) {
+                const loginReward = data.dailyReward || data.welcomeReward || null;
+                if (data.dailyReward) {
+                    markTaskCompleted("daily-login");
+                }
+
+                if (loginReward) {
                     playRewardSound();
                     showRewardPopup({
                         icon: "🎉",
-                        title: "Login Reward!",
-                        message: data.welcomeReward.message,
-                        value: `${data.welcomeReward.points} Points`
+                        title: data.streakReward ? "Daily Reward + Streak Bonus!" : (data.dailyReward ? "Daily Login Reward!" : "Login Reward!"),
+                        message: loginReward.message,
+                        value: `${loginReward.points} Points`
                     });
                 } else {
                     showToast("Welcome back!", "success");
+                }
+
+                if (data?.dailyGoalBonus) {
+                    pushNotification({
+                        title: "Daily goal bonus",
+                        message: data.dailyGoalBonus.message || `Daily goal completed. ${data.dailyGoalBonus.points} points credited.`,
+                        type: "task"
+                    });
+                    showToast(`Daily goal bonus unlocked: +${formatNumber(numberFrom(data.dailyGoalBonus.points, 0))} points.`, "success");
+                }
+
+                if (Array.isArray(data?.levelRewards) && data.levelRewards.length) {
+                    const levelBonus = data.levelRewards.reduce((sum, item) => sum + numberFrom(item.points, 0), 0);
+                    showToast(`Level up bonus unlocked: +${formatNumber(levelBonus)} points.`, "success");
+
+                    if (!loginReward) {
+                        const levelRewardLabel = data.levelRewards
+                            .map((item) => `Lv ${item.level} +${formatNumber(item.points)}`)
+                            .join(" • ");
+                        showRewardPopup({
+                            icon: "🏅",
+                            title: data.levelRewards.length === 1 ? `Level ${data.levelRewards[0].level} unlocked!` : "Level rewards unlocked!",
+                            message: `Permanent XP progression keeps climbing. ${levelRewardLabel}`,
+                            value: `+${formatNumber(levelBonus)} Points`
+                        });
+                    }
                 }
 
                 setTimeout(() => {
@@ -1229,6 +1270,9 @@ function initAuthPages() {
 
                 state.user = normalizeUser(data?.user || data);
                 persistUser(state.user);
+                if (data?.history?.length || data?.transactions?.length || data?.activityEntry) {
+                    syncActivityState(data.history || data.transactions || [data.activityEntry], { replace: true });
+                }
 
                 showToast("Account created successfully!", "success");
                 playRewardSound();
@@ -1368,7 +1412,6 @@ async function hydrateUser() {
         persistUser(state.user);
     } catch (error) {
         if (error?.code === "DB_OFFLINE" || error?.status === 503) {
-            showToast("Server is temporarily unavailable. Please try again shortly.", "warning");
             return;
         }
 
@@ -1495,7 +1538,9 @@ async function initHomePage() {
         fetchReferralPayload()
     ]);
 
-    const tasks = tasksResult.status === "fulfilled" ? tasksResult.value : [];
+    const tasks = tasksResult.status === "fulfilled"
+        ? (tasksResult.value?.tasks || [])
+        : [];
     const referral = referralResult.status === "fulfilled" ? referralResult.value : null;
     updateHomeSmartCard({ tasks, referral });
 }
@@ -1642,17 +1687,17 @@ function updateHomeSmartCard({ tasks = [], referral = null } = {}) {
     const progressLabel = document.getElementById("home-smart-progress-label");
     const icon = document.getElementById("home-smart-icon");
 
-    const mergedTasks = mergeHomeDailyTasks(Array.isArray(tasks) ? tasks : []);
-    const pendingTasks = getPendingTaskCount(mergedTasks);
-    const totalTasks = mergedTasks.length;
-    const completedTasks = totalTasks - pendingTasks;
+    const totalTasks = 2;
+    const completedTasks = getDailyGoalProgressCount();
+    const pendingTasks = Math.max(0, totalTasks - completedTasks);
     const taskProgress = totalTasks > 0 ? clamp(Math.round((completedTasks / totalTasks) * 100), 0, 100) : (pendingTasks === 0 ? 100 : 0);
     const referralDelta = getHomeReferralDelta(referral);
+    const dailyGoalClaimed = hasClaimedDailyGoalBonusToday();
 
     let tone = "tasks";
     let iconClass = "ri-flashlight-line";
     let titleText = "Daily Goal";
-    let subText = "Complete activities and earn bonus XP.";
+    let subText = "Complete 2 tasks today to unlock +50 bonus points.";
     let goalText = "Keep your streak alive to claim rewards.";
     let progressText = `${formatNumber(completedTasks)} / ${formatNumber(totalTasks)} tasks completed`;
     let href = "tasks.html";
@@ -1675,9 +1720,13 @@ function updateHomeSmartCard({ tasks = [], referral = null } = {}) {
         href = "tasks.html";
     } else {
         titleText = "Daily Goal";
-        subText = "You're all caught up. Keep your streak alive for bonus XP.";
-        goalText = "Maintain your momentum to stay on track.";
-        progressText = "All tasks completed for today.";
+        subText = dailyGoalClaimed
+            ? "Daily goal completed. +50 bonus credited today."
+            : "Daily goal completed. Bonus will sync as soon as the reward is processed.";
+        goalText = dailyGoalClaimed
+            ? "Come back tomorrow to unlock the next daily goal bonus."
+            : "Maintain your momentum to stay on track.";
+        progressText = dailyGoalClaimed ? "Daily goal bonus claimed." : "All tasks completed for today.";
         href = "tasks.html";
     }
 
@@ -1709,6 +1758,95 @@ function getPendingTaskCount(tasks) {
     }
 
     return tasks.filter((task) => !(task.completed || isTaskCompleted(task.id))).length;
+}
+
+function getDailyGoalProgressCount() {
+    const excludedTaskIds = new Set(["daily-login", "daily-goal-bonus"]);
+    const dayKey = todayKey();
+    const countedTaskIds = new Set();
+
+    state.activity.forEach((entry) => {
+        if (entry?.type !== "task") {
+            return;
+        }
+
+        const taskId = String(entry?.taskId || "").trim();
+        if (!taskId || excludedTaskIds.has(taskId)) {
+            return;
+        }
+
+        if (numberFrom(entry?.amount, 0) <= 0) {
+            return;
+        }
+
+        if (todayKey(entry?.time || new Date()) !== dayKey) {
+            return;
+        }
+
+        countedTaskIds.add(taskId);
+    });
+
+    return countedTaskIds.size;
+}
+
+function hasTaskActivityToday(taskIds) {
+    const acceptedTaskIds = new Set((Array.isArray(taskIds) ? taskIds : []).map((taskId) => String(taskId || "").trim()).filter(Boolean));
+    if (!acceptedTaskIds.size) {
+        return false;
+    }
+
+    const key = todayKey();
+    return state.activity.some((entry) => {
+        if (entry?.type !== "task") {
+            return false;
+        }
+
+        const taskId = String(entry?.taskId || "").trim();
+        if (!acceptedTaskIds.has(taskId)) {
+            return false;
+        }
+
+        const amount = numberFrom(entry?.amount, 0);
+        if (amount <= 0) {
+            return false;
+        }
+
+        return todayKey(entry?.time || new Date()) === key;
+    });
+}
+
+function hasClaimedDailyGoalBonusToday() {
+    return hasTaskActivityToday(["daily-goal-bonus"]);
+}
+
+function hasCompletedDailyGoalAnchorToday() {
+    const lastLoginRewardAt = state.user?.lastDailyLoginRewardAt;
+    if (lastLoginRewardAt && todayKey(lastLoginRewardAt) === todayKey()) {
+        return true;
+    }
+
+    const taskState = todayTaskState();
+    if (taskState.completed?.["daily-login"] || taskState.completed?.["daily-checkin"]) {
+        return true;
+    }
+
+    return hasTaskActivityToday(["daily-login", "daily-checkin"]);
+}
+
+function getHomeDailyGoalTasks(tasks) {
+    const tutorialDone = isTaskCompleted("watch-tutorial") || hasTaskActivityToday(["watch-tutorial"]);
+    return [
+        {
+            id: "daily-checkin",
+            title: "Daily Check-in",
+            completed: hasCompletedDailyGoalAnchorToday()
+        },
+        {
+            id: "watch-tutorial",
+            title: "Watch Tutorial",
+            completed: tutorialDone
+        }
+    ];
 }
 
 function mergeHomeDailyTasks(tasks) {
@@ -1766,18 +1904,56 @@ function getHomeReferralDelta(referralData) {
 }
 
 async function initTasksPage() {
+    normalizeDailyTaskState();
     const taskStats = buildTaskStats();
     setText("task-total-earned", formatNumber(taskStats.earnedPoints));
     setText("task-completed-count", formatNumber(taskStats.completedCount));
     setText("task-streak-count", formatStreakDays(computeTaskStreakDays("daily-checkin")));
 
+    bindTaskStreakBonusModal();
     bindStaticTaskButtons();
     bindTasksSectionTabs();
     // Don't leave the Tasks page stuck in a loading state while the API is slow/offline.
-    renderTaskSections(DEFAULT_ADMIN_TASKS);
+    renderTaskSections(getSharedTaskCatalog());
     const responseTasks = await fetchTasksPayload();
-    renderTaskSections(responseTasks);
+    renderTaskSections(responseTasks.tasks);
     renderTaskHistory();
+
+    if (state.taskRefreshTimer) {
+        clearInterval(state.taskRefreshTimer);
+    }
+
+    const refreshTasks = async () => {
+        const latestTasks = await fetchTasksPayload();
+        renderTaskSections(latestTasks.tasks);
+    };
+
+    state.taskRefreshTimer = window.setInterval(() => {
+        refreshTasks().catch(() => { });
+    }, 45000);
+
+    if (!state.taskRefreshBound) {
+        state.taskRefreshBound = true;
+        window.addEventListener("focus", () => {
+            refreshTasks().catch(() => { });
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) {
+                refreshTasks().catch(() => { });
+            }
+        });
+
+        window.addEventListener("storage", (event) => {
+            if (event.key === "anvi-task-catalog") {
+                refreshTasks().catch(() => { });
+            }
+        });
+    }
+}
+
+function getSharedTaskCatalog() {
+    return taskCatalog?.getAll?.() || DEFAULT_ADMIN_TASKS;
 }
 
 function bindTasksSectionTabs() {
@@ -1795,6 +1971,127 @@ function bindTasksSectionTabs() {
 
     window.addEventListener("hashchange", syncActive);
     syncActive();
+}
+
+const TASK_STREAK_BONUS_RULES = [
+    { days: 7, points: 100 },
+    { days: 14, points: 250 },
+    { days: 21, points: 500 }
+];
+
+function getTaskStreakBonusState() {
+    const streakDays = computeTaskStreakDays("daily-login");
+    const cycleDay = streakDays > 0 ? (((streakDays - 1) % 21) + 1) : 0;
+    const nextRule = TASK_STREAK_BONUS_RULES.find((rule) => cycleDay < rule.days) || null;
+
+    return {
+        streakDays,
+        cycleDay,
+        nextRule
+    };
+}
+
+function renderTaskStreakBonusModal() {
+    const modal = document.getElementById("streak-bonus-modal");
+    const currentEl = document.getElementById("streak-bonus-current");
+    const cycleEl = document.getElementById("streak-bonus-cycle");
+    const statusEl = document.getElementById("streak-bonus-status");
+    const gridEl = document.getElementById("streak-bonus-grid");
+
+    if (!modal || !currentEl || !cycleEl || !statusEl || !gridEl) {
+        return;
+    }
+
+    const stateInfo = getTaskStreakBonusState();
+    currentEl.textContent = formatStreakDays(stateInfo.streakDays);
+    cycleEl.textContent = `${stateInfo.cycleDay} / 21`;
+
+    if (!stateInfo.streakDays) {
+        statusEl.textContent = "Start a streak by logging in daily. Bonuses restart every 21 days.";
+    } else if (stateInfo.nextRule) {
+        statusEl.textContent = `Next bonus unlocks at ${stateInfo.nextRule.days} days for +${formatNumber(stateInfo.nextRule.points)} points.`;
+    } else {
+        statusEl.textContent = "You’ve cleared the 21-day cycle. The bonus ladder restarts now.";
+    }
+
+    gridEl.innerHTML = TASK_STREAK_BONUS_RULES.map((rule) => {
+        const unlocked = stateInfo.cycleDay >= rule.days;
+        const isNext = !unlocked && stateInfo.nextRule?.days === rule.days;
+        const remaining = unlocked ? 0 : Math.max(0, rule.days - stateInfo.cycleDay);
+        return `
+            <div class="streak-bonus-item ${unlocked ? "is-unlocked" : ""} ${isNext ? "is-next" : ""}">
+                <div class="streak-bonus-item__days">${formatNumber(rule.days)} Days</div>
+                <div class="streak-bonus-item__points">+${formatNumber(rule.points)} Points</div>
+                <div class="streak-bonus-item__meta">${unlocked ? "Claimed in this cycle" : `${formatNumber(remaining)} more day${remaining === 1 ? "" : "s"} to go`}</div>
+            </div>
+        `;
+    }).join("");
+}
+
+function openTaskStreakBonusModal() {
+    const modal = document.getElementById("streak-bonus-modal");
+    if (!modal) {
+        return;
+    }
+
+    renderTaskStreakBonusModal();
+    modal.hidden = false;
+    requestAnimationFrame(() => modal.classList.add("is-open"));
+}
+
+function closeTaskStreakBonusModal() {
+    const modal = document.getElementById("streak-bonus-modal");
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("is-open");
+    window.setTimeout(() => {
+        modal.hidden = true;
+    }, 160);
+}
+
+function bindTaskStreakBonusModal() {
+    const card = document.getElementById("task-streak-card");
+    const modal = document.getElementById("streak-bonus-modal");
+    const closeBtn = document.getElementById("close-streak-bonus");
+    const footerBtn = document.getElementById("streak-bonus-close-btn");
+
+    if (card && !card.dataset.bound) {
+        card.dataset.bound = "1";
+        card.addEventListener("click", openTaskStreakBonusModal);
+        card.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openTaskStreakBonusModal();
+            }
+        });
+    }
+
+    if (modal && !modal.dataset.bound) {
+        modal.dataset.bound = "1";
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                closeTaskStreakBonusModal();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && !modal.hidden) {
+                closeTaskStreakBonusModal();
+            }
+        });
+    }
+
+    if (closeBtn && !closeBtn.dataset.bound) {
+        closeBtn.dataset.bound = "1";
+        closeBtn.addEventListener("click", closeTaskStreakBonusModal);
+    }
+
+    if (footerBtn && !footerBtn.dataset.bound) {
+        footerBtn.dataset.bound = "1";
+        footerBtn.addEventListener("click", closeTaskStreakBonusModal);
+    }
 }
 
 function bindStaticTaskButtons() {
@@ -1864,76 +2161,108 @@ function bindStaticTaskButtons() {
     bindSurveyButtons();
 }
 
-// Survey Data - Questions for each survey
-const SURVEY_DATA = {
-    survey_001: {
-        title: "Product Feedback Survey",
-        reward: 50,
-        questions: [
-            { id: "q1", text: "How satisfied are you with AnviPayz?", type: "radio", options: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied"] },
-            { id: "q2", text: "Which feature do you use the most?", type: "radio", options: ["Daily Check-in", "Spin & Win", "Refer & Earn", "Tasks"] },
-            { id: "q3", text: "Would you recommend AnviPayz to friends?", type: "radio", options: ["Definitely Yes", "Probably Yes", "Not Sure", "No"] }
-        ]
-    },
-    survey_002: {
-        title: "User Experience Survey",
-        reward: 75,
-        questions: [
-            { id: "q1", text: "How easy is it to navigate the app?", type: "radio", options: ["Very Easy", "Easy", "Average", "Difficult"] },
-            { id: "q2", text: "Do you find the interface user-friendly?", type: "radio", options: ["Yes, very", "Somewhat", "Not really", "No"] },
-            { id: "q3", text: "What would you like to improve?", type: "text", placeholder: "Your suggestions..." }
-        ]
-    },
-    survey_003: {
-        title: "Market Research Survey",
-        reward: 100,
-        questions: [
-            { id: "q1", text: "How did you hear about AnviPayz?", type: "radio", options: ["Friend/Referral", "Social Media", "Google Search", "Other"] },
-            { id: "q2", text: "What is your primary goal on AnviPayz?", type: "radio", options: ["Earn Money", "Entertainment", "Learn & Grow", "Other"] },
-            { id: "q3", text: "How often do you use the app?", type: "radio", options: ["Daily", "Few times a week", "Weekly", "Rarely"] },
-            { id: "q4", text: "Any additional feedback?", type: "text", placeholder: "Share your thoughts..." }
-        ]
-    }
-};
-
 let currentSurveyId = null;
 let currentSurveyAnswers = {};
+let currentSurveyTask = null;
+let surveyHandlersBound = false;
 
 function bindSurveyButtons() {
-    const surveyButtons = document.querySelectorAll('.btn-start-survey');
+    if (surveyHandlersBound) {
+        return;
+    }
 
-    surveyButtons.forEach(btn => {
-        const card = btn.closest('.survey-task-card');
-        const surveyId = card?.dataset.surveyId;
+    surveyHandlersBound = true;
 
-        if (surveyId && isTaskCompleted(surveyId)) {
-            btn.disabled = true;
-            btn.textContent = 'Completed';
-            btn.style.opacity = '0.6';
+    document.getElementById('survey-task-container')?.addEventListener('click', (event) => {
+        const card = event.target.closest('.survey-task-card');
+        const button = event.target.closest('.btn-start-survey');
+        if (!card && !button) {
+            return;
         }
 
-        btn.addEventListener('click', () => {
-            if (surveyId) {
-                openSurveyModal(surveyId);
+        const surveyId = card?.dataset.surveyId;
+        const task = getSurveyTaskById(surveyId);
+        if (!task) {
+            return;
+        }
+
+        if (isTaskCompleted(task.id)) {
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Completed';
+                button.style.opacity = '0.6';
             }
-        });
+            return;
+        }
+
+        openSurveyModal(task);
     });
 
-    // Modal close handlers
+    document.getElementById('survey-task-container')?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        const card = event.target.closest('.survey-task-card');
+        if (!card) {
+            return;
+        }
+
+        event.preventDefault();
+        const task = getSurveyTaskById(card.dataset.surveyId);
+        if (!task || isTaskCompleted(task.id)) {
+            return;
+        }
+
+        openSurveyModal(task);
+    });
+
     document.getElementById('close-survey')?.addEventListener('click', closeSurveyModal);
     document.getElementById('survey-modal')?.addEventListener('click', (e) => {
         if (e.target.id === 'survey-modal') closeSurveyModal();
     });
-
-    // Submit handler
     document.getElementById('btn-submit-survey')?.addEventListener('click', submitSurvey);
 }
 
-function openSurveyModal(surveyId) {
-    const survey = SURVEY_DATA[surveyId];
+function getSurveyTaskById(taskId) {
+    const id = String(taskId || '').trim();
+    if (!id) {
+        return null;
+    }
+
+    return (taskCatalog?.getAll?.() || []).find((task) =>
+        String(task.id || task._id || '') === id
+        || String(task.seedKey || '') === id
+    ) || null;
+}
+
+function getSurveyQuestions(task) {
+    if (!task) {
+        return [];
+    }
+
+    if (Array.isArray(task.questions) && task.questions.length) {
+        return task.questions;
+    }
+    return [];
+}
+
+function openSurveyModal(task) {
+    const questions = getSurveyQuestions(task);
+    if (!questions.length) {
+        showToast("Survey questions are not available.", "warning");
+        return;
+    }
+
+    const survey = task ? {
+        ...task,
+        questions,
+        reward: task.rewardPoints || task.reward || 0
+    } : null;
     if (!survey) return;
 
-    currentSurveyId = surveyId;
+    currentSurveyId = survey.id;
+    currentSurveyTask = survey;
     currentSurveyAnswers = {};
 
     document.getElementById('survey-title').textContent = survey.title;
@@ -1976,14 +2305,17 @@ function renderQuestion(question, index) {
             </div>
         `;
     }
+
+    return "";
 }
 
 function updateSurveyProgress() {
-    const survey = SURVEY_DATA[currentSurveyId];
+    const survey = currentSurveyTask || getSurveyTaskById(currentSurveyId);
     if (!survey) return;
 
     let answered = 0;
-    survey.questions.forEach(q => {
+    const questions = getSurveyQuestions(survey);
+    questions.forEach(q => {
         if (q.type === 'radio') {
             const selected = document.querySelector(`input[name="${q.id}"]:checked`);
             if (selected) answered++;
@@ -1993,18 +2325,20 @@ function updateSurveyProgress() {
         }
     });
 
-    document.getElementById('survey-progress').textContent = `${answered} of ${survey.questions.length} answered`;
+    document.getElementById('survey-progress').textContent = `${answered} of ${questions.length} answered`;
 }
 
 function closeSurveyModal() {
     document.getElementById('survey-modal').style.display = 'none';
     currentSurveyId = null;
+    currentSurveyTask = null;
     currentSurveyAnswers = {};
 }
 
 async function submitSurvey() {
-    const survey = SURVEY_DATA[currentSurveyId];
+    const survey = currentSurveyTask || getSurveyTaskById(currentSurveyId);
     if (!survey) return;
+    const surveyReward = numberFrom(survey.rewardPoints, survey.reward, 0);
 
     // Collect answers
     const answers = {};
@@ -2039,27 +2373,27 @@ async function submitSurvey() {
     try {
         // Attempt API reward flow first (if backend supports surveys)
         await completeRewardFlow({
-            taskId: currentSurveyId,
+            taskId: survey.id,
             title: survey.title,
-            message: `Survey completed! +${survey.reward} coins added.`,
-            points: survey.reward,
+            message: `Survey completed! +${surveyReward} coins added.`,
+            points: surveyReward,
             type: "survey",
             requestVariants: [
                 {
                     path: "/surveys/submit",
                     method: "POST",
-                    body: { surveyId: currentSurveyId, answers }
+                    body: { surveyId: survey.id, answers }
                 },
                 {
                     path: "/add-points",
                     method: "POST",
-                    body: { source: "survey", taskId: currentSurveyId, points: survey.reward, title: survey.title }
+                    body: { source: "survey", taskId: survey.id, points: surveyReward, title: survey.title }
                 }
             ]
         });
 
         // Update UI
-        const card = document.querySelector(`[data-survey-id="${currentSurveyId}"]`);
+        const card = document.querySelector(`[data-survey-id="${survey.id}"]`);
         const startBtn = card?.querySelector('.btn-start-survey');
         if (startBtn) {
             startBtn.disabled = true;
@@ -2069,22 +2403,19 @@ async function submitSurvey() {
 
         renderTaskHistory();
         closeSurveyModal();
-        showToast(`Survey completed! +${survey.reward} coins credited.`, "success");
+        showToast(`Survey completed! +${surveyReward} coins credited.`, "success");
 
     } catch (error) {
         console.error('Survey submission error:', error);
         // Fallback: local reward (offline-safe for surveys)
         if (!isTaskCompleted(currentSurveyId)) {
             markTaskCompleted(currentSurveyId);
-            if (state.user) {
-                state.user.points = numberFrom(state.user.points, 0) + numberFrom(survey.reward, 0);
-                persistUser(state.user);
-            }
+            applyLocalRewardCredit({ points: surveyReward, source: "survey" });
 
             createWalletEntry({
                 title: survey.title,
-                message: `Survey completed! +${survey.reward} coins added.`,
-                amount: survey.reward,
+                message: `Survey completed! +${surveyReward} coins added.`,
+                amount: surveyReward,
                 type: "survey",
                 direction: "credit",
                 status: "completed",
@@ -2093,7 +2424,7 @@ async function submitSurvey() {
 
             pushNotification({
                 title: "Survey reward",
-                message: `${survey.title}: ${survey.reward} points credited.`,
+                message: `${survey.title}: ${surveyReward} points credited.`,
                 type: "survey"
             });
 
@@ -2102,8 +2433,8 @@ async function submitSurvey() {
             showRewardPopup({
                 icon: "Reward",
                 title: "Survey reward",
-                message: `Survey completed! +${survey.reward} coins added.`,
-                value: `${formatNumber(survey.reward)} Points`
+                message: `Survey completed! +${surveyReward} coins added.`,
+                value: `${formatNumber(surveyReward)} Points`
             });
         }
 
@@ -2118,7 +2449,7 @@ async function submitSurvey() {
 
         renderTaskHistory();
         closeSurveyModal();
-        showToast(`Survey completed! +${survey.reward} coins credited.`, "success");
+        showToast(`Survey completed! +${surveyReward} coins credited.`, "success");
     } finally {
         btn.disabled = false;
         btn.textContent = 'Submit';
@@ -2151,15 +2482,27 @@ async function fetchTasksPayload() {
             12000
         );
 
-        return normalizeTaskList(data?.tasks || data || []);
+        const tasks = normalizeTaskList(data?.tasks || data || []);
+        if (taskCatalog?.saveAll) {
+            taskCatalog.saveAll(tasks);
+        }
+
+        return {
+            tasks,
+            fromApi: true
+        };
     } catch (error) {
-        return DEFAULT_ADMIN_TASKS;
+        return {
+            tasks: normalizeTaskList(getSharedTaskCatalog()),
+            fromApi: false
+        };
     }
 }
 
 function renderTaskSections(tasks) {
     const dailyContainer = document.getElementById("daily-task-container");
     const adminContainer = document.getElementById("admin-task-container");
+    const surveyContainer = document.getElementById("survey-task-container");
 
     if (dailyContainer) {
         dailyContainer.innerHTML = renderProfileCompletionTask();
@@ -2169,42 +2512,52 @@ function renderTaskSections(tasks) {
         return;
     }
 
-    if (!tasks.length) {
+    const list = Array.isArray(tasks) ? tasks : [];
+    const surveyTasks = list.filter((task) => String(task.taskType || "").toLowerCase() === "survey");
+    const apiTasks = list.filter((task) => String(task.taskType || "").toLowerCase() !== "survey");
+    const surveySource = surveyTasks;
+
+    if (!apiTasks.length) {
         adminContainer.innerHTML = emptyStateMarkup("ri-inbox-archive-line", "No API-powered tasks are live right now.");
-        return;
+    } else {
+        adminContainer.innerHTML = apiTasks.map((task) => {
+            // Completion is tracked per-device/per-day in local task state (and optionally enforced server-side).
+            // Do not trust the API's `completed` field for UI, as it may represent admin status / global state.
+            const done = task.completed || isTaskCompleted(task.id);
+            const badgeClass = done ? "success" : "warning";
+            const actionLabel = done ? "Completed" : "Complete";
+            const iconTone = done ? "success" : "warning";
+            const iconClass = done ? "ri-checkbox-circle-line" : "ri-flashlight-line";
+            const disabledAttr = done ? 'disabled aria-disabled="true" data-locked="true" data-locked-label="Completed"' : "";
+
+            return `
+                <div class="task-card" data-task-card="${escapeHtml(task.id)}">
+                    <div class="task-card-head">
+                        <div class="list-icon task-icon task-icon--${iconTone}"><i class="${iconClass}"></i></div>
+                        <div class="list-info">
+                            <div class="list-title">${escapeHtml(task.title)}</div>
+                            <div class="list-sub">${escapeHtml(task.description || "Open the task and finish the required action.")}</div>
+                        </div>
+                    </div>
+                    <div class="task-card-bottom">
+                        <div class="task-card-badges">
+                            <span class="task-pill reward"><i class="ri-coin-line"></i>${formatNumber(task.rewardPoints)} Coins</span>
+                            <span class="status-pill ${badgeClass}">${done ? "Done today" : capitalize(task.taskType || "task")}</span>
+                        </div>
+                        <button type="button" class="btn-primary task-card-action" data-api-task="${escapeHtml(task.id)}" ${disabledAttr}>
+                            ${actionLabel}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join("");
     }
 
-    adminContainer.innerHTML = tasks.map((task) => {
-        // Completion is tracked per-device/per-day in local task state (and optionally enforced server-side).
-        // Do not trust the API's `completed` field for UI, as it may represent admin status / global state.
-        const done = isTaskCompleted(task.id);
-        const badgeClass = done ? "success" : "warning";
-        const actionLabel = done ? "Completed" : "Complete";
-        const iconTone = done ? "success" : "warning";
-        const iconClass = done ? "ri-checkbox-circle-line" : "ri-flashlight-line";
-        const disabledAttr = done ? 'disabled aria-disabled="true" data-locked="true" data-locked-label="Completed"' : "";
-
-        return `
-            <div class="task-card" data-task-card="${escapeHtml(task.id)}">
-                <div class="task-card-head">
-                    <div class="list-icon task-icon task-icon--${iconTone}"><i class="${iconClass}"></i></div>
-                    <div class="list-info">
-                        <div class="list-title">${escapeHtml(task.title)}</div>
-                        <div class="list-sub">${escapeHtml(task.description || "Open the task and finish the required action.")}</div>
-                    </div>
-                </div>
-                <div class="task-card-bottom">
-                    <div class="task-card-badges">
-                        <span class="task-pill reward"><i class="ri-coin-line"></i>${formatNumber(task.rewardPoints)} Coins</span>
-                        <span class="status-pill ${badgeClass}">${done ? "Done today" : capitalize(task.taskType || "task")}</span>
-                    </div>
-                    <button type="button" class="btn-primary task-card-action" data-api-task="${escapeHtml(task.id)}" ${disabledAttr}>
-                        ${actionLabel}
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join("");
+    if (surveyContainer) {
+        surveyContainer.innerHTML = surveySource.length
+            ? renderSurveyTaskCards(surveySource)
+            : emptyStateMarkup("ri-survey-line", "Survey tasks are coming soon! Stay tuned.");
+    }
 
     adminContainer.querySelectorAll("[data-api-task]").forEach((button) => {
         button.addEventListener("click", async () => {
@@ -2248,6 +2601,38 @@ function renderTaskSections(tasks) {
             });
         });
     });
+}
+
+function renderSurveyTaskCards(tasks) {
+    const items = Array.isArray(tasks) ? tasks : [];
+    return items.map((task) => {
+        const done = task.completed || isTaskCompleted(task.id);
+        const rewardPoints = numberFrom(task.rewardPoints, task.reward, 0);
+        const questionCount = Array.isArray(task.questions) && task.questions.length ? task.questions.length : 0;
+        const disabledAttr = done ? 'disabled aria-disabled="true"' : "";
+
+        return `
+            <div class="card survey-task-card" data-survey-id="${escapeHtml(task.id)}" role="button" tabindex="0" aria-label="Open survey ${escapeHtml(task.title)}">
+                <div class="task-card-head">
+                    <div class="list-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                        <i class="ri-survey-line"></i>
+                    </div>
+                    <div class="list-info">
+                        <div class="list-title">${escapeHtml(task.title)}</div>
+                        <div class="list-sub">${escapeHtml(task.description || `Complete the survey and earn ${formatNumber(rewardPoints)} Coins.`)}${questionCount ? ` • ${questionCount} questions` : ""}</div>
+                    </div>
+                </div>
+                <div class="task-card-bottom">
+                    <div class="task-card-badges">
+                        <span class="task-pill reward"><i class="ri-coin-line"></i>${formatNumber(rewardPoints)} Coins</span>
+                    </div>
+                    <button type="button" class="btn-primary btn-start-survey task-card-action task-card-action-survey" style="background: #8b5cf6;" ${disabledAttr}>
+                        ${done ? "Completed" : "Start"}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join("");
 }
 
 function renderProfileCompletionTask() {
@@ -2416,13 +2801,10 @@ function bindWalletConversion() {
 async function initReferPage() {
     const data = await fetchReferralPayload();
     const referralCode = String(data.referralCode || state.user?.referralCode || "").trim().toUpperCase();
-    if (!referralCode) {
-        showToast("Referral code is still loading. Please try again in a moment.", "warning");
-        return;
-    }
-    const shareUrl = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, "/")}index.html?view=register&ref=${encodeURIComponent(referralCode)}`;
+    const baseUrl = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, "/")}index.html?view=register`;
+    const shareUrl = referralCode ? `${baseUrl}&ref=${encodeURIComponent(referralCode)}` : baseUrl;
 
-    setText("my-refer-code", referralCode);
+    setText("my-refer-code", referralCode || "—");
     setText("total-ref-count", formatNumber(data.totalReferrals));
     setText("total-ref-earnings", formatNumber(data.totalEarnings));
     setText("daily-limit-text", `${formatNumber(data.todayReferrals)} / ${formatNumber(data.dailyLimit)} Today`);
@@ -2482,9 +2864,18 @@ async function initReferPage() {
 }
 
 function updateReferralProgress(data) {
-    const current = numberFrom(data?.todayReferrals, 0);
-    const goal = Math.max(numberFrom(data?.dailyLimit, 10), 1);
+    const tiers = [
+        { referrals: 15, points: 1000 },
+        { referrals: 25, points: 2000 },
+        { referrals: 50, points: 6000 }
+    ];
+    const totalReferrals = numberFrom(data?.totalReferrals, state.user?.referrals, 0);
+    const nextTier = tiers.find((tier) => totalReferrals < tier.referrals) || null;
+    const previousTier = [...tiers].reverse().find((tier) => totalReferrals >= tier.referrals) || null;
+    const goal = Math.max(1, nextTier?.referrals || previousTier?.referrals || totalReferrals || 1);
+    const current = Math.min(totalReferrals, goal);
     const ratio = Math.min(current / goal, 1);
+    const remaining = nextTier ? Math.max(0, nextTier.referrals - totalReferrals) : 0;
 
     setText("progress-current", formatNumber(current));
     setText("progress-goal", formatNumber(goal));
@@ -2496,11 +2887,14 @@ function updateReferralProgress(data) {
 
     const bonusStatus = document.getElementById("bonus-status");
     if (bonusStatus) {
-        if (current >= goal) {
-            bonusStatus.textContent = "Bonus unlocked! Keep pushing the leaderboard.";
+        if (nextTier) {
+            bonusStatus.textContent = `Next reward: +${formatNumber(nextTier.points)} points at ${formatNumber(nextTier.referrals)} referrals. ${formatNumber(remaining)} more referral${remaining === 1 ? "" : "s"} needed.`;
+            bonusStatus.classList.remove("unlocked");
+        } else if (tiers.length) {
+            bonusStatus.textContent = "All referral reward tiers unlocked.";
             bonusStatus.classList.add("unlocked");
         } else {
-            bonusStatus.textContent = `Invite ${goal - current} more friends to unlock reward.`;
+            bonusStatus.textContent = "Invite more friends to unlock rewards.";
             bonusStatus.classList.remove("unlocked");
         }
     }
@@ -2581,7 +2975,8 @@ function normalizeLeaderboardEntries(entries, { timeLabel = "All time" } = {}) {
             reward: numberFrom(item.points, item.reward, 0),
             time: item.time || item.createdAt || "",
             subLabel: `Referrals: ${formatNumber(referrals)}`,
-            timeLabel: timeLabel
+            timeLabel: timeLabel,
+            isMe: Boolean(item.isMe)
         };
     });
 }
@@ -2656,8 +3051,9 @@ function renderReferralLeaderboard(listEl, network, mode, rankCard) {
     listEl.innerHTML = sorted.slice(0, 8).map((person, index) => {
         const emailLabel = person.subLabel || (person.email ? maskEmail(person.email) : "Joined via invite link");
         const timeLabel = person.timeLabel || (person.time ? formatRelative(person.time) : "All time");
+        const meClass = person.isMe ? "is-me" : "";
         return `
-            <div class="network-item">
+            <div class="network-item ${meClass}">
                 <div class="list-info">
                     <div class="task-title">#${index + 1} ${escapeHtml(person.name || "Member")}</div>
                     <div class="task-body">${escapeHtml(emailLabel)}</div>
@@ -3408,6 +3804,53 @@ async function initProfilePage() {
             logout();
         });
     });
+
+    // Handle display name edits
+    const nameForm = document.getElementById('profile-name-form');
+    if (nameForm) {
+        nameForm.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            const saveBtn = document.getElementById('profile-name-save');
+            const input = document.getElementById('profile-name-input');
+            const nextName = (input?.value || '').trim();
+
+            if (!nextName) {
+                showToast('Name is required.', 'error');
+                return;
+            }
+            if (nextName.length < 3 || nextName.length > 30) {
+                showToast('Name must be between 3 and 30 characters.', 'error');
+                return;
+            }
+
+            await withButtonState(saveBtn, 'Saving...', async () => {
+                // Try both route variants for compatibility
+                const data = await requestFirst([
+                    { path: '/user/update-profile', method: 'PATCH', body: { name: nextName } },
+                    { path: '/profile/update', method: 'PATCH', body: { name: nextName } }
+                ], { auth: true });
+
+                const updated = data?.user || data;
+                if (updated) {
+                    state.user = normalizeUser(updated);
+                    persistUser(state.user);
+                }
+
+                renderCommonUserState();
+                // Close the edit modal without relying on page-scoped toggleModal
+                try {
+                    const modal = document.getElementById('profile-edit-modal');
+                    if (modal) {
+                        modal.setAttribute('hidden', '');
+                        document.body.style.overflow = '';
+                    }
+                } catch (err) {
+                    // ignore
+                }
+                showToast('Profile updated successfully.', 'success');
+            });
+        });
+    }
 }
 
 function initSupportPage() {
@@ -3420,10 +3863,13 @@ async function completeRewardFlow({ taskId, title, message, points, type, reques
         return;
     }
 
+    const xpBeforeReward = computeLifetimeXp();
     let serverActivityHandled = false;
+    let responseData = null;
 
     if (requestVariants?.length) {
         const data = await requestVariantsLoop(requestVariants);
+        responseData = data;
         if (data?.user) {
             state.user = normalizeUser(data.user);
             persistUser(state.user);
@@ -3436,6 +3882,7 @@ async function completeRewardFlow({ taskId, title, message, points, type, reques
         const data = await requestFirst([
             { path: "/add-points", method: "POST", body: { source: type, taskId, points, title, message } }
         ], { auth: true });
+        responseData = data;
 
         if (data?.user) {
             state.user = normalizeUser(data.user);
@@ -3452,6 +3899,7 @@ async function completeRewardFlow({ taskId, title, message, points, type, reques
     }
 
     if (!serverActivityHandled) {
+        applyLocalRewardCredit({ points, source: type });
         createWalletEntry({
             title,
             message,
@@ -3463,20 +3911,68 @@ async function completeRewardFlow({ taskId, title, message, points, type, reques
         });
     }
 
+    if (serverActivityHandled) {
+        ensureRewardXpCredit(xpBeforeReward, points);
+    }
+
+    const dailyGoalBonus = responseData?.dailyGoalBonus || null;
+    const totalRewardPoints = numberFrom(points, 0) + numberFrom(dailyGoalBonus?.points, 0);
+
+    // Check for streak bonus milestone in the updated activity list
+    const recentStreakEntry = state.activity.find(entry =>
+        String(entry.taskId || "").startsWith("daily-streak-") &&
+        (Date.now() - toTimestamp(entry.time)) < 15000
+    );
+
+    const milestoneDays = recentStreakEntry ? Number(recentStreakEntry.taskId.split('-').pop()) : 0;
+
     pushNotification({
         title: "Reward added",
         message: `${title}: ${points} points credited.`,
         type
     });
 
+    if (dailyGoalBonus) {
+        pushNotification({
+            title: "Daily goal bonus",
+            message: dailyGoalBonus.message || `Daily goal completed. ${dailyGoalBonus.points} points credited.`,
+            type: "task"
+        });
+        showToast(`Daily goal bonus unlocked: +${formatNumber(numberFrom(dailyGoalBonus.points, 0))} points.`, "success");
+    }
+
     renderCommonUserState();
     playRewardSound();
     showRewardPopup({
         icon: "🎉",
-        title: "Reward received",
-        message: message || "Your account has been updated.",
-        value: `${formatNumber(points)} Points`
+        title: dailyGoalBonus ? "Daily goal bonus unlocked!" : "Reward received",
+        message: dailyGoalBonus?.message
+            ? `${message || "Your account has been updated."} ${dailyGoalBonus.message}`
+            : (message || "Your account has been updated."),
+        value: dailyGoalBonus
+            ? `${formatNumber(points)} + ${formatNumber(dailyGoalBonus.points)} = ${formatNumber(totalRewardPoints)} Points`
+            : `${formatNumber(totalRewardPoints)} Points`
     });
+
+    if (Array.isArray(responseData?.levelRewards) && responseData.levelRewards.length) {
+        const levelBonus = responseData.levelRewards.reduce((sum, item) => sum + numberFrom(item.points, 0), 0);
+        showToast(`Level up bonus unlocked: +${formatNumber(levelBonus)} points.`, "success");
+    }
+}
+
+function ensureRewardXpCredit(previousXp, points) {
+    const rewardPoints = Math.max(0, Math.floor(numberFrom(points, 0)));
+    if (!state.user || rewardPoints <= 0) {
+        return;
+    }
+
+    const currentXp = Math.max(numberFrom(state.user.lifetimeXp, 0), computeLifetimeXp());
+    const expectedXp = Math.max(currentXp, numberFrom(previousXp, 0) + rewardPoints);
+
+    if (expectedXp > currentXp) {
+        state.user.lifetimeXp = expectedXp;
+        persistUser(state.user);
+    }
 }
 
 async function requestVariantsLoop(variants) {
@@ -3724,9 +4220,15 @@ function computeTaskStreakDays(taskId) {
         day: "2-digit"
     });
 
+    const acceptedTaskIds = new Set([id]);
+    if (id === "daily-login" || id === "daily-checkin") {
+        acceptedTaskIds.add("daily-login");
+        acceptedTaskIds.add("daily-checkin");
+    }
+
     const dayKeys = new Set(
         state.activity
-            .filter((entry) => entry?.type === "task" && String(entry.taskId || "").trim() === id)
+            .filter((entry) => entry?.type === "task" && acceptedTaskIds.has(String(entry.taskId || "").trim()))
             .map((entry) => {
                 const ts = toTimestamp(entry.time);
                 if (!ts) {
@@ -3738,13 +4240,25 @@ function computeTaskStreakDays(taskId) {
     );
 
     let streak = 0;
-    const cursor = new Date();
-    while (true) {
-        const key = dayFormatter.format(cursor);
-        if (!dayKeys.has(key)) {
-            break;
-        }
-        streak += 1;
+    let cursor = new Date();
+    const todayStr = dayFormatter.format(cursor);
+
+    const tempCursor = new Date();
+    tempCursor.setDate(tempCursor.getDate() - 1);
+    const yesterdayStr = dayFormatter.format(tempCursor);
+
+    // If not done today AND not done yesterday, streak is broken.
+    if (!dayKeys.has(todayStr) && !dayKeys.has(yesterdayStr)) {
+        return 0;
+    }
+
+    // If not done today yet, start counting from yesterday backwards to keep current count visible
+    if (!dayKeys.has(todayStr)) {
+        cursor.setDate(cursor.getDate() - 1);
+    }
+
+    while (dayKeys.has(dayFormatter.format(cursor))) {
+        streak++;
         cursor.setDate(cursor.getDate() - 1);
     }
 
@@ -3760,10 +4274,29 @@ function buildSurveyStats() {
 }
 
 function computeLifetimeXp() {
+    const directXp = numberFrom(state.user?.lifetimeXp, 0);
+    if (directXp > 0) {
+        return directXp;
+    }
+
     return state.activity.reduce((sum, item) => {
+        const entryType = String(item?.type || "").toLowerCase();
+        if (entryType === "convert" || entryType === "level") {
+            return sum;
+        }
+
         const amount = numberFrom(item.amount, 0);
-        return sum + Math.max(0, amount);
+        if (amount <= 0 || String(item?.direction || "").toLowerCase() === "debit") {
+            return sum;
+        }
+
+        return sum + amount;
     }, 0);
+}
+
+function getLevelUpBonusPoints(level) {
+    const targetLevel = Math.max(2, Math.floor(numberFrom(level, 2)));
+    return 150 + ((targetLevel - 2) * 25);
 }
 
 function getXpThreshold(level) {
@@ -3803,6 +4336,7 @@ function getXpLevel(xp) {
 function renderLifetimeXp() {
     const xp = computeLifetimeXp();
     const { level, currentThreshold, nextThreshold, progress } = getXpLevel(xp);
+    const nextRewardPoints = getLevelUpBonusPoints(level + 1);
 
     window.__anviLifetimeXp = xp;
     window.dispatchEvent(new CustomEvent("anvi:lifetime-xp-updated", {
@@ -3811,10 +4345,22 @@ function renderLifetimeXp() {
             level,
             currentThreshold,
             nextThreshold,
-            progress
+            progress,
+            nextRewardPoints
         }
     }));
 }
+
+function hydratePersistedUser() {
+    const cached = readStore(STORAGE_KEYS.user, null);
+    if (!cached) {
+        return null;
+    }
+
+    return normalizeUser(cached);
+}
+
+state.user = hydratePersistedUser();
 
 function createWalletEntry(entry) {
     const normalized = normalizeActivityItem({
@@ -3831,6 +4377,26 @@ function createWalletEntry(entry) {
 
     state.activity = [normalized, ...state.activity].slice(0, 30);
     persistActivity();
+}
+
+function applyLocalRewardCredit({ points = 0, source = "task" } = {}) {
+    const amount = Math.max(0, Math.floor(numberFrom(points, 0)));
+    if (!state.user || amount <= 0) {
+        return;
+    }
+
+    state.user.points = numberFrom(state.user.points, 0) + amount;
+    state.user.lifetimeXp = numberFrom(state.user.lifetimeXp, 0) + amount;
+
+    if (source === "survey") {
+        state.user.surveyEarnings = numberFrom(state.user.surveyEarnings, 0) + amount;
+    } else if (source === "referral") {
+        state.user.referralEarnings = numberFrom(state.user.referralEarnings, 0) + amount;
+    } else if (source === "task" || source === "spin") {
+        state.user.taskEarnings = numberFrom(state.user.taskEarnings, 0) + amount;
+    }
+
+    persistUser(state.user);
 }
 
 function pushNotification(notification) {
@@ -3863,7 +4429,7 @@ function showToast(message, type = "success") {
     }, 3200);
 }
 
-function showRewardPopup({ icon, title, message, value }) {
+function showRewardPopup({ icon, title, message, value, buttonLabel = "Continue" }) {
     const modal = document.querySelector(".reward-modal");
     if (!modal) {
         return;
@@ -3873,6 +4439,10 @@ function showRewardPopup({ icon, title, message, value }) {
     setText("reward-title", title || "Reward unlocked");
     setText("reward-message", message || "Your action completed successfully.");
     setText("reward-value", value || "Updated");
+
+    const btn = document.getElementById("reward-close-btn");
+    if (btn) btn.textContent = buttonLabel;
+
     modal.hidden = false;
 }
 
@@ -4133,6 +4703,68 @@ function playToneSequence(steps) {
         oscillator.start(start);
         oscillator.stop(start + step.duration + 0.02);
     });
+}
+
+function playStreakMilestoneSound() {
+    const context = getSharedAudioContext();
+    if (!context) return;
+    const now = context.currentTime;
+
+    // High-pitched celebratory arpeggio
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+        const osc = context.createOscillator();
+        const gain = context.createGain();
+        const start = now + (i * 0.08);
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.12, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.4);
+        osc.connect(gain).connect(context.destination);
+        osc.start(start);
+        osc.stop(start + 0.5);
+    });
+}
+
+function triggerConfetti() {
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'fixed';
+    canvas.style.inset = '0';
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '10001';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const pieces = [];
+    const colors = ['#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#3b82f6'];
+
+    for (let i = 0; i < 150; i++) {
+        pieces.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            r: Math.random() * 6 + 4,
+            v: { x: (Math.random() - 0.5) * 6, y: Math.random() * 4 + 3 },
+            color: colors[Math.floor(Math.random() * colors.length)]
+        });
+    }
+
+    function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+            p.x += p.v.x;
+            p.y += p.v.y;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.r, p.r);
+        });
+        if (pieces.some(p => p.y < canvas.height)) requestAnimationFrame(frame);
+        else canvas.remove();
+    }
+    frame();
 }
 
 let sharedAudioContext = null;
@@ -4460,8 +5092,11 @@ function readStore(key, fallback) {
 
 function persistUser(user) {
     state.user = normalizeUser(user);
-    // User data is NOT stored in localStorage - only in MongoDB
-    // This ensures data consistency across devices
+    try {
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(state.user));
+    } catch (error) {
+        // Ignore storage failures; server state remains the source of truth.
+    }
     syncUserLocalCache(state.user);
 }
 
@@ -4484,6 +5119,7 @@ function syncUserLocalCache(user) {
             localStorage.removeItem(STORAGE_KEYS.tasks);
             localStorage.removeItem(STORAGE_KEYS.watchState);
             localStorage.removeItem(STORAGE_KEYS.referralSeenCount);
+            localStorage.removeItem(STORAGE_KEYS.user);
             state.notifications = [];
             state.notificationReads = {};
             state.activity = [];
@@ -4549,6 +5185,10 @@ function normalizeUser(user) {
         email: user.email || "",
         phone: user.phone || user.mobile || user.phoneNumber || "",
         points: numberFrom(user.points, user.balance, user.walletPoints, 0),
+        lifetimeXp: Math.max(
+            numberFrom(user.lifetimeXp, user.totalLifetimeXp, 0),
+            numberFrom(state.user?.lifetimeXp, 0)
+        ),
         tokens: roundTo(numberFrom(user.tokens, user.tokenBalance, user.walletTokens, 0), 2),
         referrals: numberFrom(user.referrals, user.totalReferrals, user.referralCount, 0),
         referralEarnings: numberFrom(user.referralEarnings, user.referIncome, user.referralIncome, 0),
@@ -4557,6 +5197,7 @@ function normalizeUser(user) {
         joinedAt: user.joinedAt || user.createdAt || user.registeredAt || new Date().toISOString(),
         referralCode,
         accountStatus: user.accountStatus || "active",
+        lastDailyLoginRewardAt: user.lastDailyLoginRewardAt || null,
         deletionRequestedAt: user.deletionRequestedAt || null,
         deleteAfter: user.deleteAfter || null,
         recoveryWindowDays: numberFrom(user.recoveryWindowDays, 7)
@@ -4571,8 +5212,27 @@ function normalizeTaskList(tasks) {
         rewardPoints: numberFrom(task.rewardPoints, task.points, task.reward, 0),
         taskType: task.taskType || task.type || "task",
         completed: boolFrom(task.completed),
-        link: task.link || task.url || ""
+        link: task.link || task.url || "",
+        seedKey: task.seedKey || "",
+        questions: Array.isArray(task.questions)
+            ? task.questions
+            : (typeof task.questions === "string" ? safeJsonParse(task.questions, []) : []),
+        questionCount: Array.isArray(task.questions)
+            ? task.questions.length
+            : (typeof task.questions === "string" ? (safeJsonParse(task.questions, []) || []).length : 0)
     }));
+}
+
+function safeJsonParse(value, fallback = null) {
+    if (typeof value !== "string") {
+        return fallback;
+    }
+
+    try {
+        return JSON.parse(value);
+    } catch (_) {
+        return fallback;
+    }
 }
 
 function normalizeNotifications(list) {
@@ -4743,13 +5403,18 @@ function todayTaskState() {
     return saved;
 }
 
-function todayKey() {
+function todayKey(value = new Date()) {
     return new Intl.DateTimeFormat("en-CA", {
         timeZone: INDIA_TIME_ZONE,
         year: "numeric",
         month: "2-digit",
         day: "2-digit"
-    }).format(new Date());
+    }).format(new Date(value));
+}
+
+function normalizeDailyTaskState() {
+    // Removed auto-deletion logic to keep Daily Check-in and Login separate as requested.
+    return;
 }
 
 function updateTaskButton(button, taskId, doneLabel) {

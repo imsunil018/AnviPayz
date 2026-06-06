@@ -13,6 +13,8 @@ import {
     capitalize
 } from "./admin-config.js";
 
+const taskCatalog = globalThis.AnviTaskCatalog || null;
+
 const state = {
     users: [],
     tasks: [],
@@ -21,10 +23,13 @@ const state = {
     leaderboardMode: "refer",
     userSort: "newest",
     userSearch: "",
+    taskFilter: "all",
     refreshTimer: null,
     connectionStatus: "signed_out",
     retryTimer: null,
-    lastSyncAt: 0
+    lastSyncAt: 0,
+    editingTaskId: null,
+    editingSurveyId: null
 };
 
 const refs = {
@@ -73,7 +78,6 @@ async function bootstrap() {
     const dbOnline = await ensureDatabaseOnline();
     if (!dbOnline) {
         showApp({ status: "offline" });
-        startRetryLoop();
         return;
     }
 
@@ -86,7 +90,7 @@ async function bootstrap() {
     } catch (error) {
         if (error?.code === "DB_OFFLINE" || error?.status === 503) {
             state.users = [];
-            state.tasks = [];
+            state.tasks = getLocalTaskCatalog().map(normalizeTaskRecord);
             state.activity = [];
             state.overview = {};
             renderOverview();
@@ -97,7 +101,6 @@ async function bootstrap() {
             renderJoinAlerts();
             showToast(error.message || "Database is offline. Start MongoDB and reload to sync.", "warning");
             showApp({ status: "offline" });
-            startRetryLoop();
             return;
         }
 
@@ -145,15 +148,27 @@ function bindStaticEvents() {
         });
     });
 
-    document.getElementById("openTaskModalBtn")?.addEventListener("click", () => openModal("taskModal"));
+    document.querySelectorAll("#taskFilterMode .segmented-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+            state.taskFilter = button.dataset.filter || "all";
+            document.querySelectorAll("#taskFilterMode .segmented-btn").forEach((item) => item.classList.remove("active"));
+            button.classList.add("active");
+            renderTasks();
+        });
+    });
+
+    document.getElementById("openTaskModalBtn")?.addEventListener("click", () => openTaskEditor());
+    document.getElementById("openSurveyModalBtn")?.addEventListener("click", () => openSurveyEditor());
     document.getElementById("openGiftAllBtn")?.addEventListener("click", () => openModal("giftAllModal"));
-    document.getElementById("overviewCreateTaskBtn")?.addEventListener("click", () => openModal("taskModal"));
+    document.getElementById("overviewCreateTaskBtn")?.addEventListener("click", () => openTaskEditor());
     document.getElementById("overviewGiftAllBtn")?.addEventListener("click", () => openModal("giftAllModal"));
     document.querySelectorAll("[data-close-modal]").forEach((button) => {
         button.addEventListener("click", () => closeModal(button.dataset.closeModal || ""));
     });
 
-    document.getElementById("taskForm")?.addEventListener("submit", handleTaskCreate);
+    document.getElementById("taskForm")?.addEventListener("submit", handleTaskSubmit);
+    document.getElementById("surveyForm")?.addEventListener("submit", handleSurveySubmit);
+    document.getElementById("addSurveyQuestionBtn")?.addEventListener("click", () => addSurveyQuestionRow());
     document.getElementById("giftForm")?.addEventListener("submit", handleGiftUser);
     document.getElementById("giftAllForm")?.addEventListener("submit", handleGiftAll);
     refs.userTableBody?.addEventListener("click", handleUserTableActions);
@@ -187,7 +202,7 @@ async function handleLogin(event) {
             const dbOnline = await ensureDatabaseOnline();
             if (!dbOnline) {
                 state.users = [];
-                state.tasks = [];
+                state.tasks = getLocalTaskCatalog().map(normalizeTaskRecord);
                 state.activity = [];
                 state.overview = {};
                 renderOverview();
@@ -198,7 +213,6 @@ async function handleLogin(event) {
                 renderJoinAlerts();
                 showApp({ status: "offline" });
                 showToast("Logged in, but database is offline.", "warning");
-                startRetryLoop();
                 return;
             }
 
@@ -216,7 +230,7 @@ async function handleLogin(event) {
             if (refreshError?.code === "DB_OFFLINE" || refreshError?.status === 503) {
                 // Let the admin UI load even when MongoDB is offline, so the user can see the console.
                 state.users = [];
-                state.tasks = [];
+                state.tasks = getLocalTaskCatalog().map(normalizeTaskRecord);
                 state.activity = [];
                 state.overview = {};
                 renderOverview();
@@ -227,7 +241,6 @@ async function handleLogin(event) {
                 renderJoinAlerts();
                 showApp({ status: "offline" });
                 showToast(refreshError.message || "Logged in, but database is offline.", "warning");
-                startRetryLoop();
                 return;
             }
 
@@ -282,9 +295,13 @@ async function refreshAdminData() {
     state.users = usersPayload.status === "fulfilled"
         ? (usersPayload.value?.users || usersPayload.value || []).map(normalizeUserRecord)
         : [];
-    state.tasks = tasksPayload.status === "fulfilled"
-        ? (tasksPayload.value?.tasks || tasksPayload.value || []).map(normalizeTaskRecord)
-        : [];
+    if (tasksPayload.status === "fulfilled") {
+        const fetchedTasks = (tasksPayload.value?.tasks || tasksPayload.value || []).map(normalizeTaskRecord);
+        saveLocalTaskCatalog(fetchedTasks);
+        state.tasks = getLocalTaskCatalog().map(normalizeTaskRecord);
+    } else {
+        state.tasks = getLocalTaskCatalog().map(normalizeTaskRecord);
+    }
     state.activity = activityPayload.status === "fulfilled"
         ? normalizeActivityFeed(activityPayload.value?.activity || activityPayload.value || [])
         : [];
@@ -399,23 +416,32 @@ function renderUsers() {
 function renderTasks() {
     if (!refs.taskTableBody) return;
 
-    if (state.connectionStatus !== "live") {
-        refs.taskTableBody.innerHTML = `<tr><td class="table-empty" colspan="6">Database offline. Click Retry to sync tasks.</td></tr>`;
+    if (state.connectionStatus !== "live" && !state.tasks.length) {
+        refs.taskTableBody.innerHTML = `<tr><td class="table-empty" colspan="7">Database offline and no local task catalog is available.</td></tr>`;
         return;
     }
 
-    refs.taskTableBody.innerHTML = state.tasks.length ? state.tasks.map((task) => `
+    const filtered = state.tasks.filter((task) => {
+        if (state.taskFilter === "all") return true;
+        return String(task.taskType || "").toLowerCase() === state.taskFilter;
+    });
+
+    refs.taskTableBody.innerHTML = filtered.length ? filtered.map((task) => `
         <tr>
             <td data-label="Title">${escapeHtml(task.title)}</td>
             <td data-label="Type">${escapeHtml(capitalize(task.taskType))}</td>
             <td data-label="Reward">${formatNumber(task.rewardPoints)}</td>
             <td data-label="Status">${escapeHtml(capitalize(task.status))}</td>
+            <td data-label="Questions">${task.taskType === "survey" ? formatNumber(task.questionCount || 0) : "-"}</td>
             <td data-label="Created">${escapeHtml(formatDateTime(task.createdAt))}</td>
             <td data-label="Action">
-                <button class="icon-btn delete" data-task-delete="${task.id}" title="Delete Task"><i class="ri-delete-bin-line"></i></button>
+                <div class="actions">
+                    <button class="icon-btn" data-task-edit="${task.id}" title="Edit Task"><i class="ri-pencil-line"></i></button>
+                    <button class="icon-btn delete" data-task-delete="${task.id}" title="Delete Task"><i class="ri-delete-bin-line"></i></button>
+                </div>
             </td>
         </tr>
-    `).join("") : `<tr><td class="table-empty" colspan="6">No tasks available.</td></tr>`;
+    `).join("") : `<tr><td class="table-empty" colspan="7">No tasks available for this filter.</td></tr>`;
 }
 
 function renderLeaderboards() {
@@ -491,25 +517,476 @@ function renderJoinAlerts() {
     refs.joinAlerts.innerHTML = items.length ? items.map(renderFeedItem).join("") : `<div class="feed-item"><div class="feed-title">No recent joins.</div></div>`;
 }
 
-async function handleTaskCreate(event) {
+function getLocalTaskCatalog() {
+    return taskCatalog?.getAll?.() || [];
+}
+
+function saveLocalTaskCatalog(tasks) {
+    return taskCatalog?.saveAll?.(tasks) || [];
+}
+
+function upsertLocalTask(task) {
+    return taskCatalog?.upsert?.(task) || [];
+}
+
+function removeLocalTask(id) {
+    return taskCatalog?.remove?.(id) || [];
+}
+
+function isOfflineTaskError(error) {
+    return error?.status === 503
+        || error?.code === "DB_OFFLINE"
+        || /503/i.test(String(error?.message || ""));
+}
+
+function isAuthTaskError(error) {
+    return error?.status === 401 || error?.status === 403;
+}
+
+function isValidationTaskError(error) {
+    return error?.status === 400
+        || /fill all|required task fields|task title and reward points are required|survey title and reward points are required|add at least one survey question/i.test(String(error?.message || ""));
+}
+
+function openTaskEditor(task = null) {
+    state.editingTaskId = task ? task.id : null;
+    state.editingSurveyId = null;
+    const modalTitle = document.getElementById("taskModalTitle");
+    const submitBtn = document.getElementById("taskSubmitBtn");
+    const form = document.getElementById("taskForm");
+
+    if (modalTitle) {
+        modalTitle.textContent = task ? "Edit Task" : "Create New Task";
+    }
+
+    if (submitBtn) {
+        submitBtn.textContent = task ? "Save Changes" : "Create Task";
+    }
+
+    document.getElementById("tId").value = task?.id || "";
+    document.getElementById("tTitle").value = task?.title || "";
+    document.getElementById("tLink").value = task?.link || "";
+    document.getElementById("tDesc").value = task?.description || "";
+    document.getElementById("tPoints").value = task?.rewardPoints || "";
+    document.getElementById("tType").value = task?.taskType || "task";
+    document.getElementById("tStatus").value = task?.status || "active";
+    document.getElementById("tNotifyUsers").checked = Boolean(task?.notifyUsers);
+
+    if (form) {
+        form.dataset.mode = task ? "edit" : "create";
+    }
+
+    openModal("taskModal");
+}
+
+function openSurveyEditor(task = null) {
+    state.editingSurveyId = task ? task.id : null;
+    state.editingTaskId = null;
+    const modalTitle = document.getElementById("surveyModalTitle");
+    const submitBtn = document.getElementById("surveySubmitBtn");
+    const form = document.getElementById("surveyForm");
+
+    if (modalTitle) {
+        modalTitle.textContent = task ? "Edit Survey" : "Create New Survey";
+    }
+
+    if (submitBtn) {
+        submitBtn.textContent = task ? "Save Changes" : "Create Survey";
+    }
+
+    document.getElementById("sId").value = task?.id || "";
+    document.getElementById("sTitle").value = task?.title || "";
+    document.getElementById("sDesc").value = task?.description || "";
+    document.getElementById("sPoints").value = task?.rewardPoints || "";
+    document.getElementById("sStatus").value = task?.status || "active";
+    document.getElementById("sNotifyUsers").checked = Boolean(task?.notifyUsers);
+
+    const questionList = document.getElementById("surveyQuestionList");
+    if (questionList) {
+        const questions = Array.isArray(task?.questions) && task.questions.length ? task.questions : [createEmptySurveyQuestion()];
+        questionList.innerHTML = questions.map((question) => renderSurveyQuestionRow(question)).join("");
+        questionList.querySelectorAll("[data-question-row]").forEach((row) => bindSurveyQuestionRow(row));
+    }
+
+    if (form) {
+        form.dataset.mode = task ? "edit" : "create";
+    }
+
+    openModal("surveyModal");
+    scrollSurveyEditorToTop();
+    window.requestAnimationFrame(() => {
+        document.getElementById("sTitle")?.focus();
+    });
+}
+
+function resetTaskEditor() {
+    state.editingTaskId = null;
+    const modalTitle = document.getElementById("taskModalTitle");
+    const submitBtn = document.getElementById("taskSubmitBtn");
+    const form = document.getElementById("taskForm");
+
+    if (modalTitle) {
+        modalTitle.textContent = "Create New Task";
+    }
+
+    if (submitBtn) {
+        submitBtn.textContent = "Create Task";
+    }
+
+    if (form) {
+        form.dataset.mode = "create";
+        form.reset();
+    }
+
+    const idField = document.getElementById("tId");
+    if (idField) {
+        idField.value = "";
+    }
+}
+
+function resetSurveyEditor() {
+    state.editingSurveyId = null;
+    const modalTitle = document.getElementById("surveyModalTitle");
+    const submitBtn = document.getElementById("surveySubmitBtn");
+    const form = document.getElementById("surveyForm");
+    const questionList = document.getElementById("surveyQuestionList");
+
+    if (modalTitle) {
+        modalTitle.textContent = "Create New Survey";
+    }
+
+    if (submitBtn) {
+        submitBtn.textContent = "Create Survey";
+    }
+
+    if (form) {
+        form.dataset.mode = "create";
+        form.reset();
+    }
+
+    if (questionList) {
+        questionList.innerHTML = renderSurveyQuestionRow(createEmptySurveyQuestion());
+        questionList.querySelectorAll("[data-question-row]").forEach((row) => bindSurveyQuestionRow(row));
+    }
+
+    const idField = document.getElementById("sId");
+    if (idField) {
+        idField.value = "";
+    }
+
+    scrollSurveyEditorToTop();
+}
+
+function scrollSurveyEditorToTop() {
+    const modal = document.getElementById("surveyModal");
+    const panel = modal?.querySelector(".modal--survey");
+    if (modal) {
+        modal.scrollTop = 0;
+    }
+    if (panel) {
+        panel.scrollTop = 0;
+    }
+}
+
+function createEmptySurveyQuestion() {
+    return {
+        text: "",
+        type: "radio",
+        options: ["Option 1", "Option 2"],
+        placeholder: ""
+    };
+}
+
+function renderSurveyQuestionRow(question = {}) {
+    const type = String(question.type || "radio").toLowerCase() === "text" ? "text" : "radio";
+    const optionsText = Array.isArray(question.options) ? question.options.join("\n") : "";
+    const placeholder = String(question.placeholder || "");
+
+    return `
+        <div class="survey-question-row" data-question-row>
+            <div class="survey-question-row__top">
+                <input type="text" class="input" data-question-field="text" placeholder="Question text" value="${escapeHtml(question.text || "")}" required>
+                <select class="input" data-question-field="type">
+                    <option value="radio" ${type === "radio" ? "selected" : ""}>Multiple choice</option>
+                    <option value="text" ${type === "text" ? "selected" : ""}>Text answer</option>
+                </select>
+            </div>
+            <div class="survey-question-row__bottom">
+                <div data-question-options-wrapper>
+                    <textarea class="input text-area" data-question-field="options" placeholder="Options one per line">${escapeHtml(optionsText)}</textarea>
+                </div>
+                <div data-question-placeholder-wrapper>
+                    <input type="text" class="input" data-question-field="placeholder" placeholder="Text answer placeholder" value="${escapeHtml(placeholder)}">
+                </div>
+            </div>
+            <div class="survey-question-row__actions">
+                <button type="button" class="btn btn-danger" data-question-remove>Remove</button>
+            </div>
+        </div>
+    `;
+}
+
+function bindSurveyQuestionRow(row) {
+    const typeSelect = row.querySelector('[data-question-field="type"]');
+    const removeBtn = row.querySelector('[data-question-remove]');
+
+    const sync = () => {
+        const type = String(typeSelect?.value || "radio").toLowerCase();
+        const optionsWrap = row.querySelector("[data-question-options-wrapper]");
+        const placeholderWrap = row.querySelector("[data-question-placeholder-wrapper]");
+        if (optionsWrap) {
+            optionsWrap.style.display = type === "text" ? "none" : "block";
+        }
+        if (placeholderWrap) {
+            placeholderWrap.style.display = type === "text" ? "block" : "none";
+        }
+    };
+
+    typeSelect?.addEventListener("change", sync);
+    removeBtn?.addEventListener("click", () => {
+        const list = document.getElementById("surveyQuestionList");
+        if (!list) return;
+        if (list.querySelectorAll("[data-question-row]").length <= 1) {
+            row.remove();
+            list.insertAdjacentHTML("beforeend", renderSurveyQuestionRow(createEmptySurveyQuestion()));
+            list.querySelectorAll("[data-question-row]").forEach((item) => bindSurveyQuestionRow(item));
+            return;
+        }
+        row.remove();
+    });
+
+    sync();
+}
+
+function addSurveyQuestionRow(question = createEmptySurveyQuestion()) {
+    const list = document.getElementById("surveyQuestionList");
+    if (!list) return;
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = renderSurveyQuestionRow(question).trim();
+    const row = wrapper.firstElementChild;
+    if (!row) return;
+    list.appendChild(row);
+    bindSurveyQuestionRow(row);
+}
+
+function collectSurveyQuestions() {
+    const rows = Array.from(document.querySelectorAll("#surveyQuestionList [data-question-row]"));
+    const questions = [];
+
+    for (const row of rows) {
+        const text = String(row.querySelector('[data-question-field="text"]')?.value || "").trim();
+        const type = String(row.querySelector('[data-question-field="type"]')?.value || "radio").trim().toLowerCase() === "text" ? "text" : "radio";
+        const optionsValue = String(row.querySelector('[data-question-field="options"]')?.value || "");
+        const placeholder = String(row.querySelector('[data-question-field="placeholder"]')?.value || "").trim();
+        const options = optionsValue
+            .split(/\r?\n|,/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+
+        if (!text) {
+            continue;
+        }
+
+        if (type === "radio" && !options.length) {
+            throw new Error(`Add options for question: ${text}`);
+        }
+
+        questions.push({
+            id: `q${questions.length + 1}`,
+            text,
+            type,
+            options: type === "radio" ? options : [],
+            placeholder: type === "text" ? placeholder : ""
+        });
+    }
+
+    return questions;
+}
+
+async function submitAdminTask({ isEdit, taskId, body, successMessage }) {
+    // Check if the taskId is a valid MongoDB ObjectId (24 hex chars)
+    // If not, we must use POST (Create) instead of PUT (Update) to avoid 404 errors.
+    const isMongoId = taskId && /^[0-9a-fA-F]{24}$/.test(String(taskId));
+    const useUpdate = isEdit && isMongoId;
+    const method = useUpdate ? "PUT" : "POST";
+    const path = useUpdate ? `/tasks/${taskId}` : "/tasks";
+
+    return await requestFirst([{
+        path,
+        method,
+        body
+    }]);
+}
+
+function buildLocalTaskPayload({ id, body, taskTypeOverride = null }) {
+    const taskType = String(taskTypeOverride || body.taskType || "task").trim().toLowerCase();
+    return {
+        id: String(id || `local-${Date.now().toString(36)}`).trim(),
+        seedKey: "",
+        title: String(body.title || "").trim(),
+        description: String(body.description || "").trim(),
+        link: String(body.link || "").trim(),
+        rewardPoints: toNumber(body.rewardPoints, 0),
+        taskType,
+        status: String(body.status || "active").trim().toLowerCase(),
+        notifyUsers: Boolean(body.notifyUsers),
+        questions: taskType === "survey" && Array.isArray(body.questions) ? body.questions : []
+    };
+}
+
+async function handleTaskSubmit(event) {
     event.preventDefault();
+    const taskId = String(document.getElementById("tId")?.value || state.editingTaskId || "").trim();
+    const title = String(document.getElementById("tTitle")?.value || "").trim();
+    const rewardPoints = toNumber(document.getElementById("tPoints")?.value, 0);
     const body = {
-        title: document.getElementById("tTitle")?.value.trim(),
+        title,
         link: document.getElementById("tLink")?.value.trim(),
         description: document.getElementById("tDesc")?.value.trim(),
-        rewardPoints: toNumber(document.getElementById("tPoints")?.value, 0),
-        taskType: document.getElementById("tType")?.value || "daily",
-        notifyUsers: Boolean(document.getElementById("tNotifyUsers")?.checked)
+        rewardPoints,
+        taskType: document.getElementById("tType")?.value || "task",
+        status: document.getElementById("tStatus")?.value || "active",
+        notifyUsers: Boolean(document.getElementById("tNotifyUsers")?.checked),
+        questions: []
+    };
+
+    if (!title || !Number.isFinite(rewardPoints) || rewardPoints <= 0) {
+        showToast("Task title and reward points are required.", "error");
+        return;
+    }
+
+    try {
+        // Strictly check if we are in Edit mode using form state
+        const isEdit = event.target.dataset.mode === "edit";
+        const isMongoId = taskId && /^[0-9a-fA-F]{24}$/.test(String(taskId).trim());
+
+        // If editing a non-Mongo task (like daily-checkin), force isEdit to false 
+        // so submitAdminTask uses POST to create it on the server instead of 404ing.
+
+        const response = await submitAdminTask({
+            isEdit: isEdit && isMongoId,
+            taskId,
+            body,
+            successMessage: isEdit ? "Task updated." : "Task created."
+        });
+
+        // Ensure local catalog reflects admin changes immediately so the
+        // user-facing Tasks page can pick them up (cross-tab via storage).
+        try {
+            upsertLocalTask(buildLocalTaskPayload({ id: response?.id || taskId, body }));
+        } catch (_) {
+            // ignore local catalog failures
+        }
+
+        await refreshAdminData();
+        closeModal("taskModal");
+        resetTaskEditor();
+        showToast(response?.message || (isEdit ? "Task updated." : "Task created."), "success");
+    } catch (error) {
+        // If backend rejects due to missing/validation fields or is offline,
+        // allow the admin to save the task locally so it appears in the
+        // user-facing task catalog immediately.
+        const msg = String(error?.message || "");
+        const isValidation = /fill all|required task fields/i.test(msg);
+        if (isValidation || isOfflineTaskError(error)) {
+            try {
+                upsertLocalTask(buildLocalTaskPayload({ id: taskId || undefined, body }));
+                await refreshAdminData();
+                closeModal("taskModal");
+                resetTaskEditor();
+                showToast("Task saved locally (backend rejected).", "warning");
+                return;
+            } catch (localErr) {
+                // fall through to showing original error
+            }
+        }
+
+        showToast(error.message || "Failed to save task to server. Check database connection.", "error");
+    }
+}
+
+async function handleSurveySubmit(event) {
+    event.preventDefault();
+    const surveyId = String(document.getElementById("sId")?.value || state.editingSurveyId || "").trim();
+    const titleInput = document.getElementById("sTitle");
+    const pointsInput = document.getElementById("sPoints");
+    const title = String(titleInput?.value || "").trim();
+    const rewardPoints = toNumber(pointsInput?.value, 0);
+
+    let questions = [];
+    try {
+        questions = collectSurveyQuestions();
+    } catch (error) {
+        showToast(error.message || "Survey questions are invalid.", "error");
+        return;
+    }
+
+    if (!title) {
+        showToast("Survey title is required.", "error");
+        titleInput?.focus();
+        return;
+    }
+
+    if (!Number.isFinite(rewardPoints) || rewardPoints <= 0) {
+        showToast("Reward points are required.", "error");
+        pointsInput?.focus();
+        return;
+    }
+
+    if (!questions.length) {
+        showToast("Add at least one survey question.", "error");
+        return;
+    }
+
+    const body = {
+        title,
+        description: document.getElementById("sDesc")?.value.trim(),
+        rewardPoints,
+        taskType: "survey",
+        status: document.getElementById("sStatus")?.value || "active",
+        notifyUsers: Boolean(document.getElementById("sNotifyUsers")?.checked),
+        questions
     };
 
     try {
-        await requestFirst([{ path: "/tasks", method: "POST", body }]);
-        closeModal("taskModal");
-        event.target.reset();
+        const isEdit = event.target.dataset.mode === "edit";
+        const isMongoId = surveyId && /^[0-9a-fA-F]{24}$/.test(String(surveyId).trim());
+
+        const response = await submitAdminTask({
+            isEdit: isEdit && isMongoId,
+            taskId: surveyId,
+            body,
+            successMessage: isEdit ? "Survey updated." : "Survey created and synced."
+        });
+
+        // Update local catalog immediately so surveys appear for users.
+        try {
+            upsertLocalTask(buildLocalTaskPayload({ id: response?.id || surveyId, body, taskTypeOverride: "survey" }));
+        } catch (_) {
+            // ignore local catalog failures
+        }
+
         await refreshAdminData();
-        showToast("Task created.", "success");
+        closeModal("surveyModal");
+        resetSurveyEditor();
+        showToast(response?.message || (isEdit ? "Survey updated." : "Survey created."), "success");
     } catch (error) {
-        showToast(error.message || "Task creation failed.", "error");
+        const msg = String(error?.message || "");
+        const isValidation = /add at least one survey question|fill all|required survey fields/i.test(msg);
+        if (isValidation || isOfflineTaskError(error)) {
+            try {
+                upsertLocalTask(buildLocalTaskPayload({ id: surveyId || undefined, body, taskTypeOverride: "survey" }));
+                await refreshAdminData();
+                closeModal("surveyModal");
+                resetSurveyEditor();
+                showToast("Survey saved locally (backend rejected).", "warning");
+                return;
+            } catch (_) {
+                // fall through to showing original error
+            }
+        }
+
+        showToast(error.message || "Failed to save survey to server. Check database connection.", "error");
     }
 }
 
@@ -523,7 +1000,7 @@ async function handleGiftUser(event) {
         await requestFirst([
             { path: `/users/${userId}/gift`, method: "POST", body: { title, points } },
             { path: "/gift", method: "POST", body: { userId, title, points } }
-        ]);
+        ], { auth: true });
         closeModal("giftModal");
         event.target.reset();
         await refreshAdminData();
@@ -545,7 +1022,7 @@ async function handleGiftAll(event) {
         await requestFirst([
             { path: "/users/gift-all", method: "POST", body },
             { path: "/gift-all", method: "POST", body }
-        ]);
+        ], { auth: true });
         closeModal("giftAllModal");
         event.target.reset();
         await refreshAdminData();
@@ -578,7 +1055,23 @@ async function handleUserTableActions(event) {
 }
 
 async function handleTaskTableActions(event) {
+    const editButton = event.target.closest("[data-task-edit]");
     const deleteButton = event.target.closest("[data-task-delete]");
+    if (editButton) {
+        const task = state.tasks.find((item) => String(item.id) === String(editButton.dataset.taskEdit));
+        if (!task) {
+            showToast("Task not found.", "error");
+            return;
+        }
+
+        if (String(task.taskType || "").toLowerCase() === "survey") {
+            openSurveyEditor(task);
+        } else {
+            openTaskEditor(task);
+        }
+        return;
+    }
+
     if (!deleteButton) return;
     if (!window.confirm("Delete this task?")) return;
 
@@ -587,7 +1080,21 @@ async function handleTaskTableActions(event) {
         await refreshAdminData();
         showToast("Task deleted.", "warning");
     } catch (error) {
-        showToast(error.message || "Task delete failed.", "error");
+        if (isAuthTaskError(error)) {
+            showToast(error.message || "Task delete failed.", "error");
+            return;
+        }
+
+        if (!isOfflineTaskError(error) && !isValidationTaskError(error) && error?.status !== 404) {
+            showToast(error.message || "Task delete failed.", "error");
+            return;
+        }
+
+        removeLocalTask(deleteButton.dataset.taskDelete);
+        state.tasks = getLocalTaskCatalog().map(normalizeTaskRecord);
+        renderTasks();
+        renderOverview();
+        showToast("Task deleted locally. Backend did not remove the record, so this browser catalog was updated.", "warning");
     }
 }
 
@@ -663,17 +1170,14 @@ function updateSystemBanner() {
     }
 
     if (refs.systemBannerTitle) refs.systemBannerTitle.textContent = "Database offline";
-    if (refs.systemBannerMessage) refs.systemBannerMessage.textContent = "MongoDB is not connected. Start MongoDB / check MONGO_URI. If using Atlas, whitelist your IP in Network Access, then Retry.";
+    if (refs.systemBannerMessage) refs.systemBannerMessage.textContent = "MongoDB is not connected. Local task data is still available here. Start MongoDB / check MONGO_URI, then click Retry once.";
     if (refs.systemBannerRetryBtn) refs.systemBannerRetryBtn.textContent = "Retry";
 }
 
 function toggleDataActions(enabled) {
     const selectors = [
-        "#openTaskModalBtn",
         "#openGiftAllBtn",
-        "#overviewCreateTaskBtn",
         "#overviewGiftAllBtn",
-        "#taskForm button[type=\"submit\"]",
         "#giftForm button[type=\"submit\"]",
         "#giftAllForm button[type=\"submit\"]"
     ];
@@ -697,7 +1201,6 @@ async function retrySync() {
         const dbOnline = await ensureDatabaseOnline();
         if (!dbOnline) {
             showToast("Database is still offline.", "warning");
-            startRetryLoop();
             return;
         }
 
@@ -707,7 +1210,6 @@ async function retrySync() {
         if (error?.code === "DB_OFFLINE" || error?.status === 503) {
             setConnectionStatus("offline");
             showToast(error.message || "Database is still offline.", "warning");
-            startRetryLoop();
             return;
         }
 
@@ -716,28 +1218,10 @@ async function retrySync() {
 }
 
 function startRetryLoop() {
-    if (state.retryTimer) {
-        return;
-    }
-
-    state.retryTimer = window.setInterval(async () => {
-        if (state.connectionStatus !== "offline") {
-            stopRetryLoop();
-            return;
-        }
-
-        try {
-            const dbOnline = await ensureDatabaseOnline();
-            if (!dbOnline) {
-                return;
-            }
-
-            await refreshAdminData();
-            showToast("Database connected. Synced.", "success");
-        } catch (error) {
-            // Keep waiting until DB comes back.
-        }
-    }, 8000);
+    // Background polling is intentionally disabled while offline to avoid
+    // repeated 503 spam in the browser console. Use the Retry button for a
+    // single manual attempt after MongoDB is back online.
+    stopRetryLoop();
 }
 
 function stopRetryLoop() {
@@ -766,8 +1250,6 @@ function handleBackgroundRefreshError(error) {
         if (wasLive) {
             showToast(error.message || "Database went offline. Retrying...", "warning");
         }
-
-        startRetryLoop();
     }
 }
 
@@ -795,6 +1277,14 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id)?.classList.remove("active");
+    if (id === "taskModal") {
+        resetTaskEditor();
+        return;
+    }
+
+    if (id === "surveyModal") {
+        resetSurveyEditor();
+    }
 }
 
 function toggleSidebar() {
@@ -826,7 +1316,7 @@ function showToast(message, type = "success") {
 }
 
 function playNotificationSound() {
-    refs.notifSound?.play().catch(() => {});
+    refs.notifSound?.play().catch(() => { });
 }
 
 function setLiveStatus(status) {

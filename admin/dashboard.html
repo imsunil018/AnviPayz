@@ -26,7 +26,7 @@
                 <button type="submit" class="btn btn-primary btn-block">Login</button>
             </form>
             <div class="auth-note">
-                <strong>Tip:</strong> Open this page from <code>http://localhost:5000/admin/dashboard.html</code> or keep your backend running on port <code>5000</code> while using Live Server.
+                <strong>Tip:</strong> This page will try the local backend on <code>http://localhost:5000</code> first, then fall back to the hosted API if needed.
             </div>
         </div>
     </div>
@@ -261,8 +261,21 @@
 
                     <section id="tasks" class="section hidden">
                         <div class="section-head">
-                            <h3>Task Management</h3>
-                            <button type="button" class="btn btn-primary" id="openTaskModalBtn">Add Task</button>
+                            <div>
+                                <h3>Task Management</h3>
+                                <p class="section-note">Manage daily tasks, surveys, rewards, and visibility from one place.</p>
+                            </div>
+                            <div class="section-actions">
+                                <div class="segmented" id="taskFilterMode">
+                                    <button type="button" class="segmented-btn active" data-filter="all">All</button>
+                                    <button type="button" class="segmented-btn" data-filter="task">Tasks</button>
+                                    <button type="button" class="segmented-btn" data-filter="survey">Surveys</button>
+                                </div>
+                                <div class="section-actions__buttons">
+                                    <button type="button" class="btn btn-primary" id="openTaskModalBtn">Add Task</button>
+                                    <button type="button" class="btn btn-outline" id="openSurveyModalBtn">Add Survey</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-card">
                             <div class="table-wrapper">
@@ -273,6 +286,7 @@
                                             <th>Type</th>
                                             <th>Reward</th>
                                             <th>Status</th>
+                                            <th>Questions</th>
                                             <th>Created</th>
                                             <th>Action</th>
                                         </tr>
@@ -298,23 +312,60 @@
 
     <div id="taskModal" class="modal-wrap">
         <div class="modal">
-            <h3>Create New Task</h3>
+            <h3 id="taskModalTitle">Create New Task</h3>
             <form id="taskForm" class="modal-form">
+                <input type="hidden" id="tId">
                 <input type="text" id="tTitle" class="input" placeholder="Task title" required>
-                <input type="url" id="tLink" class="input" placeholder="Task link (https://...)" required>
+                <input type="url" id="tLink" class="input" placeholder="Task link (optional)">
                 <textarea id="tDesc" class="input text-area" placeholder="Description (optional)"></textarea>
                 <input type="number" id="tPoints" class="input" placeholder="Reward points" min="1" required>
                 <select id="tType" class="input">
                     <option value="daily">Daily</option>
                     <option value="social">Social</option>
+                    <option value="task">Task</option>
                     <option value="hot">Hot</option>
+                </select>
+                <select id="tStatus" class="input">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="archived">Archived</option>
                 </select>
                 <label class="checkbox-row">
                     <input type="checkbox" id="tNotifyUsers">
                     <span>Send notification to all users about this task</span>
                 </label>
-                <button type="submit" class="btn btn-primary btn-block">Create Task</button>
+                <button type="submit" id="taskSubmitBtn" class="btn btn-primary btn-block">Create Task</button>
                 <button type="button" class="btn btn-outline btn-block" data-close-modal="taskModal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="surveyModal" class="modal-wrap">
+        <div class="modal modal--survey">
+            <h3 id="surveyModalTitle">Create New Survey</h3>
+            <form id="surveyForm" class="modal-form">
+                <input type="hidden" id="sId">
+                <input type="text" id="sTitle" class="input" placeholder="Survey title" required>
+                <textarea id="sDesc" class="input text-area" placeholder="Description (optional)"></textarea>
+                <input type="number" id="sPoints" class="input" placeholder="Reward points" min="1" required>
+                <select id="sStatus" class="input">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="archived">Archived</option>
+                </select>
+                <div class="survey-builder">
+                    <div class="survey-builder__head">
+                        <h4>Questions</h4>
+                        <button type="button" class="btn btn-outline" id="addSurveyQuestionBtn">Add Question</button>
+                    </div>
+                    <div id="surveyQuestionList" class="survey-question-list"></div>
+                </div>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="sNotifyUsers">
+                    <span>Send notification to all users about this survey</span>
+                </label>
+                <button type="submit" id="surveySubmitBtn" class="btn btn-primary btn-block">Create Survey</button>
+                <button type="button" class="btn btn-outline btn-block" data-close-modal="surveyModal">Cancel</button>
             </form>
         </div>
     </div>
@@ -348,6 +399,7 @@
     <div class="overlay" id="sidebarOverlay"></div>
 
     <script src="../config.js"></script>
+    <script src="../task-catalog.js?v=20260606-1"></script>
     <script>
         (function loadLatestAdminScript() {
             const script = document.createElement("script");

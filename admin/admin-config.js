@@ -1,38 +1,105 @@
 const API_BASE_URL = (typeof API_URL === "string" && API_URL.trim())
     ? API_URL.trim().replace(/\/+$/, "")
     : "";
+const LOCAL_API_BASE_URL = "http://localhost:5000";
+
+function normalizeApiBase(value) {
+    return String(value || "")
+        .trim()
+        .replace(/\/+$/, "")
+        .replace(/\/api$/, "");
+}
+
+function isLocalFrontend() {
+    return window.location.protocol === "file:"
+        || window.location.hostname === "localhost"
+        || window.location.hostname === "127.0.0.1"
+        || window.location.host.includes("localhost")
+        || window.location.host.includes("127.0.0.1");
+}
+
+function getStoredApiBase() {
+    try {
+        return normalizeApiBase(localStorage.getItem("anvi-api-base"));
+    } catch (_) {
+        return "";
+    }
+}
+
+function getApiBaseCandidates() {
+    const candidates = [];
+    const seen = new Set();
+
+    const pushCandidate = (value) => {
+        const base = normalizeApiBase(value);
+        if (!base || seen.has(base)) {
+            return;
+        }
+        seen.add(base);
+        candidates.push(base);
+    };
+
+    const storedBase = getStoredApiBase();
+
+    // On local dev / Live Server, prefer the local backend first so we don't
+    // depend on the hosted preview being healthy.
+    if (isLocalFrontend()) {
+        pushCandidate(LOCAL_API_BASE_URL);
+    }
+
+    pushCandidate(storedBase);
+    pushCandidate(API_BASE_URL);
+
+    if (!isLocalFrontend()) {
+        pushCandidate(LOCAL_API_BASE_URL);
+    }
+
+    return candidates;
+}
 
 export const ADMIN_API_BASE = `${API_BASE_URL}/api/admin`;
 const ADMIN_TOKEN_KEY = "anvi-admin-token";
 
 export async function fetchBackendHealth({ timeoutMs = 6000 } = {}) {
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    const bases = getApiBaseCandidates();
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/test`, {
-            method: "GET",
-            headers: { Accept: "application/json" },
-            signal: controller.signal
-        });
+    for (const base of bases) {
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), timeoutMs);
 
-        const payload = await response.json().catch(() => null);
-        return {
-            ok: Boolean(response.ok),
-            status: response.status,
-            database: payload?.database || "",
-            payload
-        };
-    } catch (error) {
-        return {
-            ok: false,
-            status: 0,
-            database: "",
-            payload: null
-        };
-    } finally {
-        window.clearTimeout(timer);
+        try {
+            const response = await fetch(`${base}/api/test`, {
+                method: "GET",
+                headers: { Accept: "application/json" },
+                signal: controller.signal
+            });
+
+            const payload = await response.json().catch(() => null);
+            const database = payload?.database || "";
+
+            if (response.ok && String(database).toLowerCase() === "connected") {
+                return {
+                    ok: true,
+                    status: response.status,
+                    database,
+                    payload
+                };
+            }
+
+            // Keep trying other bases if the current one is unhealthy.
+        } catch (error) {
+            // Ignore and continue with the next base candidate.
+        } finally {
+            window.clearTimeout(timer);
+        }
     }
+
+    return {
+        ok: false,
+        status: 0,
+        database: "",
+        payload: null
+    };
 }
 
 export function getAdminToken() {
@@ -85,23 +152,30 @@ export async function apiRequest(path, { method = "GET", body, auth = true } = {
         }
     }
 
-    let response;
-    try {
-        response = await fetch(`${ADMIN_API_BASE}${path}`, {
-            method,
-            headers,
-            body: body !== undefined ? JSON.stringify(body) : undefined
-        });
-    } catch (error) {
-        throw new Error("Unable to reach the server. Please try again.");
-    }
+    let lastError = null;
 
-    const contentType = response.headers.get("content-type") || "";
-    const payload = contentType.includes("application/json")
-        ? await response.json().catch(() => null)
-        : await response.text().catch(() => "");
+    for (const base of getApiBaseCandidates()) {
+        let response;
+        try {
+            response = await fetch(`${base}/api/admin${path}`, {
+                method,
+                headers,
+                body: body !== undefined ? JSON.stringify(body) : undefined
+            });
+        } catch (error) {
+            lastError = error;
+            continue;
+        }
 
-    if (!response.ok) {
+        const contentType = response.headers.get("content-type") || "";
+        const payload = contentType.includes("application/json")
+            ? await response.json().catch(() => null)
+            : await response.text().catch(() => "");
+
+        if (response.ok) {
+            return payload;
+        }
+
         const message = typeof payload === "object" && payload?.message
             ? payload.message
             : `Request failed with status ${response.status}.`;
@@ -110,10 +184,15 @@ export async function apiRequest(path, { method = "GET", body, auth = true } = {
         if (typeof payload === "object" && payload?.code) {
             error.code = payload.code;
         }
-        throw error;
+
+        if (response.status === 401 || response.status === 403) {
+            throw error;
+        }
+
+        lastError = error;
     }
 
-    return payload;
+    throw lastError || new Error("Unable to reach the server. Please try again.");
 }
 
 export function formatDateTime(value) {
@@ -162,6 +241,10 @@ export function normalizeUserRecord(user) {
 }
 
 export function normalizeTaskRecord(task) {
+    const questions = Array.isArray(task.questions)
+        ? task.questions
+        : (typeof task.questions === "string" ? safeJsonParse(task.questions, []) : []);
+
     return {
         id: task.id || task._id || "",
         title: task.title || "Untitled Task",
@@ -170,7 +253,11 @@ export function normalizeTaskRecord(task) {
         status: task.status || "active",
         createdAt: task.createdAt || task.updatedAt || task.date || 0,
         link: task.link || task.url || "",
-        description: task.description || ""
+        description: task.description || "",
+        seedKey: task.seedKey || "",
+        notifyUsers: Boolean(task.notifyUsers),
+        questions,
+        questionCount: Array.isArray(questions) ? questions.length : 0
     };
 }
 
@@ -205,6 +292,18 @@ export function toNumber(...values) {
 export function capitalize(value) {
     const raw = String(value || "");
     return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "";
+}
+
+function safeJsonParse(value, fallback = null) {
+    if (typeof value !== "string") {
+        return fallback;
+    }
+
+    try {
+        return JSON.parse(value);
+    } catch (_) {
+        return fallback;
+    }
 }
 
 function toTimestamp(value) {

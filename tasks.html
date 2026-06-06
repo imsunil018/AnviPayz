@@ -5,6 +5,68 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Tasks - AnviPayz</title>
+        <style>
+            #anvi-splash {
+                position: fixed;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                background: #0f172a;
+                color: #ffffff;
+                z-index: 9999;
+                opacity: 1;
+                pointer-events: none;
+                animation: anviSplashOut 350ms ease forwards;
+                animation-delay: 1200ms;
+            }
+
+            #anvi-splash .inner {
+                display: grid;
+                gap: 12px;
+                place-items: center;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+                letter-spacing: 0.2px;
+            }
+
+            #anvi-splash .spinner {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                border: 3px solid rgba(255, 255, 255, 0.25);
+                border-top-color: #ffffff;
+                animation: anviSpin 800ms linear infinite;
+            }
+
+            html[data-theme="light"] #anvi-splash {
+                background: #ffffff;
+                color: #0f172a;
+            }
+
+            html[data-theme="light"] #anvi-splash .spinner {
+                border-color: rgba(15, 23, 42, 0.2);
+                border-top-color: #0f172a;
+            }
+
+            @keyframes anviSpin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes anviSplashOut {
+                to {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #anvi-splash {
+                    animation-duration: 1ms;
+                    animation-delay: 0ms;
+                }
+            }
+        </style>
         <script>
         (function () {
             const root = document.documentElement;
@@ -22,7 +84,8 @@
         <link rel="stylesheet" href="css/style.css?v=20260507-2">
         <meta name="theme-color" content="#0b1220">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent">
         <meta name="apple-mobile-web-app-title" content="AnviPayz">
         <style>
         /* Mobile app-like polish for Tasks page (scoped) */
@@ -135,12 +198,266 @@
             .tasks-page .survey-task-card {
                 border-radius: 18px;
             }
+
+            .tasks-page .task-card-head {
+                align-items: flex-start;
+            }
+
+            .tasks-page .task-card-bottom {
+                align-items: stretch;
+            }
+
+            .tasks-page .task-card-badges {
+                width: 100%;
+            }
+
+            .tasks-page .task-card-action {
+                width: 100%;
+            }
+
+            .tasks-page .task-cta-card--highlight .list-title {
+                line-height: 1.25;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .tasks-page .tasks-grid--daily,
+            .tasks-page .tasks-grid--auto {
+                grid-template-columns: 1fr;
+            }
+
+            .tasks-page .task-card-head {
+                align-items: flex-start;
+            }
+
+            .tasks-page .task-card-bottom {
+                align-items: stretch;
+            }
         }
 
         @media (max-width: 720px) {
             html[data-theme="light"] .mobile-header.compact-mobile-header {
                 background: rgba(238, 242, 255, 0.92);
                 background: color-mix(in srgb, var(--bg-body) 84%, transparent);
+            }
+        }
+
+        #task-streak-card {
+            position: relative;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            overflow: hidden;
+        }
+
+        #task-streak-card:hover,
+        #task-streak-card:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 30px rgba(124, 137, 255, 0.12);
+            border-color: rgba(124, 137, 255, 0.38);
+        }
+
+        .task-streak-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.45rem;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .task-streak-hint i {
+            font-size: 0.95rem;
+            color: var(--primary);
+        }
+
+        .task-streak-emoji {
+            font-size: 1.18rem;
+            line-height: 1;
+            transform: translateY(1px);
+            filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.25));
+        }
+
+        @media (max-width: 640px) {
+            #task-streak-card {
+                padding-right: 3rem;
+            }
+
+            .task-streak-hint {
+                margin-top: 0.3rem;
+            }
+        }
+
+        .streak-bonus-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(2, 6, 23, 0.58);
+            backdrop-filter: blur(12px);
+        }
+
+        .streak-bonus-modal.is-open {
+            display: flex;
+        }
+
+        .streak-bonus-panel {
+            position: relative;
+            width: min(100%, 560px);
+            padding: 1.2rem;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            box-shadow: 0 30px 80px rgba(2, 6, 23, 0.35);
+        }
+
+        .streak-bonus-close {
+            position: absolute;
+            top: 0.9rem;
+            right: 0.9rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--bg-card-solid);
+            color: var(--text-main);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .streak-bonus-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(124, 137, 255, 0.15);
+            color: var(--primary);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.8rem;
+        }
+
+        .streak-bonus-panel h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        .streak-bonus-copy {
+            margin-top: 0.45rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.92rem;
+        }
+
+        .streak-bonus-summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .streak-bonus-summary-label {
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.22rem;
+        }
+
+        .streak-bonus-summary-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .streak-bonus-status {
+            margin-top: 1rem;
+            padding: 0.9rem 1rem;
+            border-radius: 16px;
+            background: rgba(124, 137, 255, 0.1);
+            border: 1px solid rgba(124, 137, 255, 0.18);
+            color: var(--text-main);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .streak-bonus-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .streak-bonus-item {
+            padding: 0.95rem;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: linear-gradient(160deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .streak-bonus-item.is-next {
+            border-color: rgba(124, 137, 255, 0.5);
+            box-shadow: 0 0 0 3px rgba(124, 137, 255, 0.08);
+        }
+
+        .streak-bonus-item.is-unlocked {
+            border-color: rgba(16, 185, 129, 0.34);
+        }
+
+        html[data-theme="dark"] .streak-bonus-item {
+            background: linear-gradient(160deg, rgba(19, 30, 54, 0.92), rgba(9, 16, 30, 0.94));
+        }
+
+        .streak-bonus-item__days {
+            font-weight: 900;
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .streak-bonus-item__points {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .streak-bonus-item__meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .streak-bonus-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .streak-bonus-panel {
+                padding: 1rem;
+                border-radius: 20px;
+            }
+
+            .streak-bonus-summary,
+            .streak-bonus-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .streak-bonus-footer .btn-primary {
+                width: 100%;
             }
         }
 
@@ -154,6 +471,13 @@
     </head>
 
     <body>
+        <div id="anvi-splash" role="status" aria-live="polite"
+            aria-label="Loading">
+            <div class="inner">
+                <div class="spinner" aria-hidden="true"></div>
+                <div>Loading…</div>
+            </div>
+        </div>
         <div class="app-container">
             <div class="overlay"></div>
 
@@ -228,35 +552,51 @@
                     <div class="tasks-hero-main">
                         <span class="tasks-hero-badge">Daily Missions</span>
                         <h2>Earn more with quick wins</h2>
-                        <p>Finish daily tasks, keep your streak alive, and stack coins faster. New tasks drop regularly from admins.</p>
+                        <p>Finish daily tasks, keep your streak alive, and stack
+                            coins faster. New tasks drop regularly from
+                            admins.</p>
                         <div class="tasks-hero-actions">
-                            <div class="tasks-hero-pill"><i class="ri-flashlight-fill"></i> Fast rewards</div>
-                            <div class="tasks-hero-pill"><i class="ri-calendar-check-line"></i> Streak boosts</div>
-                            <div class="tasks-hero-pill"><i class="ri-gift-line"></i> Bonus spins</div>
+                            <div class="tasks-hero-pill"><i
+                                    class="ri-flashlight-fill"></i> Fast
+                                rewards</div>
+                            <div class="tasks-hero-pill"><i
+                                    class="ri-calendar-check-line"></i> Streak
+                                boosts</div>
+                            <div class="tasks-hero-pill"><i
+                                    class="ri-gift-line"></i> Bonus spins</div>
                         </div>
                     </div>
                     <div class="tasks-hero-panel">
                         <div class="tasks-hero-panel-title">Today's Focus</div>
                         <div class="tasks-hero-panel-body">
                             <div class="tasks-hero-panel-item">
-                                <div class="tasks-hero-panel-icon"><i class="ri-shield-star-line"></i></div>
+                                <div class="tasks-hero-panel-icon"><i
+                                        class="ri-shield-star-line"></i></div>
                                 <div>
-                                    <div class="tasks-hero-panel-label">Claim daily check-in</div>
-                                    <div class="tasks-hero-panel-sub">Locks your streak for the day.</div>
+                                    <div class="tasks-hero-panel-label">Claim
+                                        daily check-in</div>
+                                    <div class="tasks-hero-panel-sub">Locks your
+                                        streak for the day.</div>
                                 </div>
                             </div>
                             <div class="tasks-hero-panel-item">
-                                <div class="tasks-hero-panel-icon"><i class="ri-video-line"></i></div>
+                                <div class="tasks-hero-panel-icon"><i
+                                        class="ri-video-line"></i></div>
                                 <div>
-                                    <div class="tasks-hero-panel-label">Watch the 10s tutorial</div>
-                                    <div class="tasks-hero-panel-sub">Quick reward, easy points.</div>
+                                    <div class="tasks-hero-panel-label">Watch
+                                        the 10s tutorial</div>
+                                    <div class="tasks-hero-panel-sub">Quick
+                                        reward, easy points.</div>
                                 </div>
                             </div>
                             <div class="tasks-hero-panel-item">
-                                <div class="tasks-hero-panel-icon"><i class="ri-refresh-line"></i></div>
+                                <div class="tasks-hero-panel-icon"><i
+                                        class="ri-refresh-line"></i></div>
                                 <div>
-                                    <div class="tasks-hero-panel-label">Spin & Win bonus</div>
-                                    <div class="tasks-hero-panel-sub">Daily spin to unlock extra coins.</div>
+                                    <div class="tasks-hero-panel-label">Spin &
+                                        Win bonus</div>
+                                    <div class="tasks-hero-panel-sub">Daily spin
+                                        to unlock extra coins.</div>
                                 </div>
                             </div>
                         </div>
@@ -287,38 +627,54 @@
                             class="stat-value">0</div>
                     </div>
 
-                    <div class="stat-card">
+                    <div id="task-streak-card" class="stat-card" role="button"
+                        tabindex="0" aria-label="View streak bonus details"
+                        aria-describedby="task-streak-hint"
+                        title="Tap to view streak bonus ladder">
                         <div class="stat-header">
                             <div class="stat-icon-box"
                                 style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                                <i class="ri-lightning-fill"></i>
+                                <span class="task-streak-emoji"
+                                    aria-hidden="true">🔥</span>
                             </div>
-                            <span class="stat-label">Streak</span>
+                            <span class="stat-label">Daily Streak</span>
                         </div>
                         <div id="task-streak-count" class="stat-value">0
                             days</div>
+                        <div id="task-streak-hint" class="task-streak-hint">
+                            <i class="ri-corner-right-up-line"
+                                aria-hidden="true"></i>
+                            <span>Tap to view streak rewards</span>
+                        </div>
                     </div>
                 </div>
-                
+
                 <!-- Quick tips banner -->
                 <section class="card tasks-tip-card">
                     <div class="tasks-tip-content">
                         <div class="tasks-tip-icon"></div>
                         <div>
                             <div class="tasks-tip-title">Pro Tip</div>
-                            <div class="tasks-tip-copy">Complete all daily tasks to build a streak and maximize your earnings!</div>
+                            <div class="tasks-tip-copy">Complete the daily login
+                                to keep your streak active and unlock more
+                                rewards.</div>
                         </div>
                     </div>
                 </section>
 
                 <nav class="tasks-app-tabs" aria-label="Task sections">
-                    <a class="tasks-app-tab" href="#section-daily"><i class="ri-repeat-line"></i>Daily</a>
-                    <a class="tasks-app-tab" href="#section-hot"><i class="ri-flashlight-line"></i>Hot</a>
-                    <a class="tasks-app-tab" href="#section-survey"><i class="ri-survey-line"></i>Survey</a>
-                    <a class="tasks-app-tab" href="#section-history"><i class="ri-time-line"></i>History</a>
+                    <a class="tasks-app-tab" href="#section-daily"><i
+                            class="ri-repeat-line"></i>Daily</a>
+                    <a class="tasks-app-tab" href="#section-hot"><i
+                            class="ri-flashlight-line"></i>Hot</a>
+                    <a class="tasks-app-tab" href="#section-survey"><i
+                            class="ri-survey-line"></i>Survey</a>
+                    <a class="tasks-app-tab" href="#section-history"><i
+                            class="ri-time-line"></i>History</a>
                 </nav>
 
-                <div id="section-daily" class="section-title tasks-anchor">Daily Tasks</div>
+                <div id="section-daily" class="section-title tasks-anchor">Daily
+                    Tasks</div>
 
                 <div class="tasks-grid tasks-grid--daily">
                     <div class="card task-cta-card">
@@ -328,14 +684,17 @@
                             </div>
                             <div class="list-info">
                                 <div class="list-title">Daily Check-in</div>
-                                <div class="list-sub">Log in daily to earn coins.</div>
+                                <div class="list-sub">Log in daily to earn
+                                    coins.</div>
                             </div>
                         </div>
                         <div class="task-card-bottom">
                             <div class="task-card-badges">
                                 <span class="task-pill reward"><i
-                                        class="ri-coin-line"></i>10 Points</span>
-                                <span class="task-pill task-pill--success"><i class="ri-repeat-line"></i>Daily</span>
+                                        class="ri-coin-line"></i>10
+                                    Points</span>
+                                <span class="task-pill task-pill--success"><i
+                                        class="ri-repeat-line"></i>Daily</span>
                             </div>
                             <button id="btn-daily-checkin"
                                 class="btn-primary task-card-action">
@@ -351,14 +710,17 @@
                             </div>
                             <div class="list-info">
                                 <div class="list-title">Watch Tutorial</div>
-                                <div class="list-sub">Watch a quick 10-second video.</div>
+                                <div class="list-sub">Watch a quick 10-second
+                                    video.</div>
                             </div>
                         </div>
                         <div class="task-card-bottom">
                             <div class="task-card-badges">
                                 <span class="task-pill reward"><i
-                                        class="ri-coin-line"></i>15 Points</span>
-                                <span class="task-pill task-pill--warning"><i class="ri-time-line"></i>10 sec</span>
+                                        class="ri-coin-line"></i>15
+                                    Points</span>
+                                <span class="task-pill task-pill--warning"><i
+                                        class="ri-time-line"></i>10 sec</span>
                             </div>
                             <button id="btn-watch-video"
                                 class="btn-primary task-card-action">
@@ -374,13 +736,15 @@
                             </div>
                             <div class="list-info">
                                 <div class="list-title">Spin & Win</div>
-                                <div class="list-sub">Spin daily for bonus rewards!</div>
+                                <div class="list-sub">Spin daily for bonus
+                                    rewards!</div>
                             </div>
                         </div>
                         <div class="task-card-bottom">
                             <div class="task-card-badges">
                                 <span class="task-pill task-pill--pink"><i
-                                        class="ri-gift-line"></i>Bonus Spin</span>
+                                        class="ri-gift-line"></i>Bonus
+                                    Spin</span>
                             </div>
                             <a href="spin.html"
                                 class="btn-primary task-card-action task-card-action--pink">
@@ -389,111 +753,58 @@
                         </div>
                     </div>
 
+                    <a href="refer.html"
+                        class="card task-cta-card task-cta-card--highlight"
+                        style="display:flex; flex-direction:column; text-decoration:none; color:inherit;">
+                        <div class="task-card-head">
+                            <div class="list-icon task-icon task-icon--success">
+                                <i class="ri-share-forward-line"></i>
+                            </div>
+                            <div class="list-info">
+                                <div class="list-title">Refer & Earn</div>
+                                <div class="list-sub">Invite friends and unlock
+                                    referral milestone rewards.</div>
+                            </div>
+                        </div>
+                        <div class="task-card-bottom">
+                            <div class="task-card-badges">
+                                <span class="task-pill reward"><i
+                                        class="ri-coin-line"></i>250 /
+                                    referral</span>
+                                <span class="task-pill task-pill--success"><i
+                                        class="ri-award-line"></i>15 / 25 /
+                                    50</span>
+                            </div>
+                            <span
+                                class="btn-primary task-card-action task-card-action--pink">
+                                Open Refer Page
+                            </span>
+                        </div>
+                    </a>
+
                     <div id="daily-task-container"></div>
                 </div>
 
-                <div id="section-hot" class="section-title section-title--spaced tasks-anchor">Hot
+                <div id="section-hot"
+                    class="section-title section-title--spaced tasks-anchor">Hot
                     Tasks</div>
 
-                <div id="admin-task-container" class="tasks-grid tasks-grid--auto">
+                <div id="admin-task-container"
+                    class="tasks-grid tasks-grid--auto">
                     <div class="loading-block">
                         <div class="spinner"></div>
-                        Loading...
+                        Loading hot tasks...
                     </div>
                 </div>
 
-                <div id="section-survey" class="section-title section-title--spaced tasks-anchor">Survey
-                    Tasks <span
-                        class="badge-soon"
-                        style="background: #8b5cf6; color: white;">New</span></div>
+                <div id="section-survey" class="section-title section-title--spaced tasks-anchor">Survey Tasks</div>
 
-                <div id="survey-task-container" class="tasks-grid tasks-grid--auto">
-                    <!-- Survey tasks will be loaded here dynamically -->
-                    <div class="card survey-task-card"
-                        data-survey-id="survey_001">
-                        <div class="task-card-head">
-                            <div class="list-icon"
-                                style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                                <i class="ri-survey-line"></i>
-                            </div>
-                            <div class="list-info">
-                                <div class="list-title">Product Feedback
-                                    Survey</div>
-                                <div class="list-sub">Share your opinion &
-                                    earn rewards • <span
-                                        style="color: #8b5cf6; font-weight: 600;">50
-                                        Coins</span></div>
-                            </div>
-                        </div>
-                        <div class="task-card-bottom">
-                            <div class="task-card-badges">
-                                <span class="task-pill reward"><i
-                                        class="ri-coin-line"></i>50 Coins</span>
-                            </div>
-                            <button
-                                class="btn-primary btn-start-survey task-card-action task-card-action-survey"
-                                style="background: #8b5cf6;">
-                                Start
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="card survey-task-card"
-                        data-survey-id="survey_002">
-                        <div class="task-card-head">
-                            <div class="list-icon"
-                                style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                                <i class="ri-questionnaire-line"></i>
-                            </div>
-                            <div class="list-info">
-                                <div class="list-title">User Experience
-                                    Survey</div>
-                                <div class="list-sub">Help us improve • <span
-                                        style="color: #8b5cf6; font-weight: 600;">75
-                                        Coins</span></div>
-                            </div>
-                        </div>
-                        <div class="task-card-bottom">
-                            <div class="task-card-badges">
-                                <span class="task-pill reward"><i
-                                        class="ri-coin-line"></i>75 Coins</span>
-                            </div>
-                            <button
-                                class="btn-primary btn-start-survey task-card-action task-card-action-survey"
-                                style="background: #8b5cf6;">
-                                Start
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="card survey-task-card"
-                        data-survey-id="survey_003">
-                        <div class="task-card-head">
-                            <div class="list-icon"
-                                style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                                <i class="ri-file-list-3-line"></i>
-                            </div>
-                            <div class="list-info">
-                                <div class="list-title">Market Research
-                                    Survey</div>
-                                <div class="list-sub">Quick 2-min survey •
-                                    <span
-                                        style="color: #8b5cf6; font-weight: 600;">100
-                                        Coins</span></div>
-                            </div>
-                        </div>
-                        <div class="task-card-bottom">
-                            <div class="task-card-badges">
-                                <span class="task-pill reward"><i
-                                        class="ri-coin-line"></i>100
-                                    Coins</span>
-                            </div>
-                            <button
-                                class="btn-primary btn-start-survey task-card-action task-card-action-survey"
-                                style="background: #8b5cf6;">
-                                Start
-                            </button>
-                        </div>
+                <div id="survey-task-container"
+                    class="tasks-grid tasks-grid--auto">
+                    <div class="empty-state">
+                        <div class="badge-soon" style="background: #8b5cf6; color: white; padding: 6px 16px; border-radius: 99px; font-weight: 800; margin-bottom: 12px; display: inline-block;">Coming Soon</div>
+                        <i class="ri-survey-line" style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--text-muted);"></i>
+                        <p style="font-weight: 600;">We are working on bringing new rewarding surveys for you.</p>
                     </div>
                 </div>
 
@@ -525,13 +836,56 @@
                     </div>
                 </div>
 
-                <div id="section-history" class="section-title section-title--spaced tasks-anchor">Completed
+                <div id="section-history"
+                    class="section-title section-title--spaced tasks-anchor">Completed
                     History</div>
 
                 <div id="task-history-list" class="stack-list">
                     <div class="loading-block">
                         <div class="spinner"></div>
                         Loading history...
+                    </div>
+                </div>
+
+                <div id="streak-bonus-modal" class="streak-bonus-modal" hidden>
+                    <div class="streak-bonus-panel" role="dialog"
+                        aria-modal="true" aria-labelledby="streak-bonus-title">
+                        <button type="button" id="close-streak-bonus"
+                            class="streak-bonus-close"
+                            aria-label="Close streak bonus details">
+                            <i class="ri-close-line"></i>
+                        </button>
+                        <div class="streak-bonus-badge">Daily Streak
+                            Rewards</div>
+                        <h3 id="streak-bonus-title">Keep your streak alive</h3>
+                        <p class="streak-bonus-copy">Login daily and unlock
+                            milestone bonuses. The cycle restarts after 21
+                            days.</p>
+                        <div class="streak-bonus-summary">
+                            <div>
+                                <div class="streak-bonus-summary-label">Current
+                                    streak</div>
+                                <div id="streak-bonus-current"
+                                    class="streak-bonus-summary-value">0
+                                    days</div>
+                            </div>
+                            <div>
+                                <div class="streak-bonus-summary-label">Cycle
+                                    progress</div>
+                                <div id="streak-bonus-cycle"
+                                    class="streak-bonus-summary-value">0 /
+                                    21</div>
+                            </div>
+                        </div>
+                        <div id="streak-bonus-status"
+                            class="streak-bonus-status">Keep logging in to
+                            unlock the next bonus.</div>
+                        <div id="streak-bonus-grid"
+                            class="streak-bonus-grid"></div>
+                        <div class="streak-bonus-footer">
+                            <button type="button" id="streak-bonus-close-btn"
+                                class="btn-primary">Close</button>
+                        </div>
                     </div>
                 </div>
 
@@ -555,16 +909,15 @@
                         class="ri-flashlight-fill"></i><span>Recharge</span></a>
                 <a href="tasks.html" class="mobile-nav-item active"><i
                         class="ri-task-line"></i><span>Tasks</span></a>
-                <a href="spin.html" class="mobile-nav-item">
-                    <i class="ri-refresh-line"></i>
-                    <span>Spin</span>
-                </a>
+                <a href="refer.html" class="mobile-nav-item"><i
+                        class="ri-share-forward-line"></i><span>Refer</span></a>
             </nav>
         </div>
 
-        <script src="config.js"></script>
+        <script src="config.js?v=20260528-2"></script>
+        <script src="task-catalog.js?v=20260606-1"></script>
 
-        <script defer src="js/auth.js?v=20260525-1"></script>
+        <script defer src="js/auth.js?v=20260528-2"></script>
     </body>
 
 </html>

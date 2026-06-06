@@ -10,10 +10,11 @@ const isLocalHost =
     window.location.hostname === "127.0.0.1";
 
 const port = String(window.location.port || "");
-const isLocalPreviewPort = isLocalHost && (port === "5500" || port === "5501" || port === "5502");
 const isBackendOrigin = isLocalHost && port === "5000";
 
-const API_URL = (isBackendOrigin || isLocalPreviewPort) ? LOCAL_API_URL : RENDER_API_URL;
+// Use Render by default everywhere except when you are literally on the backend origin itself.
+// For local + Live Server, you can force local backend by setting `localStorage["anvi-api-base"] = "http://localhost:5000"`.
+const API_URL = isBackendOrigin ? LOCAL_API_URL : RENDER_API_URL;
 
 // Backwards-compatible aliases used across existing scripts
 const API_BASE_URL = API_URL;

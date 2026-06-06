@@ -4,6 +4,68 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Profile - AnviPayz</title>
+        <style>
+            #anvi-splash {
+                position: fixed;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                background: #0f172a;
+                color: #ffffff;
+                z-index: 9999;
+                opacity: 1;
+                pointer-events: none;
+                animation: anviSplashOut 350ms ease forwards;
+                animation-delay: 1200ms;
+            }
+
+            #anvi-splash .inner {
+                display: grid;
+                gap: 12px;
+                place-items: center;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+                letter-spacing: 0.2px;
+            }
+
+            #anvi-splash .spinner {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                border: 3px solid rgba(255, 255, 255, 0.25);
+                border-top-color: #ffffff;
+                animation: anviSpin 800ms linear infinite;
+            }
+
+            html[data-theme="light"] #anvi-splash {
+                background: #ffffff;
+                color: #0f172a;
+            }
+
+            html[data-theme="light"] #anvi-splash .spinner {
+                border-color: rgba(15, 23, 42, 0.2);
+                border-top-color: #0f172a;
+            }
+
+            @keyframes anviSpin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes anviSplashOut {
+                to {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #anvi-splash {
+                    animation-duration: 1ms;
+                    animation-delay: 0ms;
+                }
+            }
+        </style>
         <script>
         (function () {
             const root = document.documentElement;
@@ -30,6 +92,7 @@
             --text-muted: #a7b7ce;
             --border: rgba(167, 183, 206, 0.18);
             --primary: #7c89ff;
+            --accent-email: #22d3ee;
             --hero-bg: linear-gradient(140deg, rgba(124, 137, 255, 0.72), rgba(49, 196, 141, 0.55));
         }
 
@@ -41,6 +104,7 @@
             --text-main: #0b1324;
             --text-muted: #46566f;
             --border: rgba(15, 23, 42, 0.14);
+            --accent-email: #0891b2;
             --primary: #4f46e5;
             --hero-bg: linear-gradient(140deg, rgba(99, 102, 241, 0.9), rgba(79, 70, 229, 0.9));
         }
@@ -73,7 +137,7 @@
 
         .profile-panel {
             border: 1px solid var(--border);
-            border-radius: 24px;
+            border-radius: 22px;
             background: var(--surface);
             color: var(--text-main);
             padding: 1.15rem;
@@ -90,25 +154,50 @@
             box-shadow: none;
         }
 
-        .profile-hero {
+        .profile-hero { padding: 1.5rem 1.15rem 1.25rem; position: relative; overflow: hidden;
             background: var(--hero-bg);
             color: #fff;
             border: none;
         }
 
-        .profile-hero-head,
-        .profile-section-head,
-        .profile-referral-code,
-        .profile-summary-item,
-        .profile-modal-head {
-            display: flex;
-            justify-content: space-between;
-            gap: 0.9rem;
-        }
+    .profile-hero-head,
+    .profile-section-head,
+    .profile-referral-code,
+    .profile-summary-item,
+    .profile-modal-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.9rem;
+    }
 
-        .profile-hero-head {
-            align-items: flex-start;
-        }
+    .profile-hero-head {
+        align-items: flex-start;
+        position: relative;
+        z-index: 2;
+    }
+
+    .profile-hero::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .profile-hero::after {
+        content: "";
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
 
         .profile-identity {
             display: flex;
@@ -121,12 +210,12 @@
         .profile-avatar {
             width: 84px;
             height: 84px;
-            border-radius: 24px;
+            border-radius: 22px;
             overflow: hidden;
             flex: 0 0 auto;
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(34, 197, 94, 0.18));
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 0 12px rgba(100, 108, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 12px rgba(100, 108, 255, 0.4), inset 0 0 0 1px rgba(255,255,255,0.1); position: relative; animation: float 6s ease-in-out infinite; } .profile-avatar::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent 60%); pointer-events: none; } @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } 
         }
 
         .profile-avatar img {
@@ -148,12 +237,12 @@
         }
 
         .profile-identity-copy h2 {
-            font-size: clamp(1.3rem, 2vw, 1.85rem);
+            font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.1);
             line-height: 1.15;
             overflow-wrap: anywhere;
         }
 
-        .profile-identity-copy p,
+        
         .profile-section-head p,
         .profile-email-step p,
         .profile-helper,
@@ -163,6 +252,22 @@
             color: var(--text-muted);
             font-size: 0.86rem;
             line-height: 1.55;
+        }
+
+        .profile-identity-copy p {
+            font-size: 1rem;
+            color: rgb(255, 233, 233);
+            font-weight: bold;
+        }
+
+        #profile-email, #profile-summary-email {
+            color: var(--accent-email);
+            font-weight: 600;
+        }
+
+        #profile-email, #profile-summary-email {
+            color: var(--accent-email);
+            font-weight: 600;
         }
 
         .profile-chip-row,
@@ -190,12 +295,12 @@
             display: inline-flex;
             align-items: center;
             gap: 0.45rem;
-            padding: 0.45rem 0.8rem;
+            padding: 0.5rem 1rem;
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.12);
             color: #fff;
-            font-size: 0.84rem;
+            font-size: 0.86rem;
             font-weight: 700;
         }
 
@@ -235,14 +340,16 @@
             transform: translateY(-1px);
         }
 
-        .profile-btn.hero-action {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.18);
+        #profile-edit-btn {
+            background: #6366f1;
+            border-color: rgba(255,255,255,0.2);
             color: #fff;
         }
 
-        .profile-btn.hero-action:hover {
-            background: rgba(255, 255, 255, 0.16);
+        #profile-email-change-btn {
+            background: #d332cb;
+            border-color: rgba(210, 199, 199, 0.676);
+            color: #fffdfd;
         }
 
         .profile-stat-grid,
@@ -258,9 +365,10 @@
 
         .profile-stat-card {
             border-radius: 18px;
-            padding: 0.95rem 1rem;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 1.1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
         }
 
         .profile-stat-card span {
@@ -360,7 +468,7 @@
             display: block;
             margin-top: 0.28rem;
             color: var(--text-muted);
-            font-size: 0.84rem;
+            font-size: 0.86rem;
         }
 
         .profile-modal {
@@ -464,6 +572,9 @@
             }
 
             .profile-hero-head {
+                align-items: flex-start;
+                position: relative;
+                z-index: 2;
                 flex-direction: column;
             }
 
@@ -533,6 +644,10 @@
                 align-items: flex-start;
             }
 
+            .profile-stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
             .profile-btn,
             .profile-hero-actions,
             .profile-button-row,
@@ -569,6 +684,10 @@
                 width: 100%;
                 max-height: min(100%, calc(100dvh - 0.8rem));
                 border-radius: 22px;
+            }
+
+            .profile-stat-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -644,6 +763,12 @@
     </style>
     </head>
     <body>
+        <div id="anvi-splash" role="status" aria-live="polite" aria-label="Loading">
+            <div class="inner">
+                <div class="spinner" aria-hidden="true"></div>
+                <div>Loading…</div>
+            </div>
+        </div>
         <div class="app-container">
             <div class="overlay"></div>
             <aside class="sidebar">
@@ -1019,41 +1144,17 @@
             </div>
         </div>
 
-        <script src="config.js"></script>
+        <script src="config.js?v=20260528-1"></script>
 
         <script defer src="js/auth.js?v=20260525-1"></script>
         <script>
         (function () {
-            const REF_CODE_KEY = "anvi_ref_code";
-            const REF_CODE_PREFIX = "ANVI";
-            const REF_CODE_LENGTH = 6;
             const AVATAR_SEED_KEY = "anvi_avatar_seed";
 
-            const generateRefCode = () => {
-                const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-                let result = REF_CODE_PREFIX;
-                if (window.crypto && crypto.getRandomValues) {
-                    const bytes = new Uint8Array(REF_CODE_LENGTH);
-                    crypto.getRandomValues(bytes);
-                    for (let i = 0; i < bytes.length; i += 1) {
-                        result += chars[bytes[i] % chars.length];
-                    }
-                } else {
-                    for (let i = 0; i < REF_CODE_LENGTH; i += 1) {
-                        result += chars[Math.floor(Math.random() * chars.length)];
-                    }
-                }
-                return result;
-            };
-
-            const ensureRefCode = () => {
-                let stored = localStorage.getItem(REF_CODE_KEY) || "";
-                const valid = new RegExp(`^${REF_CODE_PREFIX}[A-Z0-9]{${REF_CODE_LENGTH}}$`);
-                if (!valid.test(stored)) {
-                    stored = generateRefCode();
-                    localStorage.setItem(REF_CODE_KEY, stored);
-                }
-                return stored;
+            const getSafeRefCode = () => {
+                const el = document.getElementById("profile-referral-code");
+                const val = el?.textContent?.trim();
+                return (val && val !== "-") ? val : "";
             };
 
             const getDisplayName = () => {
@@ -1141,6 +1242,7 @@
             };
 
             const applyReferralCode = (code) => {
+                if (!code || code === "-") return;
                 const targets = [
                     document.getElementById("profile-referral-code"),
                     document.getElementById("profile-referral-inline-secondary")
@@ -1184,18 +1286,15 @@
                 window.open(`https://wa.me/?text=${text}`, "_blank");
             };
 
-            const existingCode = document.getElementById("profile-referral-code")?.textContent?.trim();
-            const refCode = existingCode && existingCode !== "-" ? existingCode : ensureRefCode();
-            applyReferralCode(refCode);
             updateAvatar();
 
             const copyBtn = document.getElementById("profile-copy-code-btn");
             if (copyBtn) {
-                copyBtn.onclick = () => copyText(refCode);
+                copyBtn.onclick = () => copyText(getSafeRefCode());
             }
             const whatsappBtn = document.getElementById("profile-share-whatsapp-btn");
             if (whatsappBtn) {
-                whatsappBtn.onclick = () => shareWhatsApp(refCode);
+                whatsappBtn.onclick = () => shareWhatsApp(getSafeRefCode());
             }
 
             const watch = (el, cb) => {
@@ -1211,10 +1310,28 @@
                 updateAvatar();
             });
             watch(document.getElementById("profile-title"), updateAvatar);
-            watch(document.getElementById("profile-referral-code"), () => applyReferralCode(refCode));
-            watch(document.getElementById("profile-referral-inline-secondary"), () => applyReferralCode(refCode));
+            watch(document.getElementById("profile-referral-code"), () => applyReferralCode(getSafeRefCode()));
+            watch(document.getElementById("profile-referral-inline-secondary"), () => applyReferralCode(getSafeRefCode()));
+
+            // --- Modal UI Fixes ---
+            const toggleModal = (id, show) => {
+                const modal = document.getElementById(id);
+                if (modal) {
+                    if (show) modal.removeAttribute('hidden');
+                    else modal.setAttribute('hidden', '');
+                    document.body.style.overflow = show ? 'hidden' : '';
+                }
+            };
+
+            document.getElementById("profile-edit-btn")?.addEventListener("click", () => toggleModal("profile-edit-modal", true));
+            document.getElementById("profile-email-change-btn")?.addEventListener("click", () => toggleModal("profile-email-modal", true));
+
+            document.querySelectorAll("[data-profile-modal-close]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    toggleModal(btn.getAttribute("data-profile-modal-close"), false);
+                });
+            });
         })();
         </script>
     </body>
 </html>
-

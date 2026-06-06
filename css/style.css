@@ -178,6 +178,208 @@ ul {
     width: 100%;
 }
 
+/* ===== UI: Smooth theme transition, animations, and responsive helpers ===== */
+/* Animate color and surface changes for a smooth light/dark toggle. */
+html,
+body,
+.app-container,
+.sidebar,
+.profile-panel,
+.profile-modal-card,
+.profile-btn,
+.brand {
+    transition: background-color 320ms ease, color 320ms ease, border-color 320ms ease, box-shadow 320ms ease, transform 220ms ease;
+}
+
+/* Subtle global motion when theme changes */
+html[data-theme] {
+    -webkit-transition: color 320ms ease, background-color 320ms ease;
+    transition: color 320ms ease, background-color 320ms ease;
+}
+
+/* Card and panel hover lift */
+.profile-panel,
+.profile-info-card,
+.profile-stat-card,
+.nav-item,
+.task-card,
+.profile-referral-code {
+    transition: transform 220ms cubic-bezier(.2, .9, .2, 1), box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.profile-panel:hover,
+.profile-info-card:hover,
+.profile-stat-card:hover,
+.nav-item:hover,
+.task-card:hover,
+.profile-referral-code:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Buttons: elevated hover + focus ring */
+.profile-btn {
+    transition: transform 180ms ease, box-shadow 180ms ease, background-color 200ms ease;
+    will-change: transform, box-shadow;
+}
+
+.profile-btn:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 30px rgba(2, 6, 23, 0.18);
+}
+
+.profile-btn:active {
+    transform: translateY(-1px) scale(0.995);
+}
+
+/* Floating avatar micro animation */
+@keyframes avatarFloat {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.profile-avatar {
+    animation: avatarFloat 6s ease-in-out infinite;
+}
+
+/* Modal entrance */
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.995);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.profile-modal-card,
+.modal-card,
+.survey-modal-card,
+.task-modal-card {
+    will-change: transform, opacity;
+}
+
+.profile-modal:not([hidden]) .profile-modal-card,
+.modal[open] .modal-card,
+.task-modal[open] .task-modal-card,
+.survey-modal[open] .survey-modal-card {
+    animation: modalIn 240ms cubic-bezier(.2, .95, .2, 1) both;
+}
+
+/* Smooth overlay fade */
+.overlay {
+    transition: opacity 220ms ease, visibility 220ms ease, backdrop-filter 340ms ease;
+}
+
+/* Card rounded corners and consistent padding on small screens */
+.profile-panel,
+.profile-info-card,
+.profile-stat-card {
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+
+/* Mobile-nav improvements to look like an app */
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--mobile-nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 6px;
+    padding: 0.5rem calc(0.75rem + env(safe-area-inset-left));
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.02));
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--border);
+    z-index: 40;
+}
+
+.mobile-nav .mobile-nav-item {
+    flex: 1 1 auto;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.25rem;
+    border-radius: 12px;
+}
+
+.mobile-nav .mobile-nav-item.active {
+    background: var(--bg-hover);
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
+}
+
+/* Utility: smooth image avatars and lids */
+.profile-avatar img {
+    transition: opacity 260ms ease, transform 260ms ease;
+    border-radius: 14px;
+}
+
+/* Responsive helpers */
+@media (max-width: 880px) {
+    :root {
+        --content-width: 100%;
+        --mobile-nav-height: 76px;
+    }
+
+    .sidebar {
+        width: min(84vw, 86vw);
+    }
+
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    :root {
+        --content-width: 100%;
+        --mobile-nav-height: 78px;
+    }
+
+    .brand {
+        font-size: 1rem;
+    }
+
+    .profile-avatar {
+        width: 68px;
+        height: 68px;
+    }
+
+    .profile-hero {
+        padding: 1rem;
+    }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+    }
+}
+
+
 .overlay {
     position: fixed;
     inset: 0;
@@ -640,8 +842,8 @@ html[data-theme="light"] .mobile-header::before {
         radial-gradient(circle at 92% 26%, rgba(16, 185, 129, 0.1), transparent 40%);
 }
 
-.topbar > *,
-.mobile-header > * {
+.topbar>*,
+.mobile-header>* {
     position: relative;
     z-index: 1;
 }
@@ -995,6 +1197,121 @@ html[data-theme="light"] .card.refer-hero {
 html[data-theme="light"] .show-more-row {
     background: rgba(99, 102, 241, 0.08);
 }
+
+/* ===== App polish overrides (palette, stronger elevation, mobile app feel) ===== */
+:root {
+    --primary-gradient: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+/* Slightly richer text color on dark for contrast */
+html[data-theme="dark"] body {
+    color: #eaf1ff;
+}
+
+/* Refined shadows for depth */
+.card,
+.profile-panel,
+.profile-modal-card,
+.page-card-link {
+    box-shadow: var(--shadow-md);
+}
+
+.card:hover,
+.profile-panel:hover,
+.profile-modal-card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+/* Accent the main brand elements */
+.brand {
+    background: transparent;
+}
+
+.brand i {
+    background-image: var(--primary-gradient);
+}
+
+/* Make primary CTAs use gradient */
+.btn-primary,
+.profile-btn.primary {
+    background-image: var(--primary-gradient);
+    color: #fff;
+    border: 0;
+}
+
+.btn-primary:hover,
+.profile-btn.primary:hover {
+    filter: brightness(1.03);
+    transform: translateY(-3px) scale(1.01);
+}
+
+/* Bigger touch targets on mobile */
+@media (max-width: 520px) {
+    .mobile-nav .mobile-nav-item {
+        padding: 0.6rem 0.5rem;
+        gap: 6px;
+    }
+
+    .nav-item {
+        padding: 0.7rem;
+    }
+
+    .profile-btn {
+        padding: 0.9rem 1rem;
+        border-radius: 14px;
+    }
+}
+
+/* Subtle card entrance on load for perceived performance */
+@keyframes cardFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.995);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.page-main>* {
+    animation: cardFadeUp 420ms cubic-bezier(.2, .9, .2, 1);
+}
+
+/* Improve modal backdrop and rounded corners on mobile */
+.profile-modal {
+    background: rgba(2, 6, 23, 0.6);
+}
+
+@media (max-width: 420px) {
+    .profile-modal-card {
+        border-radius: 16px;
+        margin: 0 8px;
+    }
+}
+
+/* Ensure forms and lists feel app-like */
+.stack-list,
+.profile-info-grid,
+.profile-stat-grid {
+    gap: 0.85rem;
+}
+
+.profile-info-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent), var(--bg-card);
+}
+
+/* Provide a clear light/dark transition overlay to make theme switch feel smooth */
+.theme-transition-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 360ms ease;
+}
+
 
 .show-more-btn {
     width: auto;
@@ -1640,7 +1957,7 @@ html[data-theme="light"] .balance-card .coin-badge {
     gap: 0.75rem;
 }
 
-.home-hero-actions > :only-child {
+.home-hero-actions> :only-child {
     grid-column: 1 / -1;
 }
 
@@ -2800,6 +3117,7 @@ html[data-theme="light"] .floating-stats {
 }
 
 @keyframes pointerWiggle {
+
     0%,
     100% {
         transform: translateX(-50%) rotate(0deg);
@@ -3121,6 +3439,7 @@ html[data-theme="light"] .mobile-nav-item.active {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .mobile-nav-item,
     .mobile-nav-item.active,
     .mobile-nav-item.active::after {
@@ -4078,7 +4397,7 @@ html[data-theme="light"] .account-recovery-secondary {
         pointer-events: none;
     }
 
-    .home-stats .stat-card > * {
+    .home-stats .stat-card>* {
         position: relative;
         z-index: 1;
     }
@@ -4542,6 +4861,13 @@ html[data-theme="light"] .account-recovery-secondary {
 .survey-task-card {
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.survey-task-card:focus-visible {
+    outline: 2px solid rgba(139, 92, 246, 0.8);
+    outline-offset: 3px;
 }
 
 .survey-task-card:hover {
@@ -4556,6 +4882,16 @@ html[data-theme="light"] .account-recovery-secondary {
 .survey-task-card .btn-start-survey:hover:not(:disabled) {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+@media (max-width: 720px) {
+    .survey-task-card {
+        padding: 1rem;
+    }
+
+    .survey-task-card .btn-start-survey {
+        min-height: 46px;
+    }
 }
 
 .survey-task-card .task-card-head,
@@ -4745,7 +5081,7 @@ html[data-theme="light"] .home-hero .home-kicker {
     content: none;
 }
 
-.home-hero-chip > * {
+.home-hero-chip>* {
     position: relative;
     z-index: 1;
 }
