@@ -27,16 +27,34 @@ const {
 
 const envResult = require('dotenv').config({ path: path.join(__dirname, '.env') });
 const NODE_ENV = String(process.env.NODE_ENV || 'development').trim().toLowerCase();
-const ALLOWED_ORIGINS = [
-    "https://anvi-payz-main-preview.vercel.app",
+// Default local dev origins and known preview sites. Additional origins
+// can be provided via the `FRONTEND_URL` or `ALLOWED_ORIGINS` environment
+// variables (comma-separated). This lets you add Vercel/Netlify hosts
+// from the hosting dashboard without editing code in future.
+const DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
     "http://localhost:5501",
     "http://127.0.0.1:5501",
     "http://localhost:5502",
     "http://127.0.0.1:5502",
-    "https://anvipayz-main-preview.vercel.app/",
+    // keep known preview host variants (if present)
+    "https://anvipayz-main-site.vercel.app",
+    "https://anvipayz-main-site.vercel.app"
 ];
+
+const envFrontends = String(process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
+const envAllowed = String(process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+
+// Always include the main Vercel site you mentioned so CORS works immediately.
+const FALLBACK_VERCEL_ORIGIN = 'https://anvipayz-main-site.vercel.app';
+
+const ALLOWED_ORIGINS = Array.from(new Set([
+    ...DEFAULT_ALLOWED_ORIGINS,
+    ...envFrontends,
+    ...envAllowed,
+    FALLBACK_VERCEL_ORIGIN
+]));
 
 if (envResult.error) {
     console.warn('WARNING: Could not find or read .env file. Using process environment.');

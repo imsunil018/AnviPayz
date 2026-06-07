@@ -339,7 +339,24 @@
             return;
         }
 
-        const payload = (await fetchReferralPayload()) || {};
+        // Reuse cached payload from global `state` when available and when
+        // navigated from tasks to avoid extra network calls. Otherwise fetch.
+        let payload = null;
+        try {
+            const navEntries = (performance.getEntriesByType && performance.getEntriesByType('navigation')) || [];
+            const navType = (navEntries[0] && navEntries[0].type) || (performance.navigation && performance.navigation.type) || '';
+            const fromTasks = String(document.referrer || '').includes('tasks.html');
+            if (window.state && window.state.referralPayload && fromTasks && navType !== 'reload') {
+                payload = window.state.referralPayload;
+            } else {
+                payload = (await fetchReferralPayload()) || {};
+                if (window.state) window.state.referralPayload = payload;
+            }
+        } catch (err) {
+            payload = (await fetchReferralPayload()) || {};
+            if (window.state) window.state.referralPayload = payload;
+        }
+
         renderReferralTiers(payload);
     }
 

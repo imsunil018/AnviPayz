@@ -1917,6 +1917,38 @@ async function initTasksPage() {
     renderTaskSections(getSharedTaskCatalog());
     const responseTasks = await fetchTasksPayload();
     renderTaskSections(responseTasks.tasks);
+    // Sync static buttons with server-provided task completion state (prefer server when available)
+    try {
+        const serverTasks = Array.isArray(responseTasks.tasks) ? responseTasks.tasks : [];
+        const checkinBtn = document.getElementById("btn-daily-checkin");
+        const tutorialBtn = document.getElementById("btn-watch-video");
+
+        const findBySeed = (seed) => serverTasks.find(t => String(t.seedKey || '').toLowerCase() === String(seed).toLowerCase() || String(t.id || '') === String(seed));
+        const serverDaily = findBySeed('daily-checkin');
+        const serverTutorial = findBySeed('watch-tutorial');
+
+        if (serverDaily) {
+            if (serverDaily.completed) {
+                if (checkinBtn) { checkinBtn.disabled = true; checkinBtn.textContent = 'Claimed'; }
+                try { markTaskCompleted('daily-checkin'); } catch (_) { }
+            } else if (checkinBtn) {
+                checkinBtn.disabled = false;
+                checkinBtn.textContent = checkinBtn.getAttribute('data-default-label') || 'Claim';
+            }
+        }
+
+        if (serverTutorial) {
+            if (serverTutorial.completed) {
+                if (tutorialBtn) { tutorialBtn.disabled = true; tutorialBtn.textContent = 'Completed'; }
+                try { markTaskCompleted('watch-tutorial'); } catch (_) { }
+            } else if (tutorialBtn) {
+                tutorialBtn.disabled = false;
+                tutorialBtn.textContent = tutorialBtn.getAttribute('data-default-label') || 'Watch';
+            }
+        }
+    } catch (err) {
+        // ignore sync failures
+    }
     renderTaskHistory();
 
     if (state.taskRefreshTimer) {
@@ -2554,9 +2586,9 @@ function renderTaskSections(tasks) {
     }
 
     if (surveyContainer) {
-        surveyContainer.innerHTML = surveySource.length
-            ? renderSurveyTaskCards(surveySource)
-            : emptyStateMarkup("ri-survey-line", "Survey tasks are coming soon! Stay tuned.");
+        // Always show the "coming soon" placeholder for surveys on the Tasks page.
+        // Surveys are not yet active in the UI per product decision, so hide survey cards.
+        surveyContainer.innerHTML = emptyStateMarkup("ri-survey-line", "Survey tasks are coming soon! Stay tuned.");
     }
 
     adminContainer.querySelectorAll("[data-api-task]").forEach((button) => {
@@ -2799,7 +2831,24 @@ function bindWalletConversion() {
 }
 
 async function initReferPage() {
-    const data = await fetchReferralPayload();
+    // If we have a cached referral payload and the user navigated here from
+    // the Tasks page (or the payload is already present), reuse it to avoid
+    // an extra network request. On full reload or direct visit we fetch.
+    let data = null;
+    try {
+        const navEntries = (performance.getEntriesByType && performance.getEntriesByType('navigation')) || [];
+        const navType = (navEntries[0] && navEntries[0].type) || (performance.navigation && performance.navigation.type) || '';
+        const fromTasks = String(document.referrer || '').includes('tasks.html');
+        if (state.referralPayload && fromTasks && navType !== 'reload') {
+            data = state.referralPayload;
+        } else {
+            data = await fetchReferralPayload();
+            if (data) state.referralPayload = data;
+        }
+    } catch (err) {
+        data = await fetchReferralPayload();
+        if (data) state.referralPayload = data;
+    }
     const referralCode = String(data.referralCode || state.user?.referralCode || "").trim().toUpperCase();
     const baseUrl = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, "/")}index.html?view=register`;
     const shareUrl = referralCode ? `${baseUrl}&ref=${encodeURIComponent(referralCode)}` : baseUrl;
@@ -3867,31 +3916,47 @@ async function completeRewardFlow({ taskId, title, message, points, type, reques
     let serverActivityHandled = false;
     let responseData = null;
 
-    if (requestVariants?.length) {
-        const data = await requestVariantsLoop(requestVariants);
-        responseData = data;
-        if (data?.user) {
-            state.user = normalizeUser(data.user);
-            persistUser(state.user);
-        }
-        if (data?.history?.length || data?.transactions?.length || data?.activityEntry) {
-            syncActivityState(data.history || data.transactions || [data.activityEntry], { replace: true });
-            serverActivityHandled = true;
-        }
-    } else {
-        const data = await requestFirst([
-            { path: "/add-points", method: "POST", body: { source: type, taskId, points, title, message } }
-        ], { auth: true });
-        responseData = data;
+    try {
+        if (requestVariants?.length) {
+            const data = await requestVariantsLoop(requestVariants);
+            responseData = data;
+            if (data?.user) {
+                state.user = normalizeUser(data.user);
+                persistUser(state.user);
+            }
+            if (data?.history?.length || data?.transactions?.length || data?.activityEntry) {
+                syncActivityState(data.history || data.transactions || [data.activityEntry], { replace: true });
+                serverActivityHandled = true;
+            }
+        } else {
+            const data = await requestFirst([
+                { path: "/add-points", method: "POST", body: { source: type, taskId, points, title, message } }
+            ], { auth: true });
+            responseData = data;
 
-        if (data?.user) {
-            state.user = normalizeUser(data.user);
-            persistUser(state.user);
+            if (data?.user) {
+                state.user = normalizeUser(data.user);
+                persistUser(state.user);
+            }
+            if (data?.history?.length || data?.transactions?.length || data?.activityEntry) {
+                syncActivityState(data.history || data.transactions || [data.activityEntry], { replace: true });
+                serverActivityHandled = true;
+            }
         }
-        if (data?.history?.length || data?.transactions?.length || data?.activityEntry) {
-            syncActivityState(data.history || data.transactions || [data.activityEntry], { replace: true });
-            serverActivityHandled = true;
+    } catch (err) {
+        const errMsg = String(err?.message || err || '').toLowerCase();
+        const isAlreadyClaimed = /already claimed/.test(errMsg) || err?.status === 409 || err?.statusCode === 409;
+        if (isAlreadyClaimed) {
+            // Treat as success: mark locally and update UI without crediting again.
+            if (taskId) {
+                try { markTaskCompleted(taskId); } catch (_) { }
+            }
+            renderCommonUserState();
+            showToast('This reward is already claimed.', 'warning');
+            return;
         }
+
+        throw err;
     }
 
     if (taskId) {
