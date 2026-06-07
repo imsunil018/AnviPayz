@@ -40,7 +40,10 @@ const DEFAULT_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5502",
     // keep known preview host variants (if present)
     "https://anvipayz-main-site.vercel.app",
-    "https://anvipayz-main-site.vercel.app"
+    "https://anvipayz-main-site.vercel.app",
+    "https://anvipayz-admin-site.vercel.app",
+    "https://anvipayz.com/",
+    "https://www.anvipayz.com/",
 ];
 
 const envFrontends = String(process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);

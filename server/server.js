@@ -14,6 +14,10 @@ const ALLOWED_ORIGINS = [
     "http://localhost:5502",
     "http://127.0.0.1:5502",
     "https://anvipayz-main-preview.onrender.com/",
+    "https://anvipayz-main-site.vercel.app/",
+    "https://anvipayz.com/",
+    "https://www.anvipayz.com/",
+
 ];
 const allowedOrigins = [...ALLOWED_ORIGINS];
 const requiredEnv = ['MONGO_URI', 'JWT_SECRET'];

@@ -5887,3 +5887,50 @@ html[data-theme="light"] .home-history-card .history-icon {
         font-size: 0.98rem;
     }
 }
+
+/* ==============================
+   Navbar Scroll & Hover Effects
+============================== */
+.navbar {
+    transition: padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                background-color 0.4s ease, 
+                border-bottom 0.4s ease, 
+                box-shadow 0.4s ease;
+    will-change: padding, background-color;
+}
+
+.navbar.scrolled {
+    background-color: color-mix(in srgb, var(--bg-body) 85%, transparent);
+    backdrop-filter: blur(12px);
+    padding: 0.75rem 0;
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--border);
+}
+
+.navbar-logo {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.navbar-logo:hover {
+    transform: scale(1.05) rotate(-2deg);
+}
+
+.navbar-logo span {
+    transition: color 0.3s ease;
+}
+
+.navbar-logo:hover span {
+    color: var(--primary);
+}
+
+.navbar-btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.navbar-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.1);
+}
