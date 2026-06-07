@@ -4344,7 +4344,12 @@ function computeLifetimeXp() {
         return directXp;
     }
 
-    return state.activity.reduce((sum, item) => {
+    // Include referral earnings in lifetime XP calculation so referral
+    // points contribute to level progression even if `lifetimeXp` isn't
+    // present on the user object (backwards compatibility).
+    const referralEarnings = numberFrom(state.user?.referralEarnings, 0);
+
+    const activitySum = state.activity.reduce((sum, item) => {
         const entryType = String(item?.type || "").toLowerCase();
         if (entryType === "convert" || entryType === "level") {
             return sum;
@@ -4357,6 +4362,8 @@ function computeLifetimeXp() {
 
         return sum + amount;
     }, 0);
+
+    return referralEarnings + activitySum;
 }
 
 function getLevelUpBonusPoints(level) {

@@ -7,7 +7,8 @@
             content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <meta name="color-scheme" content="dark light">
 
-        <title>AnviPayz | Earn Rewards Online & Free Mobile Recharge in India</title>
+        <title>AnviPayz - Earn Real Rewards Daily | Free Mobile Recharge App
+            India</title>
 
         <link rel="icon" type="image/png" href="favicon.png">
         <link rel="canonical" href="https://anvipayz.com/">
@@ -79,6 +80,110 @@
                     animation-delay: 0ms;
                 }
             }
+            /* Mobile navbar / hamburger */
+            .nav-toggle {
+                display: none;
+                background: transparent;
+                border: 0;
+                font-size: 1.2rem;
+                align-items: center;
+                gap: 8px;
+                padding: 8px;
+                color: inherit;
+            }
+            .nav-menu {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+            @media (max-width: 860px) {
+                .nav-menu { display: none; }
+                .nav-toggle { display: inline-flex; }
+                .nav-mobile {
+                    display: none;
+                    position: absolute;
+                    top: 64px;
+                    right: 12px;
+                    background: var(--surface, #07112a);
+                    border: 1px solid rgba(255,255,255,0.04);
+                    border-radius: 10px;
+                    box-shadow: 0 8px 24px rgba(2,6,23,0.6);
+                    padding: 12px;
+                    min-width: 180px;
+                    z-index: 999;
+                    flex-direction: column;
+                }
+                .nav-mobile.open { display: flex; }
+                .nav-mobile a, .nav-mobile button { text-align: left; width: 100%; }
+            }
+            /* Accessibility: Skip to content link */
+            .skip-to-content {
+                position: absolute;
+                top: -40px;
+                left: 0;
+                background: var(--primary, #6366f1);
+                color: white;
+                padding: 8px 16px;
+                text-decoration: none;
+                z-index: 10000;
+                border-radius: 0 0 8px 0;
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+            .skip-to-content:focus {
+                top: 0;
+            }
+
+            /* Small UI micro-animations (subtle, accessible-friendly) */
+            @keyframes anviFloat {
+                0% { transform: translateY(0); }
+                50% { transform: translateY(-6px); }
+                100% { transform: translateY(0); }
+            }
+            @keyframes anviPulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.02); opacity: 0.98; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            @keyframes anviSlideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes anviGlow {
+                0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.0); }
+                50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.25); }
+            }
+            
+            .hero-badge { animation: anviPulse 6s ease-in-out infinite; }
+            .modules-grid .module-card .module-icon { animation: anviFloat 8s ease-in-out infinite; }
+            .hero-content { animation: anviSlideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+            .nav-toggle { transition: transform 220ms ease, opacity 160ms ease; }
+            .nav-toggle[aria-expanded="true"] { transform: rotate(90deg); }
+            
+            /* Improve button transitions */
+            .btn-hero-primary, .btn-hero-secondary, .btn-primary {
+                transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .btn-hero-primary:active, .btn-hero-secondary:active {
+                transform: scale(0.98);
+            }
+            
+            /* Card hover depth */
+            .feature-card, .module-card, .testimonial-card, .smart-card, .step-card {
+                transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .feature-card:hover, .module-card:hover, .testimonial-card:hover, .smart-card:hover, .step-card:hover {
+                transform: translateY(-8px);
+            }
+            
+            @media (prefers-reduced-motion: reduce) {
+                .hero-badge, .modules-grid .module-card .module-icon, .hero-content,
+                .btn-hero-primary:active, .btn-hero-secondary:active,
+                .feature-card:hover, .module-card:hover, .testimonial-card:hover, .smart-card:hover, .step-card:hover { 
+                    animation: none;
+                    transform: none;
+                }
+            }
         </style>
 
         <link rel="preload" href="css/style.css?v=20260507-2" as="style"
@@ -92,15 +197,15 @@
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
         <meta name="description"
-            content="AnviPayz is a free rewards app in India. Users complete tasks, refer friends, and spin daily to earn coins, convert them to tokens, and get mobile recharge discounts. 100% free to join.">
+            content="Earn real rewards daily with AnviPayz. Complete tasks, refer friends, spin for bonuses, and convert coins to tokens for instant mobile recharge discounts. 100% free, real rewards, no hidden charges.">
         <meta name="author" content="AnviPayz Team">
         <meta name="robots"
             content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 
         <meta property="og:title"
-            content="AnviPayz | Earn Rewards Online & Free Mobile Recharge">
+            content="AnviPayz - Earn Real Rewards Daily & Get Mobile Recharge Discounts">
         <meta property="og:description"
-            content="AnviPayz is a free rewards app in India. Users complete tasks, refer friends, and spin daily to earn coins, convert them to tokens, and get mobile recharge discounts. 100% free to join.">
+            content="Join thousands earning real rewards. Complete quick tasks, refer friends for bonuses, and redeem your coins for discounts on any mobile recharge. Start earning today, completely free.">
         <meta property="og:image" content="https://anvipayz.com/banner.jpg">
         <meta property="og:image:alt" content="AnviPayz - Daily Earning App">
         <meta property="og:image:width" content="1200">
@@ -111,11 +216,23 @@
         <meta property="og:locale" content="en_IN">
 
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="AnviPayz | Earn Rewards Online in India">
+        <meta name="twitter:title"
+            content="AnviPayz - Earn Real Rewards Daily with Instant Recharge Discounts">
         <meta name="twitter:description"
-            content="AnviPayz is a free rewards app in India. Users complete tasks, refer friends, and spin daily to earn coins, convert them to tokens, and get mobile recharge discounts. 100% free to join.">
+            content="Join the reward revolution. Complete daily tasks, refer friends, earn tokens, and get real discounts on your next mobile recharge. Free to join, instant rewards.">
         <meta name="twitter:image" content="https://anvipayz.com/banner.jpg">
         <meta name="twitter:image:alt" content="AnviPayz Logo">
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "AnviPayz",
+                "url": "https://anvipayz.com/",
+                "logo": "https://anvipayz.com/favicon.png",
+                "sameAs": ["https://www.facebook.com/","https://www.instagram.com/"]
+            }
+        </script>
 
         <script>
             (function () {
@@ -170,10 +287,31 @@
         "price": "0",
         "priceCurrency": "INR"
       },
-      "description": "AnviPayz is a free rewards app where users complete tasks, refer friends, and spin daily to earn coins, convert them to tokens, and get mobile recharge discounts.",
+      "description": "Earn real rewards by completing daily tasks, referring friends, and spinning for bonuses. Convert your coins to tokens and get instant discounts on any mobile recharge. 100% free, completely transparent, no hidden charges or commitments.",
       "author": {
         "@type": "Organization",
         "name": "AnviPayz"
+      }
+    }
+    </script>
+
+        <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "AnviPayz",
+      "description": "India's trusted rewards platform where users earn coins through daily tasks and referrals, then redeem for instant mobile recharge discounts.",
+      "url": "https://anvipayz.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "IN"
+      },
+      "areaServed": "IN",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Customer Support",
+        "email": "anvipayz@gmail.com",
+        "availableLanguage": ["hi", "en"]
       }
     }
     </script>
@@ -185,7 +323,7 @@
       "name": "AnviPayz",
       "url": "https://anvipayz.com",
       "logo": "https://anvipayz.com/favicon.png",
-      "description": "Daily rewards platform for task earnings and token-based mobile recharge discounts.",
+      "description": "India's most transparent rewards platform. Earn coins through quick daily tasks, friend referrals, and daily spins. Convert to tokens for real discounts on your next mobile recharge.",
       "contactPoint": [
         {
           "@type": "ContactPoint",
@@ -204,7 +342,7 @@
       "name": "AnviPayz",
       "url": "https://anvipayz.com/",
       "inLanguage": "en-IN",
-      "description": "Free rewards app in India for task earnings, daily spins, referrals, and token-based mobile recharge discounts."
+      "description": "Earn real rewards completing daily tasks and referrals. Convert coins to tokens for instant mobile recharge discounts. Completely free, transparent, no hidden terms."
     }
     </script>
 
@@ -265,11 +403,11 @@
     }
     </script>
 
-        
     </head>
 
     <body>
-        <div id="anvi-splash" role="status" aria-live="polite" aria-label="Loading">
+        <div id="anvi-splash" role="status" aria-live="polite"
+            aria-label="Loading">
             <div class="inner">
                 <div class="spinner" aria-hidden="true"></div>
                 <div>Loading…</div>
@@ -280,36 +418,75 @@
         <main class="landing-page app-shell">
             <header class="site-header">
                 <!-- Navbar -->
-                <nav class="navbar">
+                <nav class="navbar" role="navigation"
+                    aria-label="Main navigation">
                     <div class="navbar-container">
                         <a href="#" class="navbar-logo">
                             <img src="favicon.png"
                                 alt="AnviPayz Logo - Free Mobile Recharge App"
-                                class="navbar-logo-img"
-                                width="32" height="32"
+                                class="navbar-logo-img" width="32" height="32"
                                 decoding="async">
-                        <span>AnviPayz</span>
-                    </a>
-                    <div class="navbar-actions">
-                        <button class="navbar-btn navbar-btn-theme"
-                            id="theme-toggle"
-                            title="Toggle dark/light mode"
-                            aria-label="Toggle dark/light mode">
-                            <i class="ri-moon-line" id="theme-icon"></i>
-                        </button>
-                        <button class="navbar-btn navbar-btn-login"
-                            onclick="scrollToSection('auth'); switchView('login');">
-                            <i class="ri-login-box-line"></i>
-                            Login
-                        </button>
-                        <button class="navbar-btn navbar-btn-register"
-                            onclick="scrollToSection('auth'); switchView('register');">
-                            <i class="ri-user-add-line"></i>
-                            Register
-                        </button>
+                            <span>AnviPayz</span>
+                        </a>
+
+                        <div class="nav-menu" role="menubar"
+                            aria-label="Primary">
+                            <a href="#features" class="nav-link">Features</a>
+                            <a href="#modules" class="nav-link">Modules</a>
+                            <a href="#wallet-preview"
+                                class="nav-link">Wallet</a>
+                            <a href="#smart" class="nav-link">Streaks</a>
+                        </div>
+
+                        <div class="navbar-actions">
+                            <button class="nav-toggle" id="nav-toggle"
+                                aria-expanded="false" aria-controls="nav-mobile"
+                                aria-label="Open menu">
+                                <i class="ri-menu-line" aria-hidden="true"></i>
+                            </button>
+
+                            <button class="navbar-btn navbar-btn-theme"
+                                id="theme-toggle" title="Toggle dark/light mode"
+                                aria-label="Toggle dark/light mode">
+                                <i class="ri-moon-line" id="theme-icon"></i>
+                            </button>
+
+                            <button class="navbar-btn navbar-btn-login"
+                                onclick="scrollToSection('auth'); switchView('login');">
+                                <i class="ri-login-box-line"></i>
+                                Login
+                            </button>
+
+                            <button class="navbar-btn navbar-btn-register"
+                                onclick="scrollToSection('auth'); switchView('register');">
+                                <i class="ri-user-add-line"></i>
+                                Register
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                    <!-- Mobile overlay and slide-in menu (clean, accessible) -->
+                    <div id="nav-overlay" class="nav-overlay" hidden></div>
+                    <div id="nav-mobile" class="nav-mobile" role="menu"
+                        aria-hidden="true">
+                        <button id="nav-mobile-close" class="nav-mobile-close"
+                            aria-label="Close menu">
+                            <i class="ri-close-line"></i>
+                        </button>
+                        <a href="#features" role="menuitem"
+                            onclick="closeMobileNav()">Features</a>
+                        <a href="#modules" role="menuitem"
+                            onclick="closeMobileNav()">Modules</a>
+                        <a href="#wallet-preview" role="menuitem"
+                            onclick="closeMobileNav()">Wallet</a>
+                        <a href="#smart" role="menuitem"
+                            onclick="closeMobileNav()">Streaks</a>
+                        <a href="#auth" role="menuitem"
+                            onclick="closeMobileNav(); switchView('register')">Register</a>
+                    </div>
                 </nav>
+                <a href="#main-content" class="skip-to-content">Skip to main
+                    content</a>
             </header>
 
             <!-- Hero Section -->
@@ -321,14 +498,15 @@
                     </div>
 
                     <h1 class="hero-title">
-                        Earn Rewards Online & Free Mobile Recharge
-                        with <span>AnviPayz</span>
+                        Get Real Rewards
+                        Every Day with <span>AnviPayz</span>
                     </h1>
 
                     <p class="hero-subtitle">
-                        Complete simple tasks, refer friends, and spin daily to
-                        earn points in India. Redeem for mobile recharge
-                        discounts and daily bonuses - 100% free to start.
+                        Complete quick daily tasks, refer friends for bonuses,
+                        and instantly convert your earnings into mobile recharge
+                        discounts. No investment. Real rewards. Completely
+                        transparent.
                     </p>
 
                     <div class="hero-cta">
@@ -478,7 +656,8 @@
                             </div>
                         </div>
                         <button class="wallet-btn">
-                            <i class="ri-exchange-funds-line"></i> Convert Points
+                            <i class="ri-exchange-funds-line"></i> Convert
+                            Points
                             to Tokens
                         </button>
                     </div>
@@ -930,7 +1109,8 @@
                         <div class="section-header">
                             <h2 class="section-title">Frequently Asked
                                 Questions</h2>
-                            <p class="section-subtitle" lang="hi">Aam poochhe jaane wale
+                            <p class="section-subtitle" lang="hi">Aam poochhe
+                                jaane wale
                                 sawaal</p>
                         </div>
 
@@ -1098,7 +1278,8 @@
                                         decoding="async">
                                     <span>AnviPayz</span>
                                 </a>
-                                <p class="footer-brand-text" lang="hi">Token-based
+                                <p class="footer-brand-text"
+                                    lang="hi">Token-based
                                     recharge
                                     rewards platform. Tasks complete karo, coins
                                     ko token mein convert karo, har recharge par
@@ -1295,10 +1476,11 @@
                         onclick="scrollToSection('video')"></div>
                     <div class="nav-dot" data-section="how-it-works"
                         onclick="scrollToSection('how-it-works')"></div>
-                    <div class="nav-dot" data-section="faq"
-                        onclick="scrollToSection('faq')"></div>
                     <div class="nav-dot" data-section="auth"
                         onclick="scrollToSection('auth')"></div>
+                    <div class="nav-dot" data-section="faq"
+                        onclick="scrollToSection('faq')"></div>
+
                 </div>
             </main> <!-- Closing landing-page -->
 
@@ -1485,6 +1667,63 @@
                 history.replaceState(null, "", `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
             }
         }
+
+        // Mobile navigation toggle handlers (improved: overlay support)
+        const navToggle = document.getElementById('nav-toggle');
+        const navMobile = document.getElementById('nav-mobile');
+        const navOverlay = document.getElementById('nav-overlay');
+
+        function showOverlay() {
+            if (!navOverlay) return;
+            navOverlay.classList.add('show');
+            navOverlay.hidden = false;
+        }
+
+        function hideOverlay() {
+            if (!navOverlay) return;
+            navOverlay.classList.remove('show');
+            navOverlay.hidden = true;
+        }
+
+        function toggleMobileNav() {
+            if (!navMobile || !navToggle) return;
+            const open = navMobile.classList.toggle('open');
+            navMobile.setAttribute('aria-hidden', open ? 'false' : 'true');
+            navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) {
+                document.body.classList.add('nav-mobile-open');
+                showOverlay();
+            } else {
+                document.body.classList.remove('nav-mobile-open');
+                hideOverlay();
+            }
+        }
+
+        function closeMobileNav() {
+            if (!navMobile || !navToggle) return;
+            navMobile.classList.remove('open');
+            navMobile.setAttribute('aria-hidden', 'true');
+            navToggle.setAttribute('aria-expanded', 'false');
+            document.body.classList.remove('nav-mobile-open');
+            hideOverlay();
+        }
+
+        if (navToggle) navToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMobileNav();
+        });
+
+        // close when clicking overlay, clicking outside, or on resize
+        navOverlay && navOverlay.addEventListener('click', function() { closeMobileNav(); });
+        document.addEventListener('click', function(e) {
+            if (!navMobile) return;
+            if (!navMobile.classList.contains('open')) return;
+            if (e.target.closest('.nav-mobile') || e.target.closest('#nav-toggle')) return;
+            closeMobileNav();
+        });
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 860) closeMobileNav();
+        });
 
 
         // ============ DARK/LIGHT MODE TOGGLE ============
@@ -1892,7 +2131,42 @@
                     });
                 })();
             </script>
+
+            <!-- Mobile nav overrides to fix small-screen layout — only index.html updated -->
+            <style>
+                @media (max-width: 860px) {
+                    /* force-hide the desktop nav links (avoid duplication) */
+                    .nav-menu { display: none !important; }
+
+                    /* ensure toggle sits with actions and is visible */
+                    .navbar-actions { display: flex !important; gap: 8px; align-items: center; }
+                    .navbar-actions .nav-toggle { display: inline-flex !important; order: -1; }
+
+                    /* mobile dropdown becomes full-width panel */
+                    .nav-mobile {
+                        display: none !important;
+                        position: fixed !important;
+                        left: 12px !important;
+                        right: 12px !important;
+                        top: 64px !important;
+                        max-width: calc(100% - 24px) !important;
+                        background: rgba(2,6,23,0.96) !important;
+                        color: #ffffff !important;
+                        border-radius: 12px !important;
+                        padding: 12px !important;
+                        flex-direction: column !important;
+                        gap: 8px !important;
+                        z-index: 1200 !important;
+                        box-shadow: 0 18px 40px rgba(2,6,23,0.6) !important;
+                    }
+                    .nav-mobile.open { display: flex !important; }
+                    .nav-mobile a { color: #fff !important; padding: 10px 8px; border-radius: 8px; text-decoration: none; }
+                    .nav-mobile a:hover { background: rgba(255,255,255,0.03); }
+
+                    /* avoid overlapping page when open */
+                    body.nav-mobile-open { overflow: hidden; }
+                }
+            </style>
         </body>
 
     </html>
-
