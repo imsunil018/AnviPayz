@@ -15,8 +15,8 @@ const ALLOWED_ORIGINS = [
     "http://127.0.0.1:5502",
     "https://anvipayz-main-preview.onrender.com/",
     "https://anvipayz-main-site.vercel.app/",
-    "https://anvipayz.com/",
-    "https://www.anvipayz.com/",
+    "https://anvipayz.com",
+    "https://www.anvipayz.com",
 
 ];
 const allowedOrigins = [...ALLOWED_ORIGINS];
