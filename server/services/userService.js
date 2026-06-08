@@ -9,6 +9,16 @@ const OTP_COOLDOWN_MS = 30 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 const EMAIL_CHANGE_STAGE_WINDOW_MS = 15 * 60 * 1000;
 
+const MAX_NAME_CHANGES_PER_MONTH = 5;
+const MAX_EMAIL_CHANGES_PER_MONTH = 5;
+
+// Helper to get current month in YYYY-MM format (IST) for consistency
+const getCurrentMonthKey = () => {
+    const now = new Date();
+    const options = { year: 'numeric', month: '2-digit', timeZone: 'Asia/Kolkata' };
+    return new Intl.DateTimeFormat('en-CA', options).format(now).replace('-', '-'); // YYYY-MM
+};
+
 function createHttpError(statusCode, message, extra = {}) {
     const error = new Error(message);
     error.statusCode = statusCode;
@@ -85,11 +95,34 @@ function serializeProfileUser(user) {
         lastLogin: user.lastLogin || null,
         emailVerifiedAt: user.emailVerifiedAt || user.joinedAt || null,
         avatarUrl: user.avatarUrl || '',
-        mobileEnabled: false
+        mobileEnabled: false,
+        nameChangeCountThisMonth: user.nameChangeCountThisMonth || 0,
+        lastNameChangeMonth: user.lastNameChangeMonth || null,
+        emailChangeCountThisMonth: user.emailChangeCountThisMonth || 0,
+        lastEmailChangeMonth: user.lastEmailChangeMonth || null,
+        lastEmailChangeDate: user.lastEmailChangeDate || null
     };
 }
 
 function prependActivity(user, activity) {
+    // Ensure activity array is initialized
+    if (!Array.isArray(user.activity)) {
+        user.activity = [];
+    }
+
+    // Create a new activity entry object to avoid modifying the input directly
+    const newActivityEntry = {
+        title: activity.title || 'Account activity',
+        message: activity.message || '',
+        amount: Number(activity.amount || 0),
+        type: activity.type || 'profile',
+        direction: activity.direction || 'credit',
+        status: activity.status || 'completed',
+        time: activity.time || new Date(),
+        taskId: activity.taskId || ''
+    };
+
+    // Prepend the new activity and slice to maintain limit
     user.activity = [
         {
             title: activity.title || 'Account activity',
@@ -155,19 +188,72 @@ async function updateProfile(user, payload) {
     const nextName = sanitizeName(payload?.name);
     validateName(nextName);
 
-    if (user.name !== nextName) {
-        user.name = nextName;
-        prependActivity(user, {
-            title: 'Profile updated',
-            message: 'Your display name was updated successfully.',
-            type: 'profile',
-            direction: 'credit',
-            amount: 0
-        });
-        await user.save();
+    if (user.name === nextName) {
+        return serializeProfileUser(user);
     }
 
-    return serializeProfileUser(user);
+    const currentMonth = getCurrentMonthKey();
+    const activityEntry = {
+        title: 'Name updated',
+        message: `Display name changed to ${nextName}.`,
+        type: 'profile',
+        direction: 'credit',
+        amount: 0,
+        time: new Date()
+    };
+
+    // Atomic update using a pipeline to handle monthly reset and limit check
+    const updatedUser = await User.findByIdAndUpdate(
+        user._id,
+        [
+            {
+                $set: {
+                    // Reset count if month changed
+                    nameChangeCountThisMonth: {
+                        $cond: [
+                            { $ne: ["$lastNameChangeMonth", currentMonth] },
+                            0,
+                            { $ifNull: ["$nameChangeCountThisMonth", 0] }
+                        ]
+                    },
+                    lastNameChangeMonth: currentMonth
+                }
+            },
+            {
+                $set: {
+                    // Only update name if under limit
+                    name: {
+                        $cond: [
+                            { $lt: ["$nameChangeCountThisMonth", MAX_NAME_CHANGES_PER_MONTH] },
+                            nextName,
+                            "$name"
+                        ]
+                    },
+                    nameChangeCountThisMonth: {
+                        $cond: [
+                            { $lt: ["$nameChangeCountThisMonth", MAX_NAME_CHANGES_PER_MONTH] },
+                            { $add: ["$nameChangeCountThisMonth", 1] },
+                            "$nameChangeCountThisMonth"
+                        ]
+                    },
+                    activity: {
+                        $cond: [
+                            { $lt: ["$nameChangeCountThisMonth", MAX_NAME_CHANGES_PER_MONTH] },
+                            { $slice: [{ $concatArrays: [[activityEntry], { $ifNull: ["$activity", []] }] }, 50] },
+                            "$activity"
+                        ]
+                    }
+                }
+            }
+        ],
+        { new: true }
+    );
+
+    if (!updatedUser || updatedUser.name !== nextName) {
+        throw createHttpError(429, `You have reached the monthly limit of ${MAX_NAME_CHANGES_PER_MONTH} name changes.`);
+    }
+
+    return serializeProfileUser(updatedUser);
 }
 
 async function requestEmailChange(user, payload) {
@@ -339,6 +425,16 @@ async function verifyEmailChange(user, payload) {
         const nextEmail = sanitizeEmail(user.pendingEmailChange?.newEmail);
         validateEmail(nextEmail);
 
+        const currentMonth = getCurrentMonthKey();
+        if (user.lastEmailChangeMonth !== currentMonth || !user.lastEmailChangeMonth) { // Also reset if it's the first change
+            user.emailChangeCountThisMonth = 0;
+            user.lastEmailChangeMonth = currentMonth;
+        }
+
+        if (user.emailChangeCountThisMonth >= MAX_EMAIL_CHANGES_PER_MONTH) {
+            throw createHttpError(429, `You can only change your email ${MAX_EMAIL_CHANGES_PER_MONTH} times per month. Please try again next month.`);
+        }
+
         const existingUser = await User.findOne({
             email: nextEmail,
             _id: { $ne: user._id }
@@ -353,6 +449,8 @@ async function verifyEmailChange(user, payload) {
         const previousEmail = user.email;
         user.email = nextEmail;
         user.emailVerifiedAt = new Date();
+        user.emailChangeCountThisMonth += 1; // Increment count
+        user.lastEmailChangeDate = new Date(); // Track the exact date of change
         user.clearPendingEmailChange();
         prependActivity(user, {
             title: 'Email updated',

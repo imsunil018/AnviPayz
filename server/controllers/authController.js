@@ -337,6 +337,11 @@ const serializeUser = (user, extra = {}) => ({
     referredByCode: user.referredByCode || '',
     termsAcceptedAt: user.termsAcceptedAt || null,
     acceptedPolicyVersion: user.acceptedPolicyVersion || '',
+    nameChangeCountThisMonth: user.nameChangeCountThisMonth || 0,
+    lastNameChangeMonth: user.lastNameChangeMonth || null,
+    emailChangeCountThisMonth: user.emailChangeCountThisMonth || 0,
+    lastEmailChangeMonth: user.lastEmailChangeMonth || null,
+    lastEmailChangeDate: user.lastEmailChangeDate || null,
     ...getDeletionMetadata(user),
     ...extra
 });

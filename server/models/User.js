@@ -76,10 +76,17 @@ const UserSchema = new mongoose.Schema({
     referralCode: { type: String, default: '', trim: true, uppercase: true },
     rewardClaimKeys: { type: [String], default: [] },
     activity: { type: [ActivitySchema], default: [] },
-    pendingEmailChange: { type: PendingEmailChangeSchema, default: () => ({}) }
+    pendingEmailChange: { type: PendingEmailChangeSchema, default: () => ({}) },
+    // New fields for name change limits
+    nameChangeCountThisMonth: { type: Number, default: 0 },
+    lastNameChangeMonth: { type: String, default: null }, // YYYY-MM format
+    // New fields for email change limits
+    emailChangeCountThisMonth: { type: Number, default: 0 },
+    lastEmailChangeMonth: { type: String, default: null }, // YYYY-MM format
+    lastEmailChangeDate: { type: Date, default: null } // Exact date of last email change
 });
 
-UserSchema.statics.generateUniqueReferralCode = async function({ name = '', email = '', excludeUserId = null } = {}) {
+UserSchema.statics.generateUniqueReferralCode = async function ({ name = '', email = '', excludeUserId = null } = {}) {
     for (let attempt = 0; attempt < 25; attempt += 1) {
         const candidate = buildReferralCandidate({ name, email });
         const existingUser = await this.findOne({
@@ -95,7 +102,7 @@ UserSchema.statics.generateUniqueReferralCode = async function({ name = '', emai
     return buildFallbackReferralCode({ name, email });
 };
 
-UserSchema.methods.ensureReferralCode = async function() {
+UserSchema.methods.ensureReferralCode = async function () {
     const User = this.constructor;
 
     if (this.referralCode) {
@@ -125,7 +132,7 @@ UserSchema.methods.ensureReferralCode = async function() {
     return this.referralCode;
 };
 
-UserSchema.pre('validate', async function(next) {
+UserSchema.pre('validate', async function (next) {
     try {
         if (!this.referralCode) {
             await this.ensureReferralCode();
@@ -136,14 +143,14 @@ UserSchema.pre('validate', async function(next) {
     }
 });
 
-UserSchema.methods.generateAuthToken = function() {
+UserSchema.methods.generateAuthToken = function () {
     if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is missing in environment variables');
     }
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
-UserSchema.methods.clearPendingEmailChange = function() {
+UserSchema.methods.clearPendingEmailChange = function () {
     this.pendingEmailChange = {
         newEmail: '',
         oldEmailOtpHash: '',

@@ -763,7 +763,8 @@
     </style>
     </head>
     <body>
-        <div id="anvi-splash" role="status" aria-live="polite" aria-label="Loading">
+        <div id="anvi-splash" role="status" aria-live="polite"
+            aria-label="Loading">
             <div class="inner">
                 <div class="spinner" aria-hidden="true"></div>
                 <div>Loading…</div>
@@ -1023,11 +1024,11 @@
 
                 <footer class="app-footer">
                     <a href="privacy.html">Privacy
-                        Policy</a><span>•</span><a href="terms.html"
-                        >Terms & Conditions</a><span>•</span><a
+                        Policy</a><span>•</span><a href="terms.html">Terms &
+                        Conditions</a><span>•</span><a
                         href="refund.html">Refund
-                        Policy</a><span>•</span><a href="disclaimer.html"
-                        >Disclaimer</a>
+                        Policy</a><span>•</span><a
+                        href="disclaimer.html">Disclaimer</a>
                 </footer>
             </main>
 
@@ -1062,6 +1063,9 @@
                         <div class="profile-helper" id="profile-name-helper">Use
                             3-30 characters. Letters, numbers, spaces, dot,
                             apostrophe, or hyphen only.</div>
+                        <div class="profile-helper"
+                            id="profile-name-change-limit"
+                            style="margin-top: 0.5rem;"></div>
                         <div class="profile-modal-actions">
                             <button type="button" class="profile-btn subtle"
                                 data-profile-modal-close="profile-edit-modal">Cancel</button>
@@ -1087,6 +1091,8 @@
                     <div class="profile-email-status"
                         id="profile-email-status">Verify your current email to
                         unlock a secure email change.</div>
+                    <div class="profile-helper" id="profile-email-change-limit"
+                        style="margin-top: 0.5rem;"></div>
                     <section class="profile-email-step"
                         data-email-step="old-request">
                         <h4>Step 1: Verify current email</h4>
@@ -1330,6 +1336,201 @@
                 btn.addEventListener("click", () => {
                     toggleModal(btn.getAttribute("data-profile-modal-close"), false);
                 });
+            });
+
+            // --- Helper: Update Limit UI ---
+            const refreshLimitsUI = () => {
+                if (!state.user) return;
+                
+                const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
+                
+                // Name Limit
+                const nameLimitEl = document.getElementById("profile-name-change-limit");
+                if (nameLimitEl) {
+                    // Reset count if month doesn't match current month
+                    const usedCount = state.user.lastNameChangeMonth === currentMonth ? (state.user.nameChangeCountThisMonth || 0) : 0;
+                    const remaining = Math.max(0, 5 - usedCount);
+                    
+                    nameLimitEl.textContent = `Limit: ${remaining} changes remaining this month.`;
+                    nameLimitEl.style.color = remaining === 0 ? "var(--danger)" : "var(--text-muted)";
+                }
+
+                // Email Limit
+                const emailLimitEl = document.getElementById("profile-email-change-limit");
+                if (emailLimitEl) {
+                    const usedCount = state.user.lastEmailChangeMonth === currentMonth ? (state.user.emailChangeCountThisMonth || 0) : 0;
+                    const remaining = Math.max(0, 5 - usedCount);
+                    
+                    emailLimitEl.textContent = `Limit: ${remaining} changes remaining this month.`;
+                    emailLimitEl.style.color = remaining === 0 ? "var(--danger)" : "var(--text-muted)";
+                }
+            };
+
+            // --- Profile Name Update Logic ---
+            const nameForm = document.getElementById("profile-name-form");
+            nameForm?.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                e.stopImmediatePropagation(); 
+
+                const input = document.getElementById("profile-name-input");
+                const saveBtn = document.getElementById("profile-name-save");
+                const nextName = input?.value?.trim();
+                const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
+
+                if (!nextName || nextName.length < 3) {
+                    if (typeof showToast === "function") showToast("Name must be at least 3 characters.", "error");
+                    return;
+                }
+
+                const usedCount = state.user?.lastNameChangeMonth === currentMonth ? (state.user.nameChangeCountThisMonth || 0) : 0;
+                if (usedCount >= 5) {
+                    showToast("Monthly name change limit reached. Try again next month.", "error");
+                    return;
+                }
+
+                if (typeof withButtonState === "function") {
+                    await withButtonState(saveBtn, "Saving...", async () => {
+                        try {
+                            const data = await requestJson("/user/update-profile", {
+                                method: "PATCH",
+                                body: { name: nextName },
+                                auth: true
+                            });
+                            
+                            if (data.success) {
+                                if (data.user) {
+                                    state.user = normalizeUser(data.user);
+                                    persistUser(state.user);
+                                }
+                                setText("profile-name", nextName);
+                                setText("profile-title", nextName);
+                                updateAvatar();
+                                refreshLimitsUI();
+                                toggleModal("profile-edit-modal", false);
+                                if (typeof showToast === "function") showToast("Profile updated successfully.", "success");
+                            }
+                        } catch (err) {
+                            console.error("Name update error:", err);
+                            if (typeof showToast === "function") showToast(err.message || "Error updating name.", "error");
+                        }
+                    });
+                }
+            });
+
+            // --- Secure Email Change Flow ---
+            // Step 1: Request OTP for current email
+            document.getElementById("profile-email-send-old-btn")?.addEventListener("click", async (e) => {
+                await withButtonState(e.target, "Sending...", async () => {
+                    try {
+                        const res = await requestJson("/user/request-email-change", {
+                            method: "POST",
+                            body: { step: "old-email" },
+                            auth: true
+                        });
+                        if (res.success) {
+                            document.getElementById("profile-email-status").textContent = "OTP sent to your current email.";
+                            document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "old-verify");
+                        }
+                    } catch (err) {
+                        if (typeof showToast === "function") showToast(err.message || "Failed to send OTP.", "error");
+                    }
+                });
+            });
+
+            // Step 2: Verify OTP for current email
+            document.getElementById("profile-email-verify-old-btn")?.addEventListener("click", async (e) => {
+                const otp = document.getElementById("profile-old-email-otp")?.value?.trim();
+                if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
+                const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
+                
+                const usedCount = state.user?.lastEmailChangeMonth === currentMonth ? (state.user.emailChangeCountThisMonth || 0) : 0;
+                if (usedCount >= 5) {
+                    showToast("Monthly email change limit reached.", "error");
+                    toggleModal("profile-email-modal", false);
+                    return;
+                }
+
+                await withButtonState(e.target, "Verifying...", async () => {
+                    try {
+                        const res = await requestJson("/user/verify-email-change", {
+                            method: "POST",
+                            body: { step: "old-email", otp },
+                            auth: true
+                        });
+                        if (res.success) {
+                            document.getElementById("profile-email-status").textContent = "Verified. Enter your new email address.";
+                            document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "new-request");
+                        }
+                    } catch (err) {
+                        if (typeof showToast === "function") showToast(err.message || "Invalid OTP.", "error");
+                    }
+                });
+            });
+
+            // Step 3: Request OTP for new email
+            document.getElementById("profile-email-send-new-btn")?.addEventListener("click", async (e) => {
+                const newEmail = document.getElementById("profile-new-email-input")?.value?.trim();
+                if (!newEmail || !newEmail.includes("@")) return showToast("Enter a valid new email.", "error");
+
+                await withButtonState(e.target, "Sending...", async () => {
+                    try {
+                        const res = await requestJson("/user/request-email-change", {
+                            method: "POST",
+                            body: { step: "new-email", newEmail },
+                            auth: true
+                        });
+                        if (res.success) {
+                            document.getElementById("profile-email-target").textContent = newEmail;
+                            document.getElementById("profile-email-status").textContent = "OTP sent to " + newEmail;
+                            document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "new-verify");
+                        }
+                    } catch (err) {
+                        if (typeof showToast === "function") showToast(err.message || "Failed to send OTP.", "error");
+                    }
+                });
+            });
+
+            // Step 4: Verify OTP for new email & Update
+            document.getElementById("profile-email-verify-new-btn")?.addEventListener("click", async (e) => {
+                const otp = document.getElementById("profile-new-email-otp")?.value?.trim();
+                if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
+
+                await withButtonState(e.target, "Updating Email...", async () => {
+                    try {
+                        const data = await requestJson("/user/verify-email-change", {
+                            method: "POST",
+                            body: { step: "new-email", otp },
+                            auth: true
+                        });
+                        if (data.success) {
+                            if (data.user) {
+                                state.user = normalizeUser(data.user);
+                                persistUser(state.user);
+                            }
+                            setText("profile-email", state.user.email);
+                            setText("profile-summary-email", state.user.email);
+                            refreshLimitsUI();
+                            toggleModal("profile-email-modal", false);
+                            if (typeof showToast === "function") showToast("Email updated successfully!", "success");
+                        }
+                    } catch (err) {
+                        if (typeof showToast === "function") showToast(err.message || "Verification failed.", "error");
+                    }
+                });
+            });
+
+            // Pre-populate fields when opening modals
+            document.getElementById("profile-edit-btn")?.addEventListener("click", () => {
+                const nameInput = document.getElementById("profile-name-input");
+                if (nameInput) nameInput.value = document.getElementById("profile-name")?.textContent || "";
+                refreshLimitsUI();
+            });
+
+            document.getElementById("profile-email-change-btn")?.addEventListener("click", () => {
+                const currentDisplay = document.getElementById("profile-email-current");
+                if (currentDisplay) currentDisplay.textContent = document.getElementById("profile-email")?.textContent || "-";
+                document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "old-request");
+                refreshLimitsUI();
             });
         })();
         </script>
