@@ -10,6 +10,7 @@ const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTI
 const connectDB = require('./server/config/db');
 const authRoutes = require('./server/routes/auth');
 const userRoutes = require('./server/routes/user');
+const supportRoutes = require('./server/routes/support');
 const User = require('./server/models/User');
 const Task = require('./server/models/Task');
 const AppMeta = require('./server/models/AppMeta');
@@ -248,6 +249,7 @@ app.use('/api', (req, res, next) => {
 
 app.use('/api', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api', supportRoutes);
 
 const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const DEFAULT_TASK_SEEDS = [

@@ -17,7 +17,7 @@
             opacity: 1;
             pointer-events: none;
             animation: anviSplashOut 350ms ease forwards;
-            animation-delay: 1200ms;
+            animation-delay: 450ms;
         }
 
         #anvi-splash .inner {
@@ -78,6 +78,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=20260507-2">
+    <link rel="stylesheet" href="support.css?v=20260610-1">
     <link rel="icon" type="image/png" href="favicon.png">
 </head>
 
@@ -176,15 +177,15 @@
                         <form id="support-form" class="support-form">
                             <label class="support-field">
                                 <span>Full Name</span>
-                                <input class="form-input" type="text" id="support-name" placeholder="Your name">
+                                <input class="form-input" type="text" id="support-name" placeholder="Your name" autocomplete="name" maxlength="80" required>
                             </label>
                             <label class="support-field">
                                 <span>Email</span>
-                                <input class="form-input" type="email" id="support-email" placeholder="name@example.com">
+                                <input class="form-input" type="email" id="support-email" placeholder="name@example.com" autocomplete="email" maxlength="254" required>
                             </label>
                             <label class="support-field">
                                 <span>Issue Type</span>
-                                <select class="form-input" id="support-issue">
+                                <select class="form-input" id="support-issue" required>
                                     <option value="General">General</option>
                                     <option value="Rewards">Rewards & points</option>
                                     <option value="Wallet">Wallet & tokens</option>
@@ -196,10 +197,11 @@
                             <label class="support-field">
                                 <span>Message</span>
                                 <textarea class="form-input" id="support-message" rows="5"
-                                    placeholder="Describe your issue..."></textarea>
+                                    placeholder="Describe your issue..." maxlength="2000" required></textarea>
                             </label>
-                            <button type="submit" class="btn-primary support-submit">
-                                <i class="ri-send-plane-line"></i> Send Support Email
+                            <div id="support-status" class="support-status" aria-live="polite"></div>
+                            <button type="submit" class="btn-primary support-submit" id="support-submit-btn">
+                                <i class="ri-send-plane-line"></i> Send Message
                             </button>
                         </form>
                     </section>
@@ -256,22 +258,7 @@
     <script src="config.js?v=20260528-1"></script>
 
     <script defer src="js/auth.js?v=20260525-2"></script>
-    <script>
-        (function () {
-            const form = document.getElementById('support-form');
-            if (!form) return;
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('support-name')?.value.trim() || 'User';
-                const email = document.getElementById('support-email')?.value.trim() || 'Not provided';
-                const issue = document.getElementById('support-issue')?.value || 'General';
-                const message = document.getElementById('support-message')?.value.trim() || 'No message provided.';
-                const subject = `[Support] ${issue} - ${name}`;
-                const body = `Name: ${name}%0D%0AEmail: ${email}%0D%0AIssue: ${issue}%0D%0A%0D%0AMessage:%0D%0A${encodeURIComponent(message)}`;
-                window.location.href = `mailto:anvipayz@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
-            });
-        })();
-    </script>
+    <script defer src="support.js?v=20260610-1"></script>
 </body>
 
 </html>

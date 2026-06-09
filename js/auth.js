@@ -1514,7 +1514,23 @@ async function initHomePage() {
         { timeStyle: "relative", variant: "compact", initialCount, stepCount, buttonLabel: "Show More" }
     );
 
-    const dashboard = await fetchDashboardPayload();
+    const [dashboardResult, tasksResult, referralResult] = await Promise.allSettled([
+        fetchDashboardPayload(),
+        fetchTasksPayload(),
+        fetchReferralPayload()
+    ]);
+
+    const dashboard = dashboardResult.status === "fulfilled"
+        ? dashboardResult.value
+        : {
+            stats: {
+                points: state.user?.points || 0,
+                referralEarnings: numberFrom(state.user?.referralEarnings, 0),
+                taskRewards: buildTaskStats().earnedPoints,
+                surveyEarnings: buildSurveyStats().earnedPoints
+            },
+            history: [...state.activity].sort((a, b) => toTimestamp(b.time) - toTimestamp(a.time))
+        };
     const stats = dashboard.stats;
 
     setText("refer-income", formatNumber(stats.referralEarnings || 0));
@@ -1532,11 +1548,6 @@ async function initHomePage() {
         "No recent wallet activity yet.",
         { timeStyle: "relative", variant: "compact", initialCount, stepCount, buttonLabel: "Show More" }
     );
-
-    const [tasksResult, referralResult] = await Promise.allSettled([
-        fetchTasksPayload(),
-        fetchReferralPayload()
-    ]);
 
     const tasks = tasksResult.status === "fulfilled"
         ? (tasksResult.value?.tasks || [])

@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const connectDB = require('./config/db');
+const supportRoutes = require('./routes/support');
 
 const NODE_ENV = String(process.env.NODE_ENV || 'development').trim().toLowerCase();
 const ALLOWED_ORIGINS = [
@@ -77,6 +78,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api', supportRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({
