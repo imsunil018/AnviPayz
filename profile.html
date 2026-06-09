@@ -110,30 +110,30 @@
         }
 
         .profile-shell {
-            max-width: 100%;
+                max-width: 1200px; /* Max width for desktop */
             margin: 0;
             display: grid;
-            gap: 1.25rem;
+                gap: 1.5rem;
             min-width: 0;
         }
 
         .profile-layout {
             display: grid;
             grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.82fr);
-            gap: 1.25rem;
+                gap: 1.5rem;
             align-items: start;
             min-width: 0;
-        }
+            } /* Default desktop layout */
 
         .profile-stack {
             display: grid;
             gap: 1.15rem;
             min-width: 0;
         }
-
+            
         .profile-side-stack {
-            gap: 1.35rem;
-        }
+                gap: 1.25rem;
+            } /* Spacing for side column */
 
         .profile-panel {
             border: 1px solid var(--border);
@@ -141,10 +141,10 @@
             background: var(--surface);
             color: var(--text-main);
             padding: 1.15rem;
-            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.12);
+                box-shadow: var(--shadow-sm); /* Consistent shadow */
         }
 
-        .profile-panel-primary {
+            .profile-panel-primary { /* Primary panel for main details */
             background: var(--surface-primary);
             border-color: var(--primary);
         }
@@ -152,18 +152,18 @@
         .profile-panel-secondary {
             background: var(--surface-secondary);
             box-shadow: none;
-        }
+            } /* Secondary panel for snapshot/security */
 
         .profile-hero { padding: 1.5rem 1.15rem 1.25rem; position: relative; overflow: hidden;
             background: var(--hero-bg);
-            color: #fff;
+            color: #fff; /* White text on hero background */
             border: none;
         }
 
     .profile-hero-head,
     .profile-section-head,
     .profile-referral-code,
-    .profile-summary-item,
+    .profile-summary-item, /* Common flex layout for various sections */
     .profile-modal-head {
         display: flex;
         justify-content: space-between;
@@ -171,7 +171,7 @@
     }
 
     .profile-hero-head {
-        align-items: flex-start;
+        align-items: center; /* Center align items in hero head */
         position: relative;
         z-index: 2;
     }
@@ -184,7 +184,7 @@
         width: 280px;
         height: 280px;
         background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
-        border-radius: 50%;
+        border-radius: 50%; /* Decorative background elements */
     }
 
     .profile-hero::after {
@@ -195,14 +195,14 @@
         width: 200px;
         height: 200px;
         background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-        border-radius: 50%;
+        border-radius: 50%; /* Decorative background elements */
     }
 
 
         .profile-identity {
             display: flex;
             gap: 1rem;
-            align-items: center;
+            align-items: flex-start; /* Align avatar and text at start */
             min-width: 0;
             flex: 1 1 auto;
         }
@@ -212,10 +212,10 @@
             height: 84px;
             border-radius: 22px;
             overflow: hidden;
-            flex: 0 0 auto;
+            flex-shrink: 0; /* Prevent avatar from shrinking */
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(34, 197, 94, 0.18));
             border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 0 12px rgba(100, 108, 255, 0.4), inset 0 0 0 1px rgba(255,255,255,0.1); position: relative; animation: float 6s ease-in-out infinite; } .profile-avatar::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent 60%); pointer-events: none; } @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } 
+            box-shadow: 0 0 12px rgba(100, 108, 255, 0.4), inset 0 0 0 1px rgba(255,255,255,0.1); position: relative; animation: profileAvatarFloat 6s ease-in-out infinite; } .profile-avatar::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent 60%); pointer-events: none; } @keyframes profileAvatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } 
         }
 
         .profile-avatar img {
@@ -237,7 +237,7 @@
         }
 
         .profile-identity-copy h2 {
-            font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Responsive font size */
             line-height: 1.15;
             overflow-wrap: anywhere;
         }
@@ -245,17 +245,17 @@
         
         .profile-section-head p,
         .profile-email-step p,
-        .profile-helper,
+        .profile-helper, /* Helper text for forms */
         .profile-info-note,
         .profile-email-status {
             margin: 0.35rem 0 0;
-            color: var(--text-muted);
-            font-size: 0.86rem;
+            color: var(--text-muted); /* Muted text for descriptions */
+            font-size: 0.85rem; /* Consistent helper font size */
             line-height: 1.55;
         }
 
         .profile-identity-copy p {
-            font-size: 1rem;
+            font-size: 0.95rem; /* Slightly smaller subtitle */
             color: rgb(255, 233, 233);
             font-weight: bold;
         }
@@ -275,7 +275,7 @@
         .profile-button-row,
         .profile-modal-actions {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
             gap: 0.7rem;
         }
 
@@ -294,7 +294,7 @@
         .profile-chip {
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.4rem; /* Smaller gap for chips */
             padding: 0.5rem 1rem;
             border-radius: 999px;
             border: 1px solid rgba(255, 255, 255, 0.25);
@@ -302,7 +302,7 @@
             color: #fff;
             font-size: 0.86rem;
             font-weight: 700;
-        }
+        } /* Styling for status chips */
 
         .profile-chip.ghost {
             background: rgba(15, 23, 42, 0.2);
@@ -310,7 +310,7 @@
 
         .profile-btn {
             min-height: 2.9rem;
-            padding: 0.85rem 1rem;
+            padding: 0.85rem 1.1rem; /* Slightly more padding for buttons */
             border-radius: 14px;
             border: 1px solid transparent;
             display: inline-flex;
@@ -319,11 +319,11 @@
             gap: 0.55rem;
             font-weight: 700;
             cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            text-decoration: none; /* Remove underline */
+            transition: all 0.2s ease; /* Smooth transitions for all properties */
         }
 
-        .profile-btn.primary {
+        .profile-btn.primary { /* Primary button style */
             background: rgba(99, 102, 241, 0.14);
             color: var(--text-main);
             border-color: rgba(99, 102, 241, 0.24);
@@ -332,20 +332,20 @@
         .profile-btn.secondary,
         .profile-btn.subtle {
             background: rgba(99, 102, 241, 0.08);
-            color: var(--text-main);
+            color: var(--text-main); /* Subtle button style */
             border-color: rgba(99, 102, 241, 0.14);
         }
 
         .profile-btn:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px); /* Lift on hover */
         }
 
         #profile-edit-btn {
-            background: #6366f1;
-            border-color: rgba(255,255,255,0.2);
+            background: var(--primary); /* Distinct color for edit button */
+            border-color: rgba(255,255,255,0.2); /* Light border */
             color: #fff;
         }
-
+        
         #profile-email-change-btn {
             background: #d332cb;
             border-color: rgba(210, 199, 199, 0.676);
@@ -355,7 +355,7 @@
         .profile-stat-grid,
         .profile-info-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Flexible columns */
             gap: 0.85rem;
         }
 
@@ -366,7 +366,7 @@
         .profile-stat-card {
             border-radius: 18px;
             padding: 1.1rem;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.15); /* Semi-transparent background */
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(8px);
         }
@@ -374,7 +374,7 @@
         .profile-stat-card span {
             display: block;
             font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.72);
+            color: rgba(255, 255, 255, 0.72); /* Muted text for labels */
             margin-bottom: 0.35rem;
         }
 
@@ -386,7 +386,7 @@
         .profile-info-card,
         .profile-security-item,
         .profile-email-step,
-        .profile-summary-item {
+        .profile-summary-item { /* Common card styling */
             border: 1px solid var(--border);
             border-radius: 18px;
             background: rgba(148, 163, 184, 0.05);
@@ -394,12 +394,12 @@
             min-width: 0;
         }
 
-        .profile-panel-primary .profile-info-card {
+        .profile-panel-primary .profile-info-card { /* Specific styling for info cards */
             background: rgba(99, 102, 241, 0.06);
             border-color: rgba(99, 102, 241, 0.12);
         }
 
-        .profile-panel-secondary .profile-summary-item {
+        .profile-panel-secondary .profile-summary-item { /* Specific styling for summary items */
             background: rgba(148, 163, 184, 0.04);
             border-color: rgba(148, 163, 184, 0.1);
         }
@@ -411,7 +411,7 @@
             gap: 0.65rem;
             margin-bottom: 0.45rem;
             color: var(--text-muted);
-            font-size: 0.78rem;
+            font-size: 0.75rem; /* Smaller label font size */
             letter-spacing: 0.04em;
             text-transform: uppercase;
         }
@@ -422,7 +422,7 @@
             font-size: 1rem;
             font-weight: 700;
             color: var(--text-main);
-            word-break: break-word;
+            word-break: break-word; /* Prevent long words from overflowing */
         }
 
         .profile-inline-badge {
@@ -432,7 +432,7 @@
             padding: 0.26rem 0.55rem;
             border-radius: 999px;
             background: rgba(16, 185, 129, 0.12);
-            color: #34d399;
+            color: #34d399; /* Green badge for verified status */
             font-size: 0.72rem;
             font-weight: 700;
         }
@@ -447,7 +447,7 @@
             align-items: center;
             border: 1px dashed rgba(99, 102, 241, 0.34);
             border-radius: 20px;
-            background: rgba(99, 102, 241, 0.08);
+            background: rgba(99, 102, 241, 0.08); /* Dashed border for referral code */
             padding: 0.9rem 1rem;
         }
 
@@ -458,7 +458,7 @@
         .profile-referral-copy strong {
             display: block;
             font-family: "Space Grotesk", "Manrope", monospace;
-            font-size: 1.15rem;
+            font-size: 1.1rem; /* Slightly smaller font for referral code */
             letter-spacing: 0.12em;
             overflow-wrap: anywhere;
         }
@@ -466,7 +466,7 @@
         .profile-referral-copy span,
         .profile-summary-item span {
             display: block;
-            margin-top: 0.28rem;
+            margin-top: 0.25rem; /* Smaller margin for sub-text */
             color: var(--text-muted);
             font-size: 0.86rem;
         }
@@ -476,18 +476,18 @@
             inset: 0;
             display: grid;
             place-items: center;
-            padding: 1rem;
+            padding: 1rem; /* Consistent padding */
             background: rgba(2, 6, 23, 0.74);
             backdrop-filter: blur(14px);
             z-index: 92;
-            overflow-y: auto;
+            overflow-y: auto; /* Allow scrolling if content is too long */
         }
 
         .profile-modal[hidden] {
             display: none;
         }
 
-        .profile-modal-card {
+        .profile-modal-card { /* Modal content card */
             width: min(100%, 520px);
             max-height: min(100%, calc(100dvh - 2rem));
             border-radius: 26px;
@@ -495,12 +495,12 @@
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.94));
             box-shadow: 0 24px 50px rgba(2, 6, 23, 0.26);
             overflow: auto;
+            animation: modalFadeIn 0.3s ease-out; /* Add modal entrance animation */
         }
 
         html[data-theme="light"] .profile-modal-card {
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.98));
         }
-
         .profile-modal-head {
             align-items: flex-start;
             padding: 1.1rem 1.15rem 0.85rem;
@@ -518,7 +518,7 @@
         .profile-form-field label {
             color: var(--text-muted);
             font-size: 0.82rem;
-            font-weight: 700;
+            font-weight: 700; /* Form label styling */
         }
 
         .profile-form-field input {
@@ -526,7 +526,7 @@
             min-height: 3rem;
             padding: 0.85rem 0.95rem;
             border-radius: 14px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border); /* Input field styling */
             background: rgba(148, 163, 184, 0.06);
             color: var(--text-main);
             outline: none;
@@ -534,7 +534,7 @@
 
         .profile-form-field input:focus {
             border-color: rgba(99, 102, 241, 0.44);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12); /* Focus ring for inputs */
         }
 
         .profile-email-status {
@@ -546,7 +546,7 @@
         }
 
         .profile-danger {
-            padding: 1rem 1.05rem;
+            padding: 1.15rem; /* Consistent padding for danger section */
             background: linear-gradient(180deg, rgba(127, 29, 29, 0.12), rgba(15, 23, 42, 0.82));
             box-shadow: none;
             opacity: 0.9;
@@ -554,7 +554,7 @@
         }
 
         .profile-danger .profile-btn {
-            width: 100%;
+            width: 100%; /* Full width button in danger section */
             background: rgba(239, 68, 68, 0.12);
             color: #fecaca;
             border-color: rgba(247, 102, 102, 0.24);
@@ -563,7 +563,7 @@
         @media (max-width: 1024px) {
             .profile-layout {
                 grid-template-columns: 1fr;
-            }
+            } /* Stack layout on tablets */
 
             .profile-side-stack {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -573,7 +573,7 @@
 
             .profile-hero-head {
                 align-items: flex-start;
-                position: relative;
+                position: relative; /* Keep relative positioning */
                 z-index: 2;
                 flex-direction: column;
             }
@@ -581,7 +581,7 @@
             .profile-hero-actions {
                 width: 100%;
                 justify-content: flex-start;
-            }
+            } /* Stack hero actions on tablets */
         }
 
         @media (min-width: 768px) and (max-width: 1024px) {
@@ -596,15 +596,15 @@
 
             .profile-panel,
             .profile-danger {
-                padding: 1.05rem;
+                padding: 1.05rem; /* Slightly smaller padding on tablets */
             }
 
             .profile-info-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(2, minmax(0, 1fr)); /* Two columns for info grid */
             }
 
             .profile-stat-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(2, minmax(0, 1fr)); /* Two columns for stat grid */
             }
         }
 
@@ -612,7 +612,7 @@
             .profile-layout,
             .profile-info-grid,
             .profile-stat-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr; /* Single column on mobile */
             }
 
             .profile-shell,
@@ -627,7 +627,7 @@
 
             .profile-panel,
             .profile-danger {
-                padding: 1rem;
+                padding: 1rem; /* Smaller padding on mobile */
             }
         }
 
@@ -637,7 +637,7 @@
             .profile-summary-item,
             .profile-modal-head {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: flex-start; /* Stack elements in hero/summary on small mobile */
             }
 
             .profile-identity {
@@ -647,7 +647,7 @@
             .profile-stat-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-
+            
             .profile-btn,
             .profile-hero-actions,
             .profile-button-row,
@@ -655,7 +655,7 @@
                 width: 100%;
             }
 
-            .profile-hero-actions .profile-btn,
+            .profile-hero-actions .profile-btn, /* Full width buttons */
             .profile-button-row .profile-btn,
             .profile-modal-actions .profile-btn {
                 width: 100%;
@@ -667,7 +667,7 @@
                 border-radius: 22px;
             }
 
-            .profile-chip-row {
+            .profile-chip-row { /* Chips wrap on small screens */
                 gap: 0.55rem;
             }
 
@@ -675,17 +675,24 @@
                 max-width: 100%;
             }
 
-            .profile-modal {
-                padding: 0.8rem;
-                place-items: end center;
+            .profile-modal { /* Modals appear from bottom on mobile */
+                padding: 0.8rem; /* Padding around modal */
+                place-items: end center; /* Align to bottom center */
+                align-items: flex-end;
             }
 
             .profile-modal-card {
                 width: 100%;
                 max-height: min(100%, calc(100dvh - 0.8rem));
-                border-radius: 22px;
+                border-radius: 28px 28px 0 0;
+                animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
+            @keyframes modalSlideUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+            
             .profile-stat-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -695,18 +702,18 @@
             .profile-shell {
                 gap: 0.9rem;
             }
-
+            
             .profile-panel,
             .profile-danger {
-                padding: 0.92rem;
-                border-radius: 20px;
+                padding: 1.15rem;
+                border-radius: 24px;
             }
 
             .profile-info-card,
             .profile-security-item,
             .profile-email-step,
             .profile-summary-item,
-            .profile-stat-card,
+            .profile-stat-card, /* Smaller padding for cards on very small screens */
             .profile-referral-code {
                 padding: 0.85rem 0.9rem;
                 border-radius: 16px;
@@ -714,7 +721,7 @@
 
             .profile-info-label {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: flex-start; /* Stack info labels */
             }
 
             .profile-referral-copy strong {
@@ -725,14 +732,15 @@
             .profile-stat-card strong {
                 font-size: 1.15rem;
             }
-
+            
             .profile-identity {
+                flex-direction: column; /* Stack chips on very small screens */
                 gap: 0.8rem;
             }
 
             .profile-identity-copy h2 {
                 font-size: 1.2rem;
-            }
+            } /* Smaller font for name on very small screens */
 
             .profile-section-head p,
             .profile-identity-copy p,
@@ -740,7 +748,7 @@
             .profile-info-note,
             .profile-email-status {
                 font-size: 0.82rem;
-            }
+            } /* Smaller font for helper texts */
         }
 
         @media (max-width: 380px) {
@@ -749,16 +757,33 @@
                 height: 68px;
                 border-radius: 20px;
             }
-
+            
             .profile-chip {
                 width: 100%;
                 justify-content: center;
             }
-
+            
             .profile-btn {
                 min-height: 2.7rem;
                 padding: 0.78rem 0.9rem;
             }
+        }
+
+        /* Keyframe for avatar float animation */
+        @keyframes profileAvatarFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Keyframe for modal entrance animation */
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Ensure smooth transitions for theme changes */
+        html, body, .profile-panel, .profile-btn, .profile-modal-card {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
         }
     </style>
     </head>
@@ -1212,7 +1237,8 @@
             const getFallbackSeed = () => {
                 let seed = localStorage.getItem(AVATAR_SEED_KEY);
                 if (!seed) {
-                    seed = generateRefCode();
+                    const randomPart = Math.random().toString(36).slice(2, 10).toUpperCase();
+                    seed = `AV-${randomPart}`;
                     localStorage.setItem(AVATAR_SEED_KEY, seed);
                 }
                 return seed;
@@ -1312,7 +1338,7 @@
             };
 
             watch(document.getElementById("profile-name"), () => {
-                applyReferralCode(refCode);
+                applyReferralCode(getSafeRefCode());
                 updateAvatar();
             });
             watch(document.getElementById("profile-title"), updateAvatar);
@@ -1391,9 +1417,11 @@
                 if (typeof withButtonState === "function") {
                     await withButtonState(saveBtn, "Saving...", async () => {
                         try {
-                            const data = await requestJson("/user/update-profile", {
-                                method: "PATCH",
-                                body: { name: nextName },
+                            // Use requestFirst to prevent 404 by trying both likely paths
+                            const data = await requestFirst([
+                                { path: "/user/update-profile", method: "PATCH", body: { name: nextName } },
+                                { path: "/profile/update", method: "PATCH", body: { name: nextName } }
+                            ], {
                                 auth: true
                             });
                             
@@ -1420,7 +1448,8 @@
             // --- Secure Email Change Flow ---
             // Step 1: Request OTP for current email
             document.getElementById("profile-email-send-old-btn")?.addEventListener("click", async (e) => {
-                await withButtonState(e.target, "Sending...", async () => {
+                const button = e.currentTarget;
+                await withButtonState(button, "Sending...", async () => {
                     try {
                         const res = await requestJson("/user/request-email-change", {
                             method: "POST",
@@ -1450,7 +1479,7 @@
                     return;
                 }
 
-                await withButtonState(e.target, "Verifying...", async () => {
+                await withButtonState(e.currentTarget, "Verifying...", async () => {
                     try {
                         const res = await requestJson("/user/verify-email-change", {
                             method: "POST",
@@ -1472,7 +1501,7 @@
                 const newEmail = document.getElementById("profile-new-email-input")?.value?.trim();
                 if (!newEmail || !newEmail.includes("@")) return showToast("Enter a valid new email.", "error");
 
-                await withButtonState(e.target, "Sending...", async () => {
+                await withButtonState(e.currentTarget, "Sending...", async () => {
                     try {
                         const res = await requestJson("/user/request-email-change", {
                             method: "POST",
@@ -1495,7 +1524,7 @@
                 const otp = document.getElementById("profile-new-email-otp")?.value?.trim();
                 if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
 
-                await withButtonState(e.target, "Updating Email...", async () => {
+                await withButtonState(e.currentTarget, "Updating Email...", async () => {
                     try {
                         const data = await requestJson("/user/verify-email-change", {
                             method: "POST",
