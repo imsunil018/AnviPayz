@@ -39,10 +39,14 @@ async function purgeUserData(user) {
 
     const userId = String(user._id);
     const userEmail = String(user.email || '').trim().toLowerCase();
+    const userMobile = String(user.mobileNumber || user.phone || '').trim();
 
     await Promise.all([
         userEmail
             ? mongoose.connection.collection('otps').deleteMany({ email: userEmail }).catch(() => null)
+            : Promise.resolve(),
+        userMobile
+            ? mongoose.connection.collection('otps').deleteMany({ phone: userMobile }).catch(() => null)
             : Promise.resolve(),
         Notification.deleteMany({ userId }).catch(() => null),
         NotificationRead.deleteMany({ userId }).catch(() => null),

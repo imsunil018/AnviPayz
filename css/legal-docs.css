@@ -103,7 +103,6 @@ html[data-theme="dark"] body.legal-body::before {
     background: var(--legal-paper);
     border: 1px solid var(--legal-border);
     box-shadow: var(--legal-shadow-soft);
-    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
 }
 
@@ -138,7 +137,7 @@ html[data-theme="dark"] body.legal-body::before {
     font-weight: 800;
     letter-spacing: 0.06em;
     background: linear-gradient(135deg, var(--legal-brand), var(--legal-brand-2));
-    box-shadow: 0 16px 28px rgba(37, 80, 199, 0.22);
+    box-shadow: 0 16px 28px rgba(37, 80, 199, 0.15);
 }
 
 .legal-brand-copy h1,
@@ -204,7 +203,7 @@ html[data-theme="dark"] body.legal-body::before {
 .legal-btn {
     color: #fff;
     background: linear-gradient(135deg, var(--legal-brand), var(--legal-brand-2));
-    box-shadow: 0 16px 28px rgba(37, 80, 199, 0.2);
+    box-shadow: 0 16px 28px rgba(37, 80, 199, 0.15);
 }
 
 .legal-btn-secondary {

@@ -9,6 +9,11 @@
     line-height: 1.55;
     font-size: 0.95rem;
     white-space: pre-line;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .support-status.is-visible {
@@ -18,25 +23,29 @@
 .support-status.is-success {
     background: rgba(34, 197, 94, 0.12);
     border-color: rgba(34, 197, 94, 0.24);
-    color: #bbf7d0;
+    color: #0f5132;
+    font-weight: 600;
 }
 
 .support-status.is-warning {
     background: rgba(245, 158, 11, 0.12);
     border-color: rgba(245, 158, 11, 0.24);
-    color: #fde68a;
+    color: #7c4b00;
+    font-weight: 600;
 }
 
 .support-status.is-error {
     background: rgba(239, 68, 68, 0.12);
     border-color: rgba(239, 68, 68, 0.24);
-    color: #fecaca;
+    color: #7f1d1d;
+    font-weight: 600;
 }
 
 .support-status.is-loading {
     background: rgba(99, 102, 241, 0.1);
     border-color: rgba(99, 102, 241, 0.18);
-    color: #c7d2fe;
+    color: #1e3a8a;
+    font-weight: 600;
 }
 
 .support-submit[disabled] {
@@ -46,4 +55,20 @@
 
 .support-form .support-field + .support-field {
     margin-top: 0.1rem;
+}
+
+@media (max-width: 720px) {
+    .support-status {
+        padding: 0.8rem 0.9rem;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        border-radius: 14px;
+    }
+}
+
+@media (max-width: 420px) {
+    .support-status {
+        padding: 0.75rem 0.8rem;
+        font-size: 0.86rem;
+    }
 }

@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 
 const OtpSchema = new mongoose.Schema({
-    email: { type: String, required: true, lowercase: true },
+    email: { type: String, required: false, lowercase: true, default: null },
+    phone: { type: String, required: false, default: null }, // E.164 without +, e.g. 919876543210
     otpHash: { type: String, required: true },
     expiresAt: { type: Date, required: true },
     attempts: { type: Number, default: 0 },
@@ -19,16 +20,24 @@ OtpSchema.statics.hashOTP = function (otp) {
     return crypto.createHash('sha256').update(otp).digest('hex');
 };
 
-OtpSchema.statics.canRequestOTP = async function (email) {
-    const lastOTP = await this.findOne({ email }).sort({ createdAt: -1 });
+OtpSchema.statics.canRequestOTP = async function (identifier) {
+    // identifier can be email or phone
+    const query = String(identifier || '').includes('@')
+        ? { email: identifier.toLowerCase() }
+        : { phone: identifier };
+    const lastOTP = await this.findOne(query).sort({ createdAt: -1 });
     if (!lastOTP) return true;
     const diff = (Date.now() - lastOTP.createdAt.getTime()) / 1000;
     return diff >= 30; // 30 seconds rate limit
 };
 
-OtpSchema.statics.findValidOTP = async function (email) {
+OtpSchema.statics.findValidOTP = async function (identifier) {
+    // identifier can be email or phone
+    const query = String(identifier || '').includes('@')
+        ? { email: identifier.toLowerCase() }
+        : { phone: identifier };
     return await this.findOne({
-        email: email.toLowerCase(),
+        ...query,
         expiresAt: { $gt: Date.now() },
         attempts: { $lt: 5 } // Max 5 attempts rule
     }).sort({ createdAt: -1 });

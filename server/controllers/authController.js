@@ -322,6 +322,8 @@ const serializeUser = (user, extra = {}) => ({
     email: user.email,
     name: user.name,
     phone: user.phone || '',
+    emailVerified: Boolean(user.emailVerified || user.emailVerifiedAt),
+    mobileVerified: Boolean(user.mobileVerified),
     points: user.points || 0,
     lifetimeXp: getLifetimeXp(user),
     tokens: user.tokens || 0,
@@ -480,24 +482,75 @@ const sendEmailViaBrevo = async (toEmail, otp, mode = 'login') => {
 
 const sendOTP = async (req, res) => {
     try {
-        const email = req.body?.email?.trim().toLowerCase();
+        const identityRaw = String(req.body?.identity || req.body?.mobileNumber || req.body?.phone || req.body?.email || '').trim();
 
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
+        if (!identityRaw) {
+            return res.status(400).json({ success: false, message: 'Please enter a valid email or mobile number' });
+        }
+
+        const isEmail = identityRaw.includes('@');
+        let normalizedPhone = '';
+        let email = '';
+
+        if (isEmail) {
+            email = identityRaw.toLowerCase();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ success: false, message: 'Please enter a valid email address' });
+            }
+        } else {
+            // Check if valid Indian mobile number
+            const isValidIndianPhone = (phoneStr) => {
+                const clean = phoneStr.replace(/\D/g, '');
+                return /^[6-9]\d{9}$/.test(clean) || /^91[6-9]\d{9}$/.test(clean);
+            };
+            const normalizeIndianMobile = (phoneStr) => {
+                const clean = phoneStr.replace(/\D/g, '');
+                return clean.length === 10 ? '91' + clean : clean;
+            };
+
+            if (!isValidIndianPhone(identityRaw)) {
+                return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number' });
+            }
+            normalizedPhone = normalizeIndianMobile(identityRaw);
+        }
+
+        let existingUser = null;
+        if (isEmail) {
+            existingUser = await User.findOne({ email });
+        } else {
+            existingUser = await User.findOne({ 
+                $or: [
+                    { mobileNumber: normalizedPhone },
+                    { phone: normalizedPhone }
+                ]
             });
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please enter a valid email address'
-            });
+        if (existingUser && await purgeUserIfExpired(existingUser)) {
+            existingUser = null;
         }
 
-        const canRequest = await OTP.canRequestOTP(email);
+        if (!existingUser) {
+            return res.status(400).json({ success: false, message: 'Account not registered. Please register first.' });
+        }
+
+        let targetEmail = '';
+        if (isEmail) {
+            targetEmail = email;
+        } else {
+            if (!existingUser.email) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No registered email address found for this mobile number. Please register with your email address.'
+                });
+            }
+            targetEmail = existingUser.email;
+        }
+
+        // We use user.email or user.mobileNumber as identifier for OTP throttling
+        const identifier = existingUser.email || existingUser.mobileNumber || targetEmail;
+        const canRequest = await OTP.canRequestOTP(identifier);
         if (!canRequest) {
             return res.status(429).json({
                 success: false,
@@ -506,36 +559,40 @@ const sendOTP = async (req, res) => {
             });
         }
 
-        // Only allow login OTP for existing registered users. Ask client to register otherwise.
-        let existingUser = await User.findOne({ email });
-        if (existingUser && await purgeUserIfExpired(existingUser)) {
-            existingUser = null;
-        }
-
-        if (!existingUser) {
-            return res.status(400).json({ success: false, message: 'Email not registered. Please register first.' });
-        }
-
         const otp = OTP.generateOTP();
         const otpHash = OTP.hashOTP(otp);
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        
+        // Save the OTP record using the user's primary email so verifyOTP can look it up by email
         const otpRecord = await OTP.create({
-            email,
+            email: targetEmail,
             otpHash,
             expiresAt
         });
 
         try {
-            await sendEmailViaBrevo(email, otp, 'login');
+            await sendEmailViaBrevo(targetEmail, otp, 'login');
         } catch (emailError) {
+            console.error('[Email Error] Failed to send email OTP:', emailError.message);
             await OTP.deleteOne({ _id: otpRecord._id });
             throw emailError;
         }
 
+        const maskEmail = (emailStr) => {
+            const parts = emailStr.split('@');
+            if (parts.length !== 2) return emailStr;
+            const name = parts[0];
+            const domain = parts[1];
+            if (name.length <= 2) {
+                return name[0] + '*@' + domain;
+            }
+            return name.slice(0, 2) + '***' + name.slice(-1) + '@' + domain;
+        };
+
         res.status(200).json({
             success: true,
-            message: 'OTP sent successfully',
-            email
+            message: `OTP sent to your registered email: ${maskEmail(targetEmail)}`,
+            email: targetEmail
         });
     } catch (error) {
         console.error('Send OTP Error:', error);

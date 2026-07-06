@@ -868,14 +868,14 @@
                                     <p id="profile-subtitle">Verified rewards
                                         account</p>
                                     <div class="profile-chip-row">
-                                        <div class="profile-chip"><i
-                                                class="ri-mail-check-line"></i>
-                                            <span
-                                                id="profile-email-verified">Verified</span></div>
-                                        <div class="profile-chip ghost"><i
-                                                class="ri-phone-line"></i> <span
-                                                id="profile-mobile-status">Coming
-                                                Soon</span></div>
+                                        <div class="profile-chip" id="profile-mobile-chip">
+                                            <i class="ri-shield-check-line"></i>
+                                            <span id="profile-mobile-chip-text">Mobile status</span>
+                                        </div>
+                                        <div class="profile-chip ghost" id="profile-email-chip">
+                                            <i class="ri-mail-line"></i>
+                                            <span id="profile-email-chip-text">Email status</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -923,21 +923,20 @@
                                     <article class="profile-info-card"><div
                                             class="profile-info-label"><span>Email
                                                 Address</span><span
+                                                id="profile-email-inline-badge"
                                                 class="profile-inline-badge"><i
                                                     class="ri-shield-check-line"></i>
-                                                Verified</span></div><div
+                                                Status</span></div><div
                                             class="profile-info-value"
                                             id="profile-email">-</div></article>
                                     <article class="profile-info-card"><div
                                             class="profile-info-label"><span>Mobile</span></div><div
                                             class="profile-info-value"
-                                            id="profile-phone">Coming
-                                            Soon</div><div
+                                            id="profile-phone">Not added yet</div><div
                                             class="profile-info-note"
-                                            id="profile-mobile-note">Mobile OTP
-                                            login and verification will be
-                                            enabled in a future
-                                            update.</div></article>
+                                            id="profile-mobile-note">Add or
+                                            verify your mobile number from the
+                                            Account Security section below.</div></article>
                                     <article class="profile-info-card"><div
                                             class="profile-info-label"><span>Joined
                                                 On</span></div><div
@@ -946,7 +945,7 @@
                                 </div>
                             </section>
 
-                            <section class="profile-panel">
+                            <section class="profile-panel" id="account-security">
                                 <div class="profile-section-head">
                                     <div>
                                         <h3>Referral Tools</h3>
@@ -1009,25 +1008,31 @@
 
                             <section class="profile-panel">
                                 <div class="profile-section-head">
-                                    <div><h3>Security</h3><p>Keep your login
-                                            identity verified and
-                                            protected.</p></div>
+                                    <div><h3>Account Security</h3><p>Manage your verified identity and login details.</p></div>
                                 </div>
-                                <div class="profile-security-list"
-                                    style="display:grid;">
-                                    <article
-                                        class="profile-security-item"><h4>Email
-                                            change protection</h4><p>Changing
-                                            your email requires OTP verification
-                                            on both your current and new email
-                                            before we update your
-                                            account.</p></article>
-                                    <article
-                                        class="profile-security-item"><h4>Mobile
-                                            login</h4><p>Coming Soon. Mobile
-                                            number sign-in and verification are
-                                            not enabled yet, so no phone input
-                                            is shown here.</p></article>
+                                <div class="profile-stack">
+                                    <div class="profile-summary-item">
+                                        <span>Full Name</span>
+                                        <strong id="security-user-name">-</strong>
+                                    </div>
+                                    <div class="profile-summary-item" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 0.5rem;">
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            <span style="font-size: 0.8rem; color: var(--text-muted);">Mobile Number</span>
+                                            <strong id="security-phone-text" style="font-size: 0.95rem;">-</strong>
+                                        </div>
+                                        <div id="security-mobile-action-area">
+                                            <!-- Button or badge will be injected here dynamically -->
+                                        </div>
+                                    </div>
+                                    <div class="profile-summary-item" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 0.5rem;">
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            <span style="font-size: 0.8rem; color: var(--text-muted);">Email Address</span>
+                                            <strong id="security-email-text" style="font-size: 0.95rem;">-</strong>
+                                        </div>
+                                        <div id="security-email-action-area">
+                                            <!-- Button or badge will be injected here dynamically -->
+                                        </div>
+                                    </div>
                                 </div>
                             </section>
                         </div>
@@ -1175,7 +1180,7 @@
             </div>
         </div>
 
-        <script src="config.js?v=20260528-1"></script>
+        <script defer src="config.js?v=20260528-1"></script>
 
         <script defer src="js/auth.js?v=20260525-1"></script>
         <script>
@@ -1555,11 +1560,31 @@
                 refreshLimitsUI();
             });
 
-            document.getElementById("profile-email-change-btn")?.addEventListener("click", () => {
-                const currentDisplay = document.getElementById("profile-email-current");
-                if (currentDisplay) currentDisplay.textContent = document.getElementById("profile-email")?.textContent || "-";
-                document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "old-request");
-                refreshLimitsUI();
+            document.addEventListener("click", (e) => {
+                const btn = e.target.closest("#profile-email-change-btn");
+                if (btn) {
+                    const currentDisplay = document.getElementById("profile-email-current");
+                    if (currentDisplay) {
+                        currentDisplay.textContent = state.user?.email || "-";
+                    }
+                    
+                    if (!state.user?.email) {
+                        document.getElementById("profile-email-status").textContent = "Add a secure email address to your account.";
+                        document.querySelectorAll(".profile-email-step").forEach(el => {
+                            el.hidden = el.getAttribute("data-email-step") !== "new-request";
+                        });
+                    } else {
+                        document.getElementById("profile-email-status").textContent = "Verify your current email to unlock a secure email change.";
+                        document.querySelectorAll(".profile-email-step").forEach(el => {
+                            el.hidden = el.getAttribute("data-email-step") !== "old-request";
+                        });
+                    }
+                    
+                    refreshLimitsUI();
+                    toggleModal("profile-email-modal", true);
+                    return;
+                }
+
             });
         })();
         </script>

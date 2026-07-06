@@ -3,16 +3,24 @@ const nodemailer = require('nodemailer');
 const SupportTicket = require('../models/SupportTicket');
 const SupportCounter = require('../models/SupportCounter');
 const { protect } = require('../middleware/authMiddleware');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
 const SUPPORT_TO_EMAIL = 'anvipayz@gmail.com';
-const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
-const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'anvipayz@gmail.com';
-const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'AnviPayz';
+const SENDER_EMAIL = process.env.EMAIL_USER || 'anvipayz@gmail.com';
+const SENDER_NAME = 'AnviPayz';
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX = 3;
 const MIN_GAP_MS = 30 * 1000;
+
+const supportLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 3,
+    message: { success: false, message: 'Too many support requests. Please wait a little before sending another ticket.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
 
 const ISSUE_TYPE_LABELS = {
     General: 'General',
@@ -22,8 +30,6 @@ const ISSUE_TYPE_LABELS = {
     Login: 'Login / OTP',
     Referral: 'Referral'
 };
-
-const supportRateStore = new Map();
 
 function escapeHtml(value) {
     return String(value || '')
@@ -76,20 +82,9 @@ function formatSubmittedTime(date) {
     }).format(date);
 }
 
-function readBrevoError(response) {
-    return response.text().then((rawBody) => {
-        try {
-            const parsed = JSON.parse(rawBody);
-            return parsed.message || parsed.code || rawBody;
-        } catch (error) {
-            return rawBody;
-        }
-    });
-}
-
 async function sendSupportEmail({ ticketId, name, email, issueType, message, submittedAt }) {
-    if (!process.env.BREVO_API_KEY) {
-        throw new Error('BREVO_API_KEY is missing. Add it in .env to send support emails.');
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        throw new Error('EMAIL_USER and EMAIL_PASS are missing in environment variables. Unable to send support emails.');
     }
 
     const subject = `[AnviPayz Support] New Ticket - ${ticketId}`;
@@ -120,117 +115,24 @@ async function sendSupportEmail({ ticketId, name, email, issueType, message, sub
         message
     ].join('\n');
 
-    if (typeof fetch !== 'function') {
-        const transporter = nodemailer.createTransport({
-            host: 'smtp-relay.brevo.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: 'apikey',
-                pass: process.env.BREVO_API_KEY
-            }
-        });
-
-        await transporter.sendMail({
-            from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
-            to: SUPPORT_TO_EMAIL,
-            replyTo: `"${name}" <${email}>`,
-            subject,
-            html: htmlContent,
-            text: textContent
-        });
-
-        return { success: true, via: 'smtp' };
-    }
-
-    try {
-        const response = await fetch(BREVO_API_URL, {
-            method: 'POST',
-            headers: {
-                'api-key': process.env.BREVO_API_KEY,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                sender: {
-                    email: SENDER_EMAIL,
-                    name: SENDER_NAME
-                },
-                replyTo: {
-                    email,
-                    name
-                },
-                to: [{ email: SUPPORT_TO_EMAIL }],
-                subject,
-                htmlContent,
-                textContent
-            })
-        });
-
-        if (!response.ok) {
-            const errorMessage = await readBrevoError(response);
-            const isSenderInvalid = /sender.+not valid|validate your sender/i.test(errorMessage);
-
-            if (isSenderInvalid) {
-                throw new Error(`Brevo sender "${SENDER_EMAIL}" is not validated. Verify this sender or domain in Brevo before sending support emails.`);
-            }
-
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: 'smtp-relay.brevo.com',
-                    port: 587,
-                    secure: false,
-                    auth: {
-                        user: 'apikey',
-                        pass: process.env.BREVO_API_KEY
-                    }
-                });
-
-                await transporter.sendMail({
-                    from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
-                    to: SUPPORT_TO_EMAIL,
-                    replyTo: `"${name}" <${email}>`,
-                    subject,
-                    html: htmlContent,
-                    text: textContent
-                });
-
-                return { success: true, via: 'smtp-fallback' };
-            } catch (smtpError) {
-                throw new Error(errorMessage || smtpError.message || 'Failed to send support email');
-            }
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
         }
+    });
 
-        return { success: true, via: 'api' };
-    } catch (error) {
-        if (!/sender.+not valid|validate your sender/i.test(error.message || '')) {
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: 'smtp-relay.brevo.com',
-                    port: 587,
-                    secure: false,
-                    auth: {
-                        user: 'apikey',
-                        pass: process.env.BREVO_API_KEY
-                    }
-                });
+    await transporter.sendMail({
+        from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
+        to: SUPPORT_TO_EMAIL,
+        replyTo: `"${name}" <${email}>`,
+        subject,
+        html: htmlContent,
+        text: textContent
+    });
 
-                await transporter.sendMail({
-                    from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
-                    to: SUPPORT_TO_EMAIL,
-                    replyTo: `"${name}" <${email}>`,
-                    subject,
-                    html: htmlContent,
-                    text: textContent
-                });
-
-                return { success: true, via: 'smtp-fallback' };
-            } catch (smtpError) {
-                // fall through to final error below
-            }
-        }
-
-        throw new Error(error.message || 'Failed to send support email');
-    }
+    return { success: true };
 }
 
 async function nextTicketSequence() {
@@ -259,32 +161,7 @@ async function nextTicketSequence() {
     return Number(counter?.sequence || 1001);
 }
 
-function getRateLimitKey(req, email) {
-    return `${String(req.userId || req.ip || 'global')}:${String(email || '').toLowerCase()}`;
-}
-
-function enforceRateLimit(req, email) {
-    const key = getRateLimitKey(req, email);
-    const now = Date.now();
-    const recent = (supportRateStore.get(key) || []).filter((ts) => now - ts < RATE_LIMIT_WINDOW_MS);
-
-    if (recent.length >= RATE_LIMIT_MAX) {
-        const error = new Error('Too many support requests. Please wait a little before sending another ticket.');
-        error.statusCode = 429;
-        throw error;
-    }
-
-    if (recent.length && (now - recent[recent.length - 1]) < MIN_GAP_MS) {
-        const error = new Error('Please wait a few seconds before sending another ticket.');
-        error.statusCode = 429;
-        throw error;
-    }
-
-    recent.push(now);
-    supportRateStore.set(key, recent);
-}
-
-router.post('/support', protect, async (req, res) => {
+router.post('/support', protect, supportLimiter, async (req, res) => {
     try {
         const user = req.user || null;
         const name = sanitizeText(req.body?.fullName || req.body?.name, 80);
@@ -329,8 +206,6 @@ router.post('/support', protect, async (req, res) => {
                 message: 'Message must be at least 10 characters and no more than 2000 characters.'
             });
         }
-
-        enforceRateLimit(req, email);
 
         const sequence = await nextTicketSequence();
         const ticketId = `SUP-${sequence}`;

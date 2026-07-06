@@ -87,7 +87,11 @@ function serializeProfileUser(user) {
         id: user._id,
         email: user.email,
         name: user.name,
+        fullName: user.fullName || user.name,
         phone: user.phone || '',
+        mobileNumber: user.mobileNumber || '',
+        mobileVerified: Boolean(user.mobileVerified),
+        emailVerified: Boolean(user.emailVerified || user.emailVerifiedAt),
         points: user.points || 0,
         tokens: user.tokens || 0,
         referralCode: user.referralCode || '',
@@ -260,6 +264,14 @@ async function requestEmailChange(user, payload) {
     const step = String(payload?.step || '').trim().toLowerCase();
 
     if (step === 'old-email') {
+        if (!user.email) {
+            return {
+                step: 'old-email-skipped',
+                message: 'No email currently linked. Please proceed directly to adding a new email.',
+                bypassOldEmail: true
+            };
+        }
+
         ensureCooldown(user.pendingEmailChange?.oldEmailOtpRequestedAt);
         const otp = generateOtp();
 
@@ -296,12 +308,14 @@ async function requestEmailChange(user, payload) {
     }
 
     if (step === 'new-email') {
-        ensureEmailChangeSession(user);
+        if (user.email) {
+            ensureEmailChangeSession(user);
+        }
 
         const newEmail = sanitizeEmail(payload?.newEmail);
         validateEmail(newEmail);
 
-        if (newEmail === user.email) {
+        if (user.email && newEmail === user.email) {
             throw createHttpError(422, 'Enter a different email address.');
         }
 
@@ -364,6 +378,10 @@ async function verifyEmailChange(user, payload) {
     }
 
     if (step === 'old-email') {
+        if (!user.email) {
+            throw createHttpError(400, 'No email currently linked. Please proceed directly to adding a new email.');
+        }
+
         ensureOtpWindow(
             user.pendingEmailChange?.oldEmailOtpExpiresAt,
             'Current email OTP expired. Request a new OTP to continue.'
@@ -399,7 +417,9 @@ async function verifyEmailChange(user, payload) {
     }
 
     if (step === 'new-email') {
-        ensureEmailChangeSession(user);
+        if (user.email) {
+            ensureEmailChangeSession(user);
+        }
         ensureOtpWindow(
             user.pendingEmailChange?.newEmailOtpExpiresAt,
             'New email OTP expired. Request a new OTP to continue.'
@@ -426,7 +446,7 @@ async function verifyEmailChange(user, payload) {
         validateEmail(nextEmail);
 
         const currentMonth = getCurrentMonthKey();
-        if (user.lastEmailChangeMonth !== currentMonth || !user.lastEmailChangeMonth) { // Also reset if it's the first change
+        if (user.lastEmailChangeMonth !== currentMonth || !user.lastEmailChangeMonth) {
             user.emailChangeCountThisMonth = 0;
             user.lastEmailChangeMonth = currentMonth;
         }
@@ -448,17 +468,38 @@ async function verifyEmailChange(user, payload) {
 
         const previousEmail = user.email;
         user.email = nextEmail;
+        user.emailVerified = true;
         user.emailVerifiedAt = new Date();
-        user.emailChangeCountThisMonth += 1; // Increment count
-        user.lastEmailChangeDate = new Date(); // Track the exact date of change
+        user.emailChangeCountThisMonth += 1;
+        user.lastEmailChangeDate = new Date();
         user.clearPendingEmailChange();
+
+        const msg = previousEmail 
+            ? `Primary email changed from ${previousEmail} to ${nextEmail}.`
+            : `Primary email set to ${nextEmail}.`;
+
         prependActivity(user, {
-            title: 'Email updated',
-            message: `Primary email changed from ${previousEmail} to ${nextEmail}.`,
+            title: previousEmail ? 'Email updated' : 'Email added',
+            message: msg,
             type: 'profile',
             direction: 'credit',
             amount: 0
         });
+
+        // Verify Email task reward trigger
+        const emailClaimKey = 'task:verify-email';
+        if (!user.rewardClaimKeys.includes(emailClaimKey)) {
+            user.points = Number(user.points || 0) + 100;
+            user.rewardClaimKeys.push(emailClaimKey);
+            prependActivity(user, {
+                title: 'Email verification task',
+                message: '100 points rewarded for verifying email address.',
+                type: 'task',
+                amount: 100,
+                taskId: 'verify-email'
+            });
+        }
+
         await user.save();
 
         return {
@@ -471,9 +512,236 @@ async function verifyEmailChange(user, payload) {
     throw createHttpError(422, 'Invalid email verification step.');
 }
 
+async function requestMobileChange(user, payload) {
+    const step = String(payload?.step || '').trim().toLowerCase();
+
+    if (step === 'old-mobile') {
+        if (!user.mobileNumber) {
+            return {
+                step: 'old-mobile-skipped',
+                message: 'No mobile number currently linked. Please proceed directly to adding a new mobile number.',
+                bypassOldMobile: true
+            };
+        }
+
+        ensureCooldown(user.pendingMobileChange?.oldMobileOtpRequestedAt);
+        const otp = generateOtp();
+
+        user.clearPendingMobileChange();
+        user.pendingMobileChange.oldMobileOtpHash = hashOtp(otp);
+        user.pendingMobileChange.oldMobileOtpExpiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+        user.pendingMobileChange.oldMobileOtpRequestedAt = new Date();
+        user.pendingMobileChange.oldMobileOtpAttempts = 0;
+
+        await user.save();
+
+        const normalizedPhone = user.mobileNumber;
+        const apitxt = require('./apitxt.service');
+        try {
+            await apitxt.sendOtpSms({ mobile: normalizedPhone, otp });
+        } catch (error) {
+            user.clearPendingMobileChange();
+            await user.save();
+            throw createHttpError(500, error.message || 'Unable to send SMS OTP right now.');
+        }
+
+        return {
+            step: 'old-mobile',
+            deliveryTarget: normalizedPhone.slice(-4).padStart(10, '*'),
+            expiresInSeconds: OTP_EXPIRY_MS / 1000,
+            cooldownSeconds: OTP_COOLDOWN_MS / 1000,
+            message: 'Verification OTP sent to your current mobile number.'
+        };
+    }
+
+    if (step === 'new-mobile') {
+        if (user.mobileNumber) {
+            const verifiedAt = user.pendingMobileChange?.oldMobileVerifiedAt;
+            if (!verifiedAt) {
+                throw createHttpError(400, 'Verify your current mobile number first.');
+            }
+            const age = Date.now() - new Date(verifiedAt).getTime();
+            if (age > EMAIL_CHANGE_STAGE_WINDOW_MS) {
+                user.clearPendingMobileChange();
+                throw createHttpError(400, 'Your mobile change session expired. Start again.');
+            }
+        }
+
+        const newMobileRaw = String(payload?.newMobile || '').trim();
+        const apitxt = require('./apitxt.service');
+        const isValid = /^[6-9]\d{9}$/.test(newMobileRaw.replace(/\D/g, ''));
+        if (!isValid) {
+            throw createHttpError(422, 'Enter a valid 10-digit mobile number.');
+        }
+        const newMobile = apitxt.normalizeIndianMobile(newMobileRaw);
+
+        if (user.mobileNumber && newMobile === user.mobileNumber) {
+            throw createHttpError(422, 'Enter a different mobile number.');
+        }
+
+        ensureCooldown(user.pendingMobileChange?.newMobileOtpRequestedAt);
+
+        const existingUser = await User.findOne({
+            $or: [{ mobileNumber: newMobile }, { phone: newMobile }],
+            _id: { $ne: user._id }
+        }).select('_id');
+
+        if (existingUser) {
+            throw createHttpError(409, 'This mobile number is already in use by another account.');
+        }
+
+        const otp = generateOtp();
+        user.pendingMobileChange.newMobile = newMobile;
+        user.pendingMobileChange.newMobileOtpHash = hashOtp(otp);
+        user.pendingMobileChange.newMobileOtpExpiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+        user.pendingMobileChange.newMobileOtpRequestedAt = new Date();
+        user.pendingMobileChange.newMobileOtpAttempts = 0;
+        await user.save();
+
+        try {
+            await apitxt.sendOtpSms({ mobile: newMobile, otp });
+        } catch (error) {
+            user.pendingMobileChange.newMobile = '';
+            user.pendingMobileChange.newMobileOtpHash = '';
+            user.pendingMobileChange.newMobileOtpExpiresAt = null;
+            user.pendingMobileChange.newMobileOtpAttempts = 0;
+            user.pendingMobileChange.newMobileOtpRequestedAt = null;
+            await user.save();
+            throw createHttpError(500, error.message || 'Unable to send SMS OTP right now.');
+        }
+
+        return {
+            step: 'new-mobile',
+            deliveryTarget: newMobile.slice(-4).padStart(10, '*'),
+            expiresInSeconds: OTP_EXPIRY_MS / 1000,
+            cooldownSeconds: OTP_COOLDOWN_MS / 1000,
+            message: 'Verification OTP sent to your new mobile number.'
+        };
+    }
+
+    throw createHttpError(422, 'Invalid mobile change step.');
+}
+
+async function verifyMobileChange(user, payload) {
+    const step = String(payload?.step || '').trim().toLowerCase();
+    const otp = String(payload?.otp || '').trim();
+
+    if (!/^\d{6}$/.test(otp)) {
+        throw createHttpError(422, 'Enter a valid 6-digit OTP.');
+    }
+
+    if (step === 'old-mobile') {
+        if (!user.mobileNumber) {
+            throw createHttpError(400, 'No mobile number currently linked.');
+        }
+
+        ensureOtpWindow(
+            user.pendingMobileChange?.oldMobileOtpExpiresAt,
+            'Current mobile OTP expired. Request a new OTP.'
+        );
+
+        const currentAttempts = Number(user.pendingMobileChange?.oldMobileOtpAttempts || 0);
+        if (currentAttempts >= OTP_MAX_ATTEMPTS) {
+            throw createHttpError(429, 'Too many invalid attempts. Request a new OTP.');
+        }
+
+        const providedHash = hashOtp(otp);
+        if (providedHash !== user.pendingMobileChange.oldMobileOtpHash) {
+            user.pendingMobileChange.oldMobileOtpAttempts = currentAttempts + 1;
+            await user.save();
+            throw createHttpError(400, 'Current mobile OTP is invalid.', {
+                remainingAttempts: OTP_MAX_ATTEMPTS - user.pendingMobileChange.oldMobileOtpAttempts
+            });
+        }
+
+        user.pendingMobileChange.oldMobileOtpHash = '';
+        user.pendingMobileChange.oldMobileOtpExpiresAt = null;
+        user.pendingMobileChange.oldMobileOtpAttempts = 0;
+        user.pendingMobileChange.oldMobileVerifiedAt = new Date();
+        await user.save();
+
+        return {
+            step: 'old-mobile-verified',
+            message: 'Current mobile verified. Now verify your new mobile number.'
+        };
+    }
+
+    if (step === 'new-mobile') {
+        if (user.mobileNumber) {
+            const verifiedAt = user.pendingMobileChange?.oldMobileVerifiedAt;
+            if (!verifiedAt) {
+                throw createHttpError(400, 'Verify your current mobile number first.');
+            }
+        }
+        ensureOtpWindow(
+            user.pendingMobileChange?.newMobileOtpExpiresAt,
+            'New mobile OTP expired. Request a new OTP.'
+        );
+
+        const currentAttempts = Number(user.pendingMobileChange?.newMobileOtpAttempts || 0);
+        if (currentAttempts >= OTP_MAX_ATTEMPTS) {
+            throw createHttpError(429, 'Too many attempts. Request a new OTP.');
+        }
+
+        const providedHash = hashOtp(otp);
+        if (providedHash !== user.pendingMobileChange.newMobileOtpHash) {
+            user.pendingMobileChange.newMobileOtpAttempts = currentAttempts + 1;
+            await user.save();
+            throw createHttpError(400, 'New mobile OTP is invalid.', {
+                remainingAttempts: OTP_MAX_ATTEMPTS - user.pendingMobileChange.newMobileOtpAttempts
+            });
+        }
+
+        const nextMobile = user.pendingMobileChange.newMobile;
+        const previousMobile = user.mobileNumber;
+        user.mobileNumber = nextMobile;
+        user.phone = nextMobile;
+        user.mobileVerified = true;
+        user.clearPendingMobileChange();
+
+        const msg = previousMobile
+            ? `Primary mobile number changed from ${previousMobile} to ${nextMobile}.`
+            : `Primary mobile number set to ${nextMobile}.`;
+
+        prependActivity(user, {
+            title: previousMobile ? 'Mobile updated' : 'Mobile added',
+            message: msg,
+            type: 'profile',
+            direction: 'credit',
+            amount: 0
+        });
+
+        // Verify Mobile task reward trigger
+        const mobileClaimKey = 'task:verify-mobile';
+        if (!user.rewardClaimKeys.includes(mobileClaimKey)) {
+            user.points = Number(user.points || 0) + 100;
+            user.rewardClaimKeys.push(mobileClaimKey);
+            prependActivity(user, {
+                title: 'Mobile verification task',
+                message: '100 points rewarded for verifying mobile number.',
+                type: 'task',
+                amount: 100,
+                taskId: 'verify-mobile'
+            });
+        }
+
+        await user.save();
+
+        return {
+            step: 'completed',
+            message: 'Mobile number updated successfully.',
+            user: serializeProfileUser(user)
+        };
+    }
+
+    throw createHttpError(422, 'Invalid mobile verification step.');
+}
+
 module.exports = {
     serializeProfileUser,
     updateProfile,
     requestEmailChange,
-    verifyEmailChange
+    verifyEmailChange,
+    requestMobileChange,
+    verifyMobileChange
 };

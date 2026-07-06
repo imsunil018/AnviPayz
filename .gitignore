@@ -43,11 +43,40 @@ Thumbs.db
 # Misc - local-only config or generated files
 *.local
 .tmpcfg/
+.agents/
+.codex/
+.firebase/
+.firebase-config/
+.cache/
+.parcel-cache/
+.turbo/
+.next/
+.nuxt/
+*.tmp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*.pid
+*.pid.lock
+*.seed
+*.tsbuildinfo
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.tgz
 
 # Ignore common secret-like filenames
 *secret*
 *secrets*
 *credentials*
 *serviceAccount*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
 
 # Keep application source code tracked; this file only excludes generated, secret, and local files

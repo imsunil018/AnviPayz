@@ -90,7 +90,7 @@ let preparePromise = null;
 
 async function connectToDatabase() {
     if (mongoose.connection.readyState !== 1) {
-        await mongoose.connect(process.env.MONGO_URI);
+        await mongoose.connect(String(process.env.MONGO_URI || '').trim());
     }
 }
 

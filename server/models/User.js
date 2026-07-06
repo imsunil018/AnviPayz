@@ -50,11 +50,28 @@ const PendingEmailChangeSchema = new mongoose.Schema({
     newEmailOtpRequestedAt: { type: Date, default: null }
 }, { _id: false });
 
+const PendingMobileChangeSchema = new mongoose.Schema({
+    newMobile: { type: String, default: '', trim: true },
+    oldMobileOtpHash: { type: String, default: '' },
+    oldMobileOtpExpiresAt: { type: Date, default: null },
+    oldMobileOtpAttempts: { type: Number, default: 0 },
+    oldMobileOtpRequestedAt: { type: Date, default: null },
+    oldMobileVerifiedAt: { type: Date, default: null },
+    newMobileOtpHash: { type: String, default: '' },
+    newMobileOtpExpiresAt: { type: Date, default: null },
+    newMobileOtpAttempts: { type: Number, default: 0 },
+    newMobileOtpRequestedAt: { type: Date, default: null }
+}, { _id: false });
+
 const UserSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true, lowercase: true },
+    email: { type: String, required: false, unique: true, sparse: true, lowercase: true, default: null },
+    mobileNumber: { type: String, required: false, unique: true, sparse: true, trim: true, index: true, default: null },
     name: { type: String, default: 'AnviPayz Member' },
-    phone: { type: String, default: undefined, trim: true },
+    fullName: { type: String, default: 'AnviPayz Member' },
+    phone: { type: String, default: undefined, trim: true, unique: true, sparse: true },
     avatarUrl: { type: String, default: '', trim: true },
+    emailVerified: { type: Boolean, default: false },
+    mobileVerified: { type: Boolean, default: false },
     emailVerifiedAt: { type: Date, default: null },
     points: { type: Number, default: 0 },
     lifetimeXp: { type: Number, default: 0 },
@@ -67,6 +84,7 @@ const UserSchema = new mongoose.Schema({
     loginCount: { type: Number, default: 0 },
     lastLogin: { type: Date },
     joinedAt: { type: Date, default: Date.now },
+    welcomeEmailSentAt: { type: Date, default: null },
     accountStatus: { type: String, default: 'active', enum: ['active', 'pending_deletion'] },
     deletionRequestedAt: { type: Date, default: null },
     deleteAfter: { type: Date, default: null },
@@ -77,6 +95,7 @@ const UserSchema = new mongoose.Schema({
     rewardClaimKeys: { type: [String], default: [] },
     activity: { type: [ActivitySchema], default: [] },
     pendingEmailChange: { type: PendingEmailChangeSchema, default: () => ({}) },
+    pendingMobileChange: { type: PendingMobileChangeSchema, default: () => ({}) },
     // New fields for name change limits
     nameChangeCountThisMonth: { type: Number, default: 0 },
     lastNameChangeMonth: { type: String, default: null }, // YYYY-MM format
@@ -84,7 +103,7 @@ const UserSchema = new mongoose.Schema({
     emailChangeCountThisMonth: { type: Number, default: 0 },
     lastEmailChangeMonth: { type: String, default: null }, // YYYY-MM format
     lastEmailChangeDate: { type: Date, default: null } // Exact date of last email change
-});
+}, { timestamps: true });
 
 UserSchema.statics.generateUniqueReferralCode = async function ({ name = '', email = '', excludeUserId = null } = {}) {
     for (let attempt = 0; attempt < 25; attempt += 1) {
@@ -134,6 +153,17 @@ UserSchema.methods.ensureReferralCode = async function () {
 
 UserSchema.pre('validate', async function (next) {
     try {
+        if (this.fullName && !this.name) {
+            this.name = this.fullName;
+        } else if (this.name && !this.fullName) {
+            this.fullName = this.name;
+        }
+        if (this.mobileNumber && !this.phone) {
+            this.phone = this.mobileNumber;
+        } else if (this.phone && !this.mobileNumber) {
+            this.mobileNumber = this.phone;
+        }
+
         if (!this.referralCode) {
             await this.ensureReferralCode();
         }
@@ -164,6 +194,22 @@ UserSchema.methods.clearPendingEmailChange = function () {
         newEmailOtpRequestedAt: null
     };
     return this.pendingEmailChange;
+};
+
+UserSchema.methods.clearPendingMobileChange = function () {
+    this.pendingMobileChange = {
+        newMobile: '',
+        oldMobileOtpHash: '',
+        oldMobileOtpExpiresAt: null,
+        oldMobileOtpAttempts: 0,
+        oldMobileOtpRequestedAt: null,
+        oldMobileVerifiedAt: null,
+        newMobileOtpHash: '',
+        newMobileOtpExpiresAt: null,
+        newMobileOtpAttempts: 0,
+        newMobileOtpRequestedAt: null
+    };
+    return this.pendingMobileChange;
 };
 
 module.exports = mongoose.model('User', UserSchema);

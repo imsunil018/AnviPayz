@@ -6,11 +6,16 @@ const compression = require('compression');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
 const connectDB = require('./server/config/db');
 const authRoutes = require('./server/routes/auth');
 const userRoutes = require('./server/routes/user');
 const supportRoutes = require('./server/routes/support');
+const surveyRoutes = require('./server/routes/survey');
+const rechargeRoutes = require('./server/routes/recharge');
 const User = require('./server/models/User');
 const Task = require('./server/models/Task');
 const AppMeta = require('./server/models/AppMeta');
@@ -60,6 +65,15 @@ const ALLOWED_ORIGINS = Array.from(new Set([
     FALLBACK_VERCEL_ORIGIN
 ]));
 
+function isLoopbackOrigin(origin) {
+    try {
+        const parsed = new URL(origin);
+        return ['localhost', '127.0.0.1', '::1'].includes(parsed.hostname);
+    } catch (_) {
+        return false;
+    }
+}
+
 if (envResult.error) {
     console.warn('WARNING: Could not find or read .env file. Using process environment.');
 } else {
@@ -72,7 +86,7 @@ if (!isServerless && !fs.existsSync(path.join(__dirname, 'node_modules'))) {
 }
 
 const allowedOrigins = [...ALLOWED_ORIGINS];
-const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'BREVO_API_KEY'];
+const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'APITXT_API_KEY'];
 const missingEnv = requiredEnv.filter((key) => !String(process.env[key] || '').trim());
 if (missingEnv.length > 0) {
     const errorMessage = `CRITICAL ERROR: Missing environment variables in .env: ${missingEnv.join(', ')}`;
@@ -99,7 +113,7 @@ app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
 
-        if (ALLOWED_ORIGINS.includes(origin)) {
+        if (ALLOWED_ORIGINS.includes(origin) || isLoopbackOrigin(origin)) {
             return callback(null, true);
         }
 
@@ -158,24 +172,31 @@ app.use(express.static(__dirname, {
     }
 }));
 
-const GLOBAL_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
-const GLOBAL_RATE_LIMIT_MAX = 300;
-const globalRateLimitStore = new Map();
-
-app.use('/api', (req, res, next) => {
-    const key = String(req.ip || req.connection?.remoteAddress || 'global');
-    const now = Date.now();
-    const recent = (globalRateLimitStore.get(key) || []).filter((ts) => now - ts < GLOBAL_RATE_LIMIT_WINDOW_MS);
-
-    if (recent.length >= GLOBAL_RATE_LIMIT_MAX) {
-        return res.status(429).json({ message: 'Too many requests. Please slow down.' });
-    }
-
-    recent.push(now);
-    globalRateLimitStore.set(key, recent);
-    next();
+const apiLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 300,
+    message: { message: 'Too many requests. Please slow down.' },
+    standardHeaders: true,
+    legacyHeaders: false
 });
-app.use('/api', express.json());
+
+const authLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 10,
+    message: { message: 'Too many login attempts. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+app.use('/api', apiLimiter);
+app.use('/api', express.json({ limit: '10kb' }));
+app.use(mongoSanitize());
+app.use(xss());
+
+app.use('/api/send-otp', authLimiter);
+app.use('/api/verify-otp', authLimiter);
+app.use('/api/register-send-otp', authLimiter);
+app.use('/api/register-verify-otp', authLimiter);
 
 if (NODE_ENV !== 'production') {
     app.use('/api', (req, res, next) => {
@@ -209,7 +230,67 @@ app.use('/api', (req, res, next) => {
     next();
 });
 
-connectDB();
+async function runStartupMigration() {
+    try {
+        console.log('[Migration] Checking for users requiring phone-to-mobileNumber and V2 auth default fields migration...');
+        
+        const usersToMigrate = await User.find({
+            phone: { $exists: true, $ne: null },
+            mobileNumber: { $exists: false }
+        });
+
+        if (usersToMigrate.length > 0) {
+            console.log(`[Migration] Found ${usersToMigrate.length} users to migrate phone field.`);
+            for (const user of usersToMigrate) {
+                if (user.phone && !user.mobileNumber) {
+                    const conflict = await User.findOne({ mobileNumber: user.phone });
+                    if (conflict) {
+                        console.warn(`[Migration] Conflict: User ${user._id} has phone ${user.phone}, but another user ${conflict._id} already has mobileNumber ${user.phone}. Skipping.`);
+                        continue;
+                    }
+                    user.mobileNumber = user.phone;
+                    await user.save();
+                }
+            }
+        }
+
+        const migrationResult = await User.updateMany(
+            { 
+                $or: [
+                    { emailVerified: { $exists: false } },
+                    { mobileVerified: { $exists: false } },
+                    { email: { $exists: false } },
+                    { mobileNumber: { $exists: false } }
+                ]
+            },
+            [
+                {
+                    $set: {
+                        emailVerified: { $ifNull: ["$emailVerified", { $cond: { if: { $and: ["$email", { $ne: ["$email", null] }] }, then: true, else: false } }] },
+                        mobileVerified: { $ifNull: ["$mobileVerified", { $cond: { if: { $and: ["$mobileNumber", { $ne: ["$mobileNumber", null] }] }, then: true, else: false } }] },
+                        email: { $ifNull: ["$email", null] },
+                        mobileNumber: { $ifNull: ["$mobileNumber", null] }
+                    }
+                }
+            ]
+        );
+        console.log(`[Migration] Populate missing V2 auth fields: modifiedCount=${migrationResult.modifiedCount}`);
+    } catch (error) {
+        console.error('[Migration] Error during startup migration:', error);
+    }
+}
+
+connectDB().then(() => {
+    if (mongoose.connection.readyState === 1) {
+        runStartupMigration();
+    } else {
+        mongoose.connection.once('connected', () => {
+            runStartupMigration();
+        });
+    }
+}).catch((err) => {
+    console.error('[Migration] connectDB error:', err);
+});
 
 app.get('/api/test', (req, res) => {
     const dbStatus = global.__ANVI_DB_STATUS__ || null;
@@ -228,6 +309,7 @@ app.use('/api', (req, res, next) => {
     const normalizedPath = String(req.path || "").replace(/\/+$/, "") || "/";
     const bypassDbGuard =
         normalizedPath === '/test' ||
+        normalizedPath === '/health' ||
         normalizedPath === '/admin/login' ||
         normalizedPath === '/admin/auth/login';
 
@@ -250,6 +332,7 @@ app.use('/api', (req, res, next) => {
 app.use('/api', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api', supportRoutes);
+app.use('/api', surveyRoutes);
 
 const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const DEFAULT_TASK_SEEDS = [
@@ -829,7 +912,8 @@ function serializeUser(user) {
         id: user._id,
         email: user.email,
         name: user.name,
-        phone: user.phone,
+        mobileNumber: user.mobileNumber || user.phone || '',
+        phone: user.mobileNumber || user.phone || '',
         avatarUrl: user.avatarUrl || '',
         points: user.points || 0,
         lifetimeXp: getUserLifetimeXp(user),
@@ -926,7 +1010,8 @@ function serializeAdminUser(user, referralCounts) {
         _id: user._id,
         fullName: user.name || 'AnviPayz Member',
         email: user.email || '',
-        phone: user.phone || '-',
+        mobileNumber: user.mobileNumber || user.phone || '',
+        phone: user.mobileNumber || user.phone || '-',
         balance: Number(user.points || 0),
         tokens: Number(user.tokens || 0),
         tokensConverted,
@@ -1758,8 +1843,35 @@ app.post('/api/tasks/complete', async (req, res) => {
     await awardPoints(req, res, 'task');
 });
 
-app.post('/api/surveys/submit', async (req, res) => {
-    await awardPoints(req, res, 'survey');
+app.use('/api/recharge', rechargeRoutes);
+
+app.post('/api/recharge', async (req, res) => {
+    try {
+        const user = await getAuthenticatedUser(req);
+        if (!user.mobileVerified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Mobile verification required for recharges. Please verify your mobile number.'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Recharge request initiated successfully.',
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || 'Authentication failed'
+        });
+    }
+});
+
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'Server is running',
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.post('/api/spin', async (req, res) => {

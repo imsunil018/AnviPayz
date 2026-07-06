@@ -662,7 +662,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="wallet-convert-label">Enter Points to Convert</label>
+                        <label class="wallet-convert-label" style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <span>Enter Points to Convert</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: none; letter-spacing: normal;">Available: <strong id="convert-available-points" style="color: var(--primary); font-size: 0.85rem;">0</strong></span>
+                        </label>
                         <input type="number" id="points-input"
                             class="form-input wallet-convert-input" placeholder="Enter points"
                             min="1" step="1"
@@ -727,7 +730,7 @@
             </nav>
         </div>
 
-        <script src="config.js?v=20260528-1"></script>
+        <script defer src="config.js?v=20260528-1"></script>
 
         <script defer src="js/auth.js?v=20260525-2"></script>
     </body>

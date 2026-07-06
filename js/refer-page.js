@@ -345,8 +345,7 @@
         try {
             const navEntries = (performance.getEntriesByType && performance.getEntriesByType('navigation')) || [];
             const navType = (navEntries[0] && navEntries[0].type) || (performance.navigation && performance.navigation.type) || '';
-            const fromTasks = String(document.referrer || '').includes('tasks.html');
-            if (window.state && window.state.referralPayload && fromTasks && navType !== 'reload') {
+            if (window.state && window.state.referralPayload && navType !== 'reload') {
                 payload = window.state.referralPayload;
             } else {
                 payload = (await fetchReferralPayload()) || {};

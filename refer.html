@@ -174,16 +174,21 @@
        HERO SECTION
     ══════════════════════════════════════════ */
     .refer-hero {
-      background: linear-gradient(135deg, #1a1060 0%, #0f1730 40%, #0a1a2e 100%);
-      border: 1px solid rgba(124,137,255,0.32);
-      padding: 2rem;
-      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #2e1065 0%, #4338ca 50%, #1e1b4b 100%);
+      border: 1px solid rgba(124,137,255,0.4);
+      padding: 2.5rem 2rem;
+      margin-bottom: 2rem;
       overflow: visible;
+      border-radius: var(--radius-card);
+      box-shadow: 0 20px 60px rgba(67, 56, 202, 0.35), inset 0 2px 20px rgba(255, 255, 255, 0.1);
+      position: relative;
+      text-align: center;
     }
 
     html[data-theme="light"] .refer-hero {
       background: linear-gradient(135deg, #4f46e5 0%, #6366f1 40%, #818cf8 100%);
       border-color: rgba(99,102,241,0.4);
+      box-shadow: 0 20px 50px rgba(79, 70, 229, 0.25), inset 0 2px 20px rgba(255, 255, 255, 0.25);
     }
 
     /* Decorative orbs */
@@ -237,48 +242,114 @@
 
     .refer-code-display {
       font-family: 'Space Grotesk', monospace;
-      font-size: clamp(2rem, 8vw, 3.2rem);
+      font-size: clamp(1.5rem, 6vw, 2.5rem);
       font-weight: 700;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #fff;
-      text-shadow: 0 0 40px rgba(124,137,255,0.5), 0 0 80px rgba(124,137,255,0.2);
-      line-height: 1.1;
-      word-break: break-all;
-    }
-
-    .refer-hero-sub {
-      margin-top: 0.85rem;
-      color: rgba(255,255,255,0.75);
-      font-size: 0.92rem;
-      font-weight: 500;
-      line-height: 1.6;
-    }
-
-    .refer-hero-sub strong { color: #fff; font-weight: 800; }
-
-    /* Chips */
-    .refer-chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 1.1rem;
-    }
-
-    .refer-chip {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 18px;
+      padding: 0.5rem 1.2rem;
+      margin: 0.75rem auto 1.05rem;
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.38rem 0.72rem;
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(8px);
-      color: rgba(255,255,255,0.9);
-      font-weight: 700;
-      font-size: 0.82rem;
-      white-space: nowrap;
+      justify-content: center;
+      text-shadow: 0 0 20px rgba(124,137,255,0.6), 0 0 40px rgba(124,137,255,0.3);
+      line-height: 1.2;
+      word-break: break-word;
+      backdrop-filter: blur(12px);
     }
+
+    html[data-theme="light"] .refer-code-display {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ══════════════════════════════════════════
+       REWARD BADGES
+    ══════════════════════════════════════════ */
+    .referral-rewards-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1.5rem auto 2rem;
+      flex-wrap: wrap;
+    }
+
+    .reward-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1.25rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      text-align: left;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    html[data-theme="light"] .reward-badge {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(79, 70, 229, 0.2);
+      box-shadow: 0 12px 24px rgba(79, 70, 229, 0.12);
+    }
+
+    .reward-badge i {
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+    }
+
+    .you-earn i {
+      background: rgba(124, 137, 255, 0.2);
+      color: #a5b4fc;
+    }
+    html[data-theme="light"] .you-earn i {
+      background: rgba(79, 70, 229, 0.1);
+      color: #4f46e5;
+    }
+
+    .friend-earns i {
+      background: rgba(49, 196, 141, 0.2);
+      color: #34d399;
+    }
+    html[data-theme="light"] .friend-earns i {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+
+    .reward-text { display: flex; flex-direction: column; }
+    .reward-text span {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    html[data-theme="light"] .reward-text span { color: var(--text-muted); }
+
+    .reward-text strong {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    html[data-theme="light"] .reward-text strong { color: var(--text-main); }
+    
+    .reward-divider {
+      color: rgba(255,255,255,0.4);
+      font-size: 1.5rem;
+    }
+    html[data-theme="light"] .reward-divider { color: var(--text-muted); }
 
     .refer-chip i { font-size: 0.95rem; }
 
@@ -430,32 +501,44 @@
     /* Progress Bar */
     .ref-progress-bar {
       width: 100%;
-      height: 10px;
+      height: 16px;
       border-radius: 999px;
-      background: rgba(124,137,255,0.1);
+      background: rgba(255,255,255,0.05);
       overflow: hidden;
-      margin-top: 0.75rem;
+      margin-top: 1rem;
       border: 1px solid var(--border);
       position: relative;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    html[data-theme="light"] .ref-progress-bar {
+      background: rgba(15,23,42,0.05);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
     }
 
     .ref-progress-fill {
       display: block;
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, var(--primary-vivid), var(--accent));
+      background: linear-gradient(90deg, var(--primary-vivid), #34d399);
       border-radius: inherit;
-      transition: width 0.6s cubic-bezier(.4,0,.2,1);
+      transition: width 0.8s cubic-bezier(.4,0,.2,1);
       position: relative;
+      box-shadow: 0 0 15px rgba(49,196,141,0.5);
+      overflow: hidden;
     }
 
     .ref-progress-fill::after {
       content: "";
       position: absolute;
-      right: 0; top: 0; bottom: 0;
-      width: 16px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
-      border-radius: inherit;
+      top: 0; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+      animation: progress-shimmer 2s infinite;
+    }
+    
+    @keyframes progress-shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
 
     /* ══════════════════════════════════════════
@@ -473,36 +556,76 @@
     .section-title--spaced { margin-top: 1.5rem; }
 
     /* ══════════════════════════════════════════
-       HOW IT WORKS CARDS
+       VISUAL JOURNEY
     ══════════════════════════════════════════ */
-    .feature-head {
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
+    .journey-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    
+    .journey-container::before {
+      content: "";
+      position: absolute;
+      top: 2rem;
+      left: 15%;
+      right: 15%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(124,137,255,0.2), rgba(49,196,141,0.2));
+      z-index: 0;
+    }
+    
+    html[data-theme="light"] .journey-container::before {
+      background: linear-gradient(90deg, rgba(79,70,229,0.2), rgba(16,185,129,0.2));
     }
 
-    .feature-icon {
-      width: 46px; height: 46px;
-      border-radius: 14px;
+    .journey-step {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .journey-icon {
+      width: 4rem;
+      height: 4rem;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
-      flex-shrink: 0;
+      font-size: 1.5rem;
+      background: var(--bg-card);
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      box-shadow: 0 10px 25px rgba(124,137,255,0.2);
+    }
+    
+    html[data-theme="light"] .journey-icon {
+      background: #ffffff;
+      box-shadow: 0 10px 25px rgba(79,70,229,0.15);
     }
 
-    .feature-copy h3 {
-      font-size: 1rem;
+    .journey-step:nth-child(2) .journey-icon {
+      border-color: #f59e0b; color: #f59e0b; box-shadow: 0 10px 25px rgba(245,158,11,0.2);
+    }
+    .journey-step:nth-child(3) .journey-icon {
+      border-color: #10b981; color: #10b981; box-shadow: 0 10px 25px rgba(16,185,129,0.2);
+    }
+
+    .journey-step h3 {
+      font-size: 1.1rem;
       font-weight: 800;
       color: var(--text-main);
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.4rem;
     }
 
-    .feature-copy p {
+    .journey-step p {
       font-size: 0.85rem;
       color: var(--text-muted);
-      font-weight: 500;
       line-height: 1.5;
+      padding: 0 1rem;
     }
 
     /* ══════════════════════════════════════════
@@ -647,9 +770,11 @@
     }
 
     #leaderboard-list .lb-row--me {
-      border-color: rgba(93,108,247,0.45);
-      background: linear-gradient(120deg, rgba(93,108,247,0.15), rgba(14,20,40,0.45));
-      box-shadow: 0 0 0 3px rgba(93,108,247,0.08);
+      border-color: rgba(93,108,247,0.8);
+      background: linear-gradient(120deg, rgba(93,108,247,0.25), rgba(14,20,40,0.65));
+      box-shadow: 0 0 20px rgba(93,108,247,0.25);
+      transform: scale(1.02);
+      z-index: 2;
     }
 
     #leaderboard-list .lb-rank {
@@ -1113,18 +1238,51 @@
       }
     }
 
-    @media (max-width: 400px) {
+    @media (max-width: 768px) {
+      .journey-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      .journey-container::before {
+        top: 0;
+        bottom: 0;
+        left: 2rem;
+        right: auto;
+        width: 2px;
+        height: 100%;
+      }
+      .journey-step {
+        display: flex;
+        align-items: flex-start;
+        text-align: left;
+        gap: 1.5rem;
+      }
+      .journey-icon {
+        margin: 0;
+        flex-shrink: 0;
+      }
+      .journey-step p {
+        padding: 0;
+      }
+    }
+
+    @media (max-width: 500px) {
       .refer-code-display {
         font-size: 1.4rem;
         letter-spacing: 0.08em;
       }
 
-      #copy-btn span, #whatsapp-btn span, #invite-now-btn span {
-        display: none;
+      .refer-action-row {
+        grid-template-columns: 1fr;
       }
-
-      .share-btn { padding: 0.75rem; }
-      .share-btn i { font-size: 1.3rem; margin: 0; }
+      
+      .reward-badge {
+        width: 100%;
+      }
+      
+      .reward-divider {
+        transform: rotate(90deg);
+      }
     }
 
     /* ══════════════════════════════════════════
@@ -1252,28 +1410,22 @@
                     <div class="refer-code-label">Your referral code</div>
                     <div id="my-refer-code"
                         class="refer-code-display">Loading...</div>
-                    <div class="refer-hero-sub">
-                        Earn <strong>250</strong> points for every successful
-                        referral.
-                        Your friend gets <strong>150</strong> bonus points at
-                        signup.
-                        Unlock extra rewards at <strong>15</strong>,
-                        <strong>25</strong>, and <strong>50</strong> referrals.
-                    </div>
-                    <div class="refer-chip-row" aria-label="Referral rules">
-                        <div class="refer-chip"><i class="ri-coin-fill"></i>
-                            +250 / referral</div>
-                        <div class="refer-chip"><i
-                                class="ri-user-smile-line"></i> +150 friend
-                            bonus</div>
-                        <div class="refer-chip"><i class="ri-award-line"></i>
-                            +1000 at 15</div>
-                        <div class="refer-chip"><i class="ri-medal-line"></i>
-                            +2000 at 25</div>
-                        <div class="refer-chip"><i class="ri-trophy-line"></i>
-                            +6000 at 50</div>
-                        <div class="refer-chip"><i class="ri-timer-line"></i>
-                            10/day limit</div>
+                    <div class="referral-rewards-banner">
+                        <div class="reward-badge you-earn">
+                            <i class="ri-user-smile-fill"></i>
+                            <div class="reward-text">
+                                <span>You Earn</span>
+                                <strong>+250 Points</strong>
+                            </div>
+                        </div>
+                        <i class="ri-arrow-left-right-line reward-divider"></i>
+                        <div class="reward-badge friend-earns">
+                            <i class="ri-user-add-fill"></i>
+                            <div class="reward-text">
+                                <span>Friend Earns</span>
+                                <strong>+150 Points</strong>
+                            </div>
+                        </div>
                     </div>
                     <div class="refer-action-row">
                         <button id="copy-btn" class="share-btn">
@@ -1285,8 +1437,7 @@
                             <span>WhatsApp</span>
                         </button>
                         <button id="invite-now-btn" class="share-btn">
-                            <i class="ri-send-plane-2-line"></i> <span>Invite
-                                Now</span>
+                            <i class="ri-share-line"></i> <span>More Options</span>
                         </button>
                     </div>
                 </section>
@@ -1328,7 +1479,7 @@
 
                 <!-- ═══ PROGRESS + YOUR RANK ═══ -->
                 <div class="page-grid page-grid--two">
-                    <div class="card refer-summary-card">
+                    <div class="card refer-summary-card" style="grid-column: 1 / -1;">
                         <div class="section-title"
                             id="bonus-progress-title">Bonus Progress</div>
                         <div class="summary-value summary-value--primary">
@@ -1357,45 +1508,27 @@
 
                 <!-- ═══ HOW IT WORKS ═══ -->
                 <div class="section-title">How it works</div>
-                <div class="page-grid page-grid--three">
-                    <div class="card">
-                        <div class="feature-head">
-                            <div class="feature-icon"
-                                style="background:rgba(59,130,246,0.12);color:#3b82f6;">
-                                <i class="ri-share-forward-line"></i>
-                            </div>
-                            <div class="feature-copy">
-                                <h3>Share your code</h3>
-                                <p>Send your referral link to friends and
-                                    family.</p>
-                            </div>
+                <div class="journey-container">
+                    <div class="journey-step">
+                        <div class="journey-icon">
+                            <i class="ri-share-forward-line"></i>
                         </div>
+                        <h3>Share your code</h3>
+                        <p>Send your referral link to friends and family.</p>
                     </div>
-                    <div class="card">
-                        <div class="feature-head">
-                            <div class="feature-icon"
-                                style="background:rgba(16,185,129,0.12);color:#10b981;">
-                                <i class="ri-user-smile-line"></i>
-                            </div>
-                            <div class="feature-copy">
-                                <h3>They sign up</h3>
-                                <p>When they join using your code, you get
-                                    rewarded.</p>
-                            </div>
+                    <div class="journey-step">
+                        <div class="journey-icon">
+                            <i class="ri-user-smile-line"></i>
                         </div>
+                        <h3>They sign up</h3>
+                        <p>When they join using your code, they get +150 points.</p>
                     </div>
-                    <div class="card">
-                        <div class="feature-head">
-                            <div class="feature-icon"
-                                style="background:rgba(245,158,11,0.12);color:#f59e0b;">
-                                <i class="ri-award-line"></i>
-                            </div>
-                            <div class="feature-copy">
-                                <h3>Earn rewards</h3>
-                                <p>Track your referral rewards and bonuses
-                                    here.</p>
-                            </div>
+                    <div class="journey-step">
+                        <div class="journey-icon">
+                            <i class="ri-award-line"></i>
                         </div>
+                        <h3>You earn rewards</h3>
+                        <p>You instantly get +250 points and progress towards bonuses.</p>
                     </div>
                 </div>
 
@@ -1454,7 +1587,7 @@
             </nav>
         </div>
 
-        <script src="config.js?v=20260528-2"></script>
+        <script defer src="config.js?v=20260528-2"></script>
         <script defer src="js/auth.js?v=20260528-2"></script>
         <script defer src="js/refer-page.js?v=20260528-2"></script>
     </body>

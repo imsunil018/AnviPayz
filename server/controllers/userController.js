@@ -2,7 +2,9 @@ const {
     serializeProfileUser,
     updateProfile,
     requestEmailChange,
-    verifyEmailChange
+    verifyEmailChange,
+    requestMobileChange,
+    verifyMobileChange
 } = require('../services/userService');
 
 function sendUserError(res, error, fallbackMessage) {
@@ -72,9 +74,35 @@ async function verifySecureEmailChange(req, res) {
     }
 }
 
+async function requestSecureMobileChange(req, res) {
+    try {
+        const data = await requestMobileChange(req.user, req.body || {});
+        return res.status(200).json({
+            success: true,
+            ...data
+        });
+    } catch (error) {
+        return sendUserError(res, error, 'Request mobile change error:');
+    }
+}
+
+async function verifySecureMobileChange(req, res) {
+    try {
+        const data = await verifyMobileChange(req.user, req.body || {});
+        return res.status(200).json({
+            success: true,
+            ...data
+        });
+    } catch (error) {
+        return sendUserError(res, error, 'Verify mobile change error:');
+    }
+}
+
 module.exports = {
     getProfile,
     patchProfile,
     requestSecureEmailChange,
-    verifySecureEmailChange
+    verifySecureEmailChange,
+    requestSecureMobileChange,
+    verifySecureMobileChange
 };

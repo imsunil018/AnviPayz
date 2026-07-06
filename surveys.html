@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surveys - AnviPayz</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="description" content="Complete verified survey offers matched to your account and earn AnviPoints in your wallet.">
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("anvi-theme");
+                const theme = savedTheme || document.documentElement.getAttribute("data-theme") || "dark";
+                document.documentElement.setAttribute("data-theme", theme);
+            } catch (error) {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/style.css?v=20260507-2">
+    <link rel="stylesheet" href="css/surveys.css?v=20260705-1">
+</head>
+<body data-page="surveys">
+    <div class="app-container">
+        <div class="overlay"></div>
+
+        <aside class="sidebar">
+            <div class="brand"><i class="ri-wallet-3-fill"></i>
+                AnviPayz</div>
+            <nav class="nav-links">
+                <a href="home.html" class="nav-item active"><i
+                        class="ri-home-5-line"></i> Dashboard</a>
+                <a href="wallet.html" class="nav-item"><i
+                        class="ri-wallet-line"></i> Wallet</a>
+                <a href="tasks.html" class="nav-item"><i
+                        class="ri-task-line"></i> Tasks</a>
+                <a href="refer.html" class="nav-item"><i
+                        class="ri-share-forward-line"></i> Refer & Earn</a>
+                <a href="recharge.html" class="nav-item"><i
+                        class="ri-flashlight-fill"></i> Recharge <span
+                        class="badge-soon">New</span></a>
+                <a href="notifications.html" class="nav-item"><i
+                        class="ri-notification-3-line"></i>
+                    Notifications</a>
+                <a href="support.html" class="nav-item"><i
+                        class="ri-customer-service-2-line"></i> Support</a>
+            </nav>
+            <div class="nav-footer">
+                <a href="index.html" class="nav-item logout-link"><i
+                        class="ri-logout-box-r-line"></i>
+                    Logout</a>
+            </div>
+        </aside>
+
+        <main class="main-content page-main">
+            <div class="mobile-header compact-mobile-header">
+                <button class="icon-btn" id="menu-btn" aria-label="Open menu">
+                    <i class="ri-menu-line"></i>
+                </button>
+                <div class="brand app-shell-title">Surveys</div>
+                <div class="mobile-header-actions">
+                    <div class="token-badge token-badge--compact" id="survey-balance-chip-mobile-points">
+                        <i class="ri-coin-fill token-badge__icon"></i>
+                        <span>Loading...</span>
+                    </div>
+                    <button class="icon-btn mobile-theme-toggle" aria-label="Toggle theme">
+                        <i class="ri-moon-line"></i>
+                    </button>
+                    <a href="profile.html" class="icon-btn" aria-label="Profile"><i class="ri-user-line"></i></a>
+                </div>
+            </div>
+
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>Survey Center</h1>
+                    <p class="page-subtitle" id="survey-page-subtitle-desktop">Complete surveys and earn reward points instantly.</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="token-badge" id="survey-balance-chip">
+                        <i class="ri-coin-fill token-badge__icon"></i>
+                        <span>Loading...</span>
+                    </div>
+                    <div class="token-badge" id="survey-token-chip">
+                        <i class="ri-wallet-3-line token-badge__icon"></i>
+                        <span>Loading...</span>
+                    </div>
+                    <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme"><i class="ri-moon-line"></i></button>
+                    <a href="profile.html" class="icon-btn" aria-label="Profile"><i class="ri-user-line"></i></a>
+                </div>
+            </header>
+
+            <section class="survey-page">
+                <section class="survey-hero">
+                    <div class="survey-hero__copy">
+                        <span class="survey-hero__pill"><i class="ri-shield-check-line"></i> Verified offers</span>
+                        <h2>Earn from quick surveys</h2>
+                        <p>Pick a live offer, answer honestly, and collect points you can turn into recharge value.</p>
+                        <div class="survey-hero__actions">
+                            <button type="button" class="btn-primary" data-open-cpx><i class="ri-play-circle-line"></i> Start Live Surveys</button>
+                            <a class="survey-hero__ghost" href="#survey-cards-grid"><i class="ri-layout-grid-line"></i> Browse offers</a>
+                        </div>
+                    </div>
+                    <div class="survey-hero__art" aria-hidden="true">
+                        <div class="survey-hero__art-icon"><i class="ri-survey-line"></i></div>
+                        <div class="survey-hero__mini">
+                            <strong>1000 pts</strong>
+                            <span>equals 1 token</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="survey-banner">
+                    <div class="survey-banner__icon"><i class="ri-gift-2-line"></i></div>
+                    <div class="survey-banner__copy">
+                        <h3>Earn Points By Completing Surveys</h3>
+                        <p>Answer honestly, complete surveys, and get paid in points. 1000 points = 1 token.</p>
+                        <div class="survey-banner__status">
+                            <span class="survey-status-chip" id="survey-system-chip">
+                                <i class="ri-wifi-line"></i>
+                                <strong>Checking survey system...</strong>
+                            </span>
+                            <span class="survey-status-copy" id="survey-system-copy">
+                                Rewards are credited only after a verified survey completion or CPX postback.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="survey-banner__steps">
+                        <div><strong>Answer</strong><span>Honest responses</span></div>
+                        <div><strong>Complete</strong><span>Surveys fully</span></div>
+                        <div><strong>Earn</strong><span>Reward points</span></div>
+                    </div>
+                </section>
+
+                <section class="survey-section-header">
+                    <div>
+                        <div class="survey-kicker">Available Surveys</div>
+                        <h3>Choose a survey and start earning</h3>
+                        <p>Live offers are loaded from CPX Research and your survey catalog.</p>
+                    </div>
+                    <div class="survey-filters" id="survey-filter-bar">
+                        <button type="button" class="survey-filter active" data-filter="all">All Surveys</button>
+                        <button type="button" class="survey-filter" data-filter="high">High Reward</button>
+                        <button type="button" class="survey-filter" data-filter="short">Short Surveys</button>
+                        <button type="button" class="survey-filter" data-filter="cpx">CPX Research</button>
+                        <button type="button" class="icon-btn survey-refresh" id="survey-refresh" aria-label="Refresh surveys"><i class="ri-refresh-line"></i></button>
+                    </div>
+                </section>
+
+                <section class="survey-grid" id="survey-cards-grid" aria-live="polite"></section>
+
+                <section class="survey-wall" id="cpx-survey-wrapper">
+                    <div class="survey-wall__header">
+                        <div>
+                            <div class="survey-kicker">CPX Research</div>
+                            <h3>Live survey wall</h3>
+                            <p>Open the CPX wall to start working on live survey offers.</p>
+                        </div>
+                        <button type="button" class="btn-primary" data-open-cpx>
+                            <i class="ri-play-circle-line"></i>
+                            Open CPX
+                        </button>
+                    </div>
+                    <div class="survey-wall__frame-shell">
+                        <div id="cpx-iframe-container" class="survey-wall__frame" aria-live="polite"></div>
+                    </div>
+                </section>
+
+                <section class="survey-info">
+                    <i class="ri-alert-line"></i>
+                    <div>Use one genuine account and answer honestly. VPNs, duplicate profiles, or low-quality responses can lead to survey disqualification.</div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <nav class="mobile-nav">
+        <a href="home.html" class="mobile-nav-item"><i
+                class="ri-home-5-line"></i><span>Home</span></a>
+        <a href="wallet.html" class="mobile-nav-item"><i
+                class="ri-wallet-line"></i><span>Wallet</span></a>
+        <a href="recharge.html" class="mobile-nav-item"><i
+                class="ri-flashlight-fill"></i><span>Recharge</span></a>
+        <a href="tasks.html" class="mobile-nav-item active"><i
+                class="ri-task-line"></i><span>Tasks</span></a>
+        <a href="refer.html" class="mobile-nav-item"><i
+                class="ri-share-forward-line"></i><span>Refer</span></a>
+    </nav>
+
+    <script defer src="config.js?v=20260528-2"></script>
+    <script defer src="js/auth.js?v=20260701-6"></script>
+    <script defer src="js/surveys.js?v=20260701-8"></script>
+</body>
+</html>

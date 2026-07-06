@@ -32,39 +32,39 @@ function createOtpEmail({ otp, heading, intro, purposeLine, subject }) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(subject)}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#14213d;">
+<body style="margin:0;padding:0;background:linear-gradient(180deg,#f4f7fb 0%,#eef2ff 100%);font-family:Arial,Helvetica,sans-serif;color:#14213d;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
     ${preheader}
   </div>
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f4f7fb;margin:0;padding:24px 0;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0;padding:28px 0;">
     <tr>
       <td align="center">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:620px;background-color:#ffffff;border:1px solid #e5e7eb;border-radius:18px;overflow:hidden;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:620px;background-color:#ffffff;border:1px solid #dbe4ff;border-radius:20px;overflow:hidden;box-shadow:0 20px 48px rgba(15,23,42,0.10);">
           <tr>
-            <td style="background-color:#0f172a;padding:20px 28px;">
-              <div style="font-size:22px;line-height:1.3;font-weight:700;color:#ffffff;">AnviPayz</div>
+            <td style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#111827 100%);padding:22px 28px;">
+              <div style="font-size:22px;line-height:1.3;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">AnviPayz</div>
               <div style="margin-top:4px;font-size:13px;line-height:1.5;color:#cbd5e1;">Secure verification email</div>
             </td>
           </tr>
           <tr>
             <td style="padding:32px 28px 10px 28px;">
-              <div style="display:inline-block;padding:6px 12px;border-radius:999px;background-color:#eef2ff;color:#3730a3;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Verification code</div>
-              <h1 style="margin:18px 0 12px 0;font-size:30px;line-height:1.25;color:#111827;">${safeHeading}</h1>
+              <div style="display:inline-block;padding:6px 12px;border-radius:999px;background-color:#eef2ff;color:#4f46e5;font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;">Verification code</div>
+              <h1 style="margin:18px 0 12px 0;font-size:30px;line-height:1.2;color:#0f172a;letter-spacing:-0.03em;">${safeHeading}</h1>
               <p style="margin:0 0 10px 0;font-size:16px;line-height:1.7;color:#475569;">${safeIntro}</p>
               <p style="margin:0;font-size:15px;line-height:1.7;color:#64748b;">${safePurpose}</p>
             </td>
           </tr>
           <tr>
             <td style="padding:24px 28px 8px 28px;">
-              <div style="background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:16px;padding:22px 18px;text-align:center;">
-                <div style="font-size:12px;line-height:1.4;color:#1d4ed8;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">One-time code</div>
-                <div style="margin-top:10px;font-size:38px;line-height:1;letter-spacing:10px;font-weight:700;color:#0f172a;">${safeOtp}</div>
+              <div style="background:linear-gradient(180deg,#eef2ff 0%,#e0e7ff 100%);border:1px solid #c7d2fe;border-radius:18px;padding:22px 18px;text-align:center;">
+                <div style="font-size:12px;line-height:1.4;color:#3730a3;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;">One-time code</div>
+                <div style="margin-top:10px;font-size:40px;line-height:1;letter-spacing:12px;font-weight:800;color:#0f172a;">${safeOtp}</div>
               </div>
             </td>
           </tr>
           <tr>
             <td style="padding:12px 28px 0 28px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f8fafc;border-radius:14px;border:1px solid #e2e8f0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f8fafc;border-radius:14px;border:1px solid #dbe4ff;">
                 <tr>
                   <td style="padding:16px 18px;font-size:14px;line-height:1.7;color:#475569;">
                     <strong style="color:#0f172a;">Important:</strong> This code expires in 5 minutes. Do not share it with anyone.

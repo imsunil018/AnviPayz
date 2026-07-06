@@ -79,6 +79,7 @@ app.use((req, res, next) => {
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api', supportRoutes);
+app.use('/api/recharge', require('./routes/recharge'));
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({

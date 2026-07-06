@@ -94,7 +94,7 @@ function getStoredToken() {
     return token;
 }
 
-const PUBLIC_PAGES = new Set(["index.html", "login.html", "forgot.html", "reset-password.html", "legal.html"]);
+const PUBLIC_PAGES = new Set(["index.html", "login.html", "forgot.html", "reset-password.html", "legal.html", "register.html"]);
 const DEFAULT_ADMIN_TASKS = [];
 const SPIN_REWARDS = [5, 10, 15, 20, 25, 40, 60, 100];
 const SECURITY_ACTIVITY_KEY = "anvi-last-activity";
@@ -455,8 +455,8 @@ async function initApp() {
         return;
     }
 
-    if (state.page === "index.html" || state.page === "login.html" || state.page === "forgot.html" || state.page === "reset-password.html") {
-        if (state.token && (state.page === "index.html" || state.page === "login.html")) {
+    if (state.page === "index.html" || state.page === "login.html" || state.page === "register.html" || state.page === "forgot.html" || state.page === "reset-password.html") {
+        if (state.token && (state.page === "index.html" || state.page === "login.html" || state.page === "register.html")) {
             window.location.replace("home.html");
             return;
         }
@@ -977,42 +977,149 @@ function initAuthPages() {
         }
     };
 
-    // ============ LOGIN OTP FLOW ============
-    loginSendOtpBtn?.addEventListener("click", async () => {
-        const email = document.getElementById("login-email")?.value.trim();
-        if (!isValidEmail(email)) {
-            showToast("Enter a valid email address.", "error");
+    const loginIdentityInput = document.getElementById("login-email");
+    const loginIdentityHint = document.getElementById("login-identity-hint");
+
+    const isGmailLoginAddress = (value) => {
+        return /^[a-z0-9._%+-]+@gmail\.com$/i.test(String(value || "").trim());
+    };
+
+    const updateLoginIdentityHint = (rawValue) => {
+        const value = String(rawValue || "").trim();
+        if (!loginIdentityHint) {
             return;
         }
 
-        otpState.loginEmail = email;
+        if (!value) {
+            loginIdentityHint.textContent = "Use a 10-digit mobile number or a @gmail.com address only.";
+            loginIdentityHint.style.color = "";
+            return;
+        }
+
+        if (value.includes("@")) {
+            if (!isGmailLoginAddress(value)) {
+                loginIdentityHint.textContent = "Only @gmail.com email addresses are accepted.";
+                loginIdentityHint.style.color = "var(--auth-error-color)";
+                return;
+            }
+
+            loginIdentityHint.textContent = "Gmail address detected. OTP will be sent to that inbox.";
+            loginIdentityHint.style.color = "var(--auth-success-color)";
+            return;
+        }
+
+        const digits = value.replace(/\D/g, "");
+        if (digits.length === 0) {
+            loginIdentityHint.textContent = "Use a 10-digit mobile number or a @gmail.com address only.";
+            loginIdentityHint.style.color = "";
+            return;
+        }
+
+        if (digits.length < 10) {
+            loginIdentityHint.textContent = digits.startsWith("7")
+                ? `Mobile number should be 10 digits. ${digits} is incomplete.`
+                : "Mobile number should be exactly 10 digits.";
+            loginIdentityHint.style.color = "var(--auth-brand-color)";
+            return;
+        }
+
+        loginIdentityHint.textContent = "Mobile number detected. OTP will be sent to the linked account.";
+        loginIdentityHint.style.color = "var(--auth-success-color)";
+    };
+
+    loginIdentityInput?.addEventListener("input", () => {
+        updateLoginIdentityHint(loginIdentityInput.value);
+    });
+    updateLoginIdentityHint(loginIdentityInput?.value || "");
+
+    const identityValidation = (inputValue) => {
+        const raw = String(inputValue || "").trim();
+        if (!raw) {
+            return { valid: false, type: "empty", message: "Enter your mobile number or Gmail address." };
+        }
+
+        if (raw.includes("@")) {
+            if (!isGmailLoginAddress(raw)) {
+                return {
+                    valid: false,
+                    type: "email",
+                    message: "Email format not accept. Use only @gmail.com."
+                };
+            }
+
+            return {
+                valid: true,
+                type: "email",
+                value: raw.toLowerCase()
+            };
+        }
+
+        const digits = raw.replace(/\D/g, "");
+        if (!/^[6-9]\d{9}$/.test(digits)) {
+            return {
+                valid: false,
+                type: "mobile",
+                message: "Mobile number must be exactly 10 digits."
+            };
+        }
+
+        return {
+            valid: true,
+            type: "mobile",
+            value: digits
+        };
+    };
+
+    loginSendOtpBtn?.addEventListener("click", async () => {
+        const identity = document.getElementById("login-email")?.value.trim();
+        const validation = identityValidation(identity);
+        if (!validation.valid) {
+            showToast(validation.message, "error");
+            updateLoginIdentityHint(identity);
+            return;
+        }
+
+        const validatedIdentity = validation.value;
+        const isEmail = validation.type === "email";
+
+        otpState.loginIdentity = validatedIdentity;
 
         await withButtonState(loginSendOtpBtn, "Sending OTP...", async () => {
             try {
-                await requestJson("/send-otp", {
+                const response = await requestJson("/send-otp", {
                     method: "POST",
-                    body: { email },
+                    body: { identity: validatedIdentity },
                     auth: false
                 });
-                showToast("OTP sent to your email.", "success");
+                const nextLoginEmail = String(response.email || (isEmail ? validatedIdentity : "")).trim();
+
+                if (!nextLoginEmail) {
+                    showToast("This mobile number is not linked to a login email.", "error");
+                    return;
+                }
+
+                otpState.loginEmail = nextLoginEmail;
+                showToast(response.message || "OTP sent successfully", "success");
+                
                 loginOtpSection.style.display = "block";
                 loginOtpInput.focus();
                 startResendTimer(loginResendLink);
             } catch (error) {
-                if (error.code === "ACCOUNT_PENDING_DELETION") {
-                    moveToLoginForRecovery(email);
+                if (error.code === "ACCOUNT_PENDING_DELETION" && isEmail) {
+                    moveToLoginForRecovery(validatedIdentity);
                 }
                 showToast(error.message || "Failed to send OTP.", "error");
             }
         });
     });
 
+
     loginVerifyOtpBtn?.addEventListener("click", async () => {
         const otp = loginOtpInput?.value.trim();
         const email = otpState.loginEmail;
 
-        if (!email || !isValidEmail(email)) {
-            showToast("Please enter a valid email first.", "error");
+        if (!email) {
+            showToast("Please request OTP again first.", "error");
             return;
         }
 
@@ -1104,8 +1211,8 @@ function initAuthPages() {
     loginResendLink?.addEventListener("click", async (e) => {
         e.preventDefault();
         const email = otpState.loginEmail;
-        if (!email || !isValidEmail(email)) {
-            showToast("Please enter a valid email first.", "error");
+        if (!email) {
+            showToast("Please request OTP again first.", "error");
             return;
         }
 
@@ -1113,7 +1220,7 @@ function initAuthPages() {
             try {
                 await requestJson("/send-otp", {
                     method: "POST",
-                    body: { email },
+                    body: { identity: otpState.loginIdentity || email },
                     auth: false
                 });
                 showToast("OTP resent to your email.", "success");
@@ -3650,201 +3757,6 @@ function delay(ms) {
     return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-async function initRechargePage() {
-    bindRechargePlanFilters();
-    bindRechargeQuickAmounts();
-    bindRechargeDiscount();
-    updateRechargePreview();
-
-    const form = document.getElementById("recharge-form");
-    form?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const payload = buildRechargePayload();
-        if (!payload) {
-            return;
-        }
-
-        const button = document.getElementById("recharge-pay-btn");
-        await withButtonState(button, "Processing...", async () => {
-            const data = await requestRechargeOrder(payload);
-
-            createWalletEntry({
-                title: "Recharge request created",
-                message: `Recharge request for ${payload.mobile} is ready for payment.`,
-                amount: payload.payableAmount,
-                type: "recharge",
-                direction: "debit",
-                status: "pending"
-            });
-
-            pushNotification({
-                title: "Recharge request created",
-                message: `Payment link prepared for ${payload.operator} ₹${formatDecimal(payload.amount)} recharge.`,
-                type: "recharge"
-            });
-
-            setText("recharge-status", data?.message || "Recharge request created. Continue in the payment window.");
-            showRewardPopup({
-                icon: "📱",
-                title: "Recharge ready",
-                message: data?.message || "Your order is created and waiting for checkout confirmation.",
-                value: `Pay ₹${formatDecimal(payload.payableAmount)}`
-            });
-
-            if (data?.checkoutUrl) {
-                window.location.href = data.checkoutUrl;
-                return;
-            }
-
-            if (data?.paymentUrl) {
-                window.location.href = data.paymentUrl;
-                return;
-            }
-        });
-    });
-}
-
-function bindRechargePlanFilters() {
-    document.querySelectorAll(".rx-filter-btn").forEach((button) => {
-        button.addEventListener("click", () => {
-            const selected = button.getAttribute("data-cat") || "all";
-            document.querySelectorAll(".rx-filter-btn").forEach((item) => item.classList.remove("active"));
-            button.classList.add("active");
-
-            document.querySelectorAll(".recharge-plan-item").forEach((plan) => {
-                const category = plan.getAttribute("data-cat") || "";
-                plan.style.display = selected === "all" || category === selected ? "" : "none";
-            });
-        });
-    });
-
-    document.querySelectorAll(".recharge-plan-item").forEach((button) => {
-        button.addEventListener("click", () => {
-            const amount = button.getAttribute("data-amount") || "";
-            document.getElementById("recharge-amount").value = amount;
-            document.querySelectorAll(".recharge-plan-item").forEach((item) => item.classList.remove("active"));
-            button.classList.add("active");
-            updateRechargePreview();
-        });
-    });
-}
-
-function bindRechargeQuickAmounts() {
-    document.querySelectorAll(".rx-quick-btn").forEach((button) => {
-        button.addEventListener("click", () => {
-            const amount = button.getAttribute("data-quick") || "";
-            document.getElementById("recharge-amount").value = amount;
-            document.querySelectorAll(".rx-quick-btn").forEach((item) => item.classList.remove("active"));
-            button.classList.add("active");
-            updateRechargePreview();
-        });
-    });
-
-    ["recharge-mobile", "recharge-operator", "recharge-circle", "recharge-amount", "token-discount-input"].forEach((id) => {
-        document.getElementById(id)?.addEventListener("input", updateRechargePreview);
-        document.getElementById(id)?.addEventListener("change", updateRechargePreview);
-    });
-}
-
-function bindRechargeDiscount() {
-    const checkbox = document.getElementById("use-token-discount");
-    const input = document.getElementById("token-discount-input");
-
-    checkbox?.addEventListener("change", () => {
-        if (input) {
-            input.disabled = !checkbox.checked;
-            if (!checkbox.checked) {
-                input.value = "";
-            }
-        }
-
-        updateRechargePreview();
-    });
-}
-
-function buildRechargePayload() {
-    const mobile = document.getElementById("recharge-mobile")?.value.trim() || "";
-    const operator = document.getElementById("recharge-operator")?.value.trim() || "";
-    const circle = document.getElementById("recharge-circle")?.value.trim() || "";
-    const amount = Number(document.getElementById("recharge-amount")?.value || 0);
-    const useTokens = Boolean(document.getElementById("use-token-discount")?.checked);
-    const requestedDiscount = Number(document.getElementById("token-discount-input")?.value || 0);
-    const maxDiscount = maxRechargeDiscount(amount);
-    const tokenDiscount = useTokens ? Math.min(maxDiscount, Math.max(0, requestedDiscount)) : 0;
-    const payableAmount = Math.max(0, amount - tokenDiscount);
-
-    if (!/^\d{10}$/.test(mobile)) {
-        setText("recharge-status", "Enter a valid 10-digit mobile number.");
-        showToast("Enter a valid 10-digit mobile number.", "error");
-        return null;
-    }
-
-    if (!operator || !circle || amount < 10) {
-        setText("recharge-status", "Complete the recharge details before continuing.");
-        showToast("Complete the recharge details before continuing.", "error");
-        return null;
-    }
-
-    return {
-        mobile,
-        operator,
-        circle,
-        amount,
-        tokenDiscount,
-        payableAmount
-    };
-}
-
-async function requestRechargeOrder(payload) {
-    try {
-        const data = await requestFirst([
-            { path: "/recharge", method: "POST", body: payload },
-            { path: "/recharge/initiate", method: "POST", body: payload }
-        ], { auth: true });
-
-        if (data?.user) {
-            state.user = normalizeUser(data.user);
-            persistUser(state.user);
-            renderCommonUserState();
-        }
-
-        return data || {};
-    } catch (error) {
-        return {
-            message: "Recharge request saved. Payment gateway will be provided by your backend."
-        };
-    }
-}
-
-function updateRechargePreview() {
-    const amount = Number(document.getElementById("recharge-amount")?.value || 0);
-    const requestedDiscount = Number(document.getElementById("token-discount-input")?.value || 0);
-    const useTokens = Boolean(document.getElementById("use-token-discount")?.checked);
-    const selectedPlan = document.querySelector(".recharge-plan-item.active strong")?.textContent || "No plan selected";
-    const maxDiscount = maxRechargeDiscount(amount);
-    const discount = useTokens ? Math.min(maxDiscount, Math.max(0, requestedDiscount)) : 0;
-    const payable = Math.max(0, amount - discount);
-
-    setText("rx-mini-plan", selectedPlan);
-    setText("rx-mini-amount", `Rs ${formatDecimal(amount)}`);
-    setText("rx-mini-token-discount", `- Rs ${formatDecimal(discount)}`);
-    setText("recharge-preview-amount", `Rs ${formatDecimal(amount)}`);
-    setText("recharge-preview-token-discount", `- Rs ${formatDecimal(discount)}`);
-    setText("recharge-preview-payable", `Rs ${formatDecimal(payable)}`);
-    setText("token-available-pill", `${formatDecimal(state.user?.tokens || 0)} Tokens`);
-    setText("token-max-note", amount > 0
-        ? `Maximum usable token discount right now: ₹${formatDecimal(maxDiscount)}`
-        : "Enter an amount to calculate the token discount limit.");
-    setText("recharge-status", amount > 0
-        ? `Payable amount after discount: ₹${formatDecimal(payable)}`
-        : "Select a plan or enter a custom amount.");
-}
-
-function maxRechargeDiscount(amount) {
-    return roundTo(Math.min(state.user?.tokens || 0, amount * 0.1), 2);
-}
-
 async function initProfilePage() {
     renderCommonUserState();
     const button = document.getElementById("delete-account-btn");
@@ -5260,6 +5172,8 @@ function normalizeUser(user) {
         name: user.name || user.fullName || user.userName || "AnviPayz User",
         email: user.email || "",
         phone: user.phone || user.mobile || user.phoneNumber || "",
+        emailVerified: boolFrom(user.emailVerified || user.emailVerifiedAt),
+        mobileVerified: boolFrom(user.mobileVerified),
         points: numberFrom(user.points, user.balance, user.walletPoints, 0),
         lifetimeXp: Math.max(
             numberFrom(user.lifetimeXp, user.totalLifetimeXp, 0),

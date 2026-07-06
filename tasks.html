@@ -194,8 +194,7 @@
             }
 
             .tasks-page .task-card,
-            .tasks-page .task-cta-card,
-            .tasks-page .survey-task-card {
+            .tasks-page .task-cta-card {
                 border-radius: 18px;
             }
 
@@ -466,130 +465,6 @@
             background: color-mix(in srgb, var(--primary) 16%, var(--bg-card));
         }
 
-        /* Premium Survey Hub Styling */
-        .survey-hub-header {
-            background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
-            font-size: 1.5rem;
-            margin: 1.5rem 0 0.75rem;
-            letter-spacing: -0.03em;
-        }
-
-        .survey-coming-soon-card {
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 28px;
-            padding: 2.2rem 1.5rem;
-            display: grid;
-            place-items: center;
-            text-align: center;
-            gap: 1.5rem;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .survey-coming-soon-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            border-color: #8b5cf6;
-            box-shadow: 0 40px 80px -15px rgba(139, 92, 246, 0.25);
-        }
-
-        .survey-coming-soon-card::before {
-            content: "";
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(139, 92, 246, 0.1), transparent 40%);
-            animation: surveyRotate 8s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes surveyRotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        html[data-theme="light"] .survey-coming-soon-card {
-            background: rgba(255, 255, 255, 0.8);
-            border-color: rgba(139, 92, 246, 0.15);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-        }
-
-        .survey-coming-soon-icon {
-            width: 76px;
-            height: 76px;
-            border-radius: 22px;
-            background: linear-gradient(135deg, #8b5cf6, #d946ef);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.4);
-            transform: rotate(-4deg);
-            position: relative;
-            z-index: 2;
-        }
-
-        .survey-coming-soon-content {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .survey-coming-soon-title {
-            font-size: 1.5rem;
-            font-weight: 900;
-            letter-spacing: -0.02em;
-            color: var(--text-main);
-        }
-
-        .survey-coming-soon-desc {
-            font-size: 1rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-            padding: 0 0.5rem;
-        }
-
-        .survey-expected-reward {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 800;
-            color: #10b981;
-            font-size: 0.95rem;
-            background: rgba(16, 185, 129, 0.12);
-            padding: 6px 16px;
-            border-radius: 99px;
-            width: fit-content;
-            margin: 0.25rem auto 0;
-        }
-
-        .survey-notify-btn {
-            margin-top: 0.5rem;
-            padding: 12px 28px;
-            border-radius: 16px;
-            border: 2px solid #8b5cf6;
-            background: transparent;
-            color: #8b5cf6;
-            font-weight: 800;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            letter-spacing: 0.02em;
-        }
-
-        .survey-notify-btn:hover {
-            background: #8b5cf6;
-            color: white;
-            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
-        }
         </style>
 
         <link rel="icon" type="image/png" href="favicon.png">
@@ -792,8 +667,6 @@
                             class="ri-repeat-line"></i>Daily</a>
                     <a class="tasks-app-tab" href="#section-hot"><i
                             class="ri-flashlight-line"></i>Hot</a>
-                    <a class="tasks-app-tab" href="#section-survey"><i
-                            class="ri-survey-line"></i>Survey</a>
                     <a class="tasks-app-tab" href="#section-history"><i
                             class="ri-time-line"></i>History</a>
                 </nav>
@@ -922,84 +795,6 @@
                     </div>
                 </div>
 
-                <div id="section-survey"
-                    class="section-title section-title--spaced tasks-anchor">Survey
-                    Tasks</div>
-
-                <div id="survey-task-container"
-                    class="tasks-grid tasks-grid--auto">
-                    <div class="survey-coming-soon-card">
-                        <div class="survey-coming-soon-icon">
-                            <i class="ri-survey-line"></i>
-                        </div>
-                        <div class="survey-coming-soon-content">
-                            <h3 class="survey-coming-soon-title">High-Paying
-                                Surveys</h3>
-                            <p class="survey-coming-soon-desc">Share your
-                                opinions and earn big rewards. New surveys
-                                launching soon!</p>
-                            <span class="survey-coming-soon-badge">Coming
-                                Soon</span>
-                        </div>
-                    </div>
-
-                    <div class="survey-coming-soon-card">
-                        <div class="survey-coming-soon-icon">
-                            <i class="ri-questionnaire-line"></i>
-                        </div>
-                        <div class="survey-coming-soon-content">
-                            <h3 class="survey-coming-soon-title">Product
-                                Feedback</h3>
-                            <p class="survey-coming-soon-desc">Help shape the
-                                future of your favorite apps and services.</p>
-                            <span class="survey-coming-soon-badge">Coming
-                                Soon</span>
-                        </div>
-                    </div>
-
-                    <div class="survey-coming-soon-card">
-                        <div class="survey-coming-soon-icon">
-                            <i class="ri-lightbulb-line"></i>
-                        </div>
-                        <div class="survey-coming-soon-content">
-                            <h3 class="survey-coming-soon-title">Quick Polls &
-                                Quizzes</h3>
-                            <p class="survey-coming-soon-desc">Fast and fun ways
-                                to earn extra points in minutes.</p>
-                            <span class="survey-coming-soon-badge">Coming
-                                Soon</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Survey Modal -->
-                <div id="survey-modal"
-                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
-                    <div
-                        style="background: var(--bg-card); border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);">
-                        <div
-                            style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                            <h3 id="survey-title"
-                                style="margin: 0; font-size: 1.25rem;">Survey</h3>
-                            <button id="close-survey"
-                                style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;"><i
-                                    class="ri-close-line"></i></button>
-                        </div>
-                        <div id="survey-content" style="padding: 20px;">
-                            <!-- Survey questions loaded dynamically -->
-                        </div>
-                        <div
-                            style="padding: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                            <span id="survey-progress"
-                                style="color: var(--text-muted); font-size: 0.875rem;">Question
-                                1 of 5</span>
-                            <button id="btn-submit-survey"
-                                class="btn-primary"
-                                style="padding: 10px 24px; background: #8b5cf6;">Submit</button>
-                        </div>
-                    </div>
-                </div>
-
                 <div id="section-history"
                     class="section-title section-title--spaced tasks-anchor">Completed
                     History</div>
@@ -1078,8 +873,8 @@
             </nav>
         </div>
 
-        <script src="config.js?v=20260528-2"></script>
-        <script src="task-catalog.js?v=20260606-1"></script>
+        <script defer src="config.js?v=20260528-2"></script>
+        <script defer src="task-catalog.js?v=20260606-1"></script>
 
         <script defer src="js/auth.js?v=20260528-2"></script>
     </body>

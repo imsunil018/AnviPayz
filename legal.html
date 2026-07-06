@@ -223,6 +223,12 @@
             footer { display: none; }
             .legal-footer { display: none; }
         }
+
+        /* Smooth theme transition helper */
+        .theme-transitioning,
+        .theme-transitioning * {
+            transition: background 300ms ease, background-color 300ms ease, color 300ms ease, border-color 300ms ease, box-shadow 300ms ease, opacity 300ms ease !important;
+        }
     </style>
         <script>
         (function() {
@@ -294,27 +300,38 @@
         </div>
 
         <script>
-        const themeToggle = document.getElementById('theme-toggle');
+        const themeToggle = document.getElementById('theme-toggle-btn') || document.getElementById('theme-toggle');
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
                 const root = document.documentElement;
-                const currentTheme = root.getAttribute('data-theme');
+                
+                // Add transition class
+                root.classList.add('theme-transitioning');
+                
+                const currentTheme = root.getAttribute('data-theme') || 'dark';
                 const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
                 root.setAttribute('data-theme', nextTheme);
                 localStorage.setItem('anvi-theme', nextTheme);
-                const icon = document.querySelector('#theme-toggle i');
+                
+                const icon = themeToggle.querySelector('i') || document.querySelector('#theme-toggle i') || document.querySelector('#theme-toggle-btn i');
                 if (icon) {
-                    icon.className = nextTheme === 'dark' ? 'ri-moon-line' : 'ri-sun-line';
+                    icon.className = nextTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
                 }
+                
+                // Remove transition class after transition completes
+                window.setTimeout(() => {
+                    root.classList.remove('theme-transitioning');
+                }, 350);
             });
         }
 
         // Set initial icon
         window.addEventListener('DOMContentLoaded', () => {
-            const theme = document.documentElement.getAttribute('data-theme');
-            const icon = document.querySelector('#theme-toggle i');
+            const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const themeToggleBtn = document.getElementById('theme-toggle-btn') || document.getElementById('theme-toggle');
+            const icon = themeToggleBtn ? themeToggleBtn.querySelector('i') : (document.querySelector('#theme-toggle i') || document.querySelector('#theme-toggle-btn i'));
             if (icon) {
-                icon.className = theme === 'dark' ? 'ri-moon-line' : 'ri-sun-line';
+                icon.className = theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
             }
         });
     </script>

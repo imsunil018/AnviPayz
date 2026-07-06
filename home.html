@@ -1129,6 +1129,94 @@
             transition: transform 0.18s ease;
         }
 
+        body[data-page="home"] .home-quick-card--survey {
+            border-color: rgba(167, 183, 206, 0.18);
+            background: linear-gradient(165deg, rgba(15, 23, 42, 0.96), rgba(8, 15, 28, 0.94));
+            box-shadow: 0 20px 42px rgba(2, 6, 23, 0.44);
+            position: relative;
+        }
+
+        body[data-page="home"] .home-quick-card--survey::before {
+            content: "Featured";
+            position: absolute;
+            top: 0.85rem;
+            right: 0.85rem;
+            padding: 0.3rem 0.68rem;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #e6ebff;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.95), rgba(45, 212, 191, 0.9));
+            box-shadow: 0 10px 24px rgba(79, 70, 229, 0.26);
+        }
+
+        body[data-page="home"] .home-quick-card--survey:hover {
+            border-color: rgba(167, 183, 206, 0.28);
+            box-shadow: 0 26px 56px rgba(2, 6, 23, 0.52);
+        }
+
+        body[data-page="home"] .home-quick-card--survey .feature-icon {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #dbe4ff !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 12px 22px rgba(0, 0, 0, 0.18);
+        }
+
+        body[data-page="home"] .home-quick-card--survey .home-card-badge {
+            display: none;
+        }
+
+        html[data-theme="light"] body[data-page="home"] .home-quick-card--survey {
+            border-color: rgba(15, 23, 42, 0.10);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+        }
+
+        html[data-theme="light"] body[data-page="home"] .home-quick-card--survey:hover {
+            border-color: rgba(15, 23, 42, 0.16);
+            box-shadow: 0 22px 42px rgba(15, 23, 42, 0.16);
+        }
+
+        html[data-theme="light"] body[data-page="home"] .home-quick-card--survey .feature-icon {
+            background: rgba(79, 70, 229, 0.10) !important;
+            color: var(--primary) !important;
+        }
+
+        body[data-page="home"] .mobile-quick-item--survey {
+            border-color: rgba(79, 70, 229, 0.24);
+            background:
+                radial-gradient(circle at 18% 16%, rgba(79, 70, 229, 0.18), transparent 60%),
+                radial-gradient(circle at 82% 16%, rgba(45, 212, 191, 0.12), transparent 36%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(242, 246, 255, 0.98));
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+        }
+
+        html[data-theme="dark"] body[data-page="home"] .mobile-quick-item--survey {
+            border-color: rgba(79, 70, 229, 0.32);
+            background:
+                radial-gradient(circle at 18% 16%, rgba(79, 70, 229, 0.26), transparent 60%),
+                radial-gradient(circle at 82% 16%, rgba(45, 212, 191, 0.18), transparent 36%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(8, 15, 28, 0.96));
+            box-shadow: 0 18px 34px rgba(2, 6, 23, 0.42);
+        }
+
+        body[data-page="home"] .mobile-quick-item--survey .mobile-quick-icon {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.18), rgba(45, 212, 191, 0.18));
+            color: var(--primary);
+            box-shadow: 0 12px 22px rgba(79, 70, 229, 0.16);
+        }
+
+        body[data-page="home"] .mobile-quick-item--survey span:last-child {
+            color: var(--text-main);
+            font-weight: 900;
+        }
+
+        body[data-page="home"] .mobile-quick-item--survey:hover {
+            border-color: rgba(79, 70, 229, 0.36);
+            box-shadow: 0 20px 36px rgba(15, 23, 42, 0.16);
+        }
+
         /* Recent history: premium compact activity rows */
         body[data-page="home"] .home-history-card {
             padding: 0.85rem;
@@ -1811,22 +1899,21 @@
                     </a>
                 </div>
                 <div class="mobile-quick-actions" id="home-quick-actions">
-                    <a class="mobile-quick-item"
-                        href="wallet.html#convert-section"
-                        data-action-id="convert">
+                    <a class="mobile-quick-item" href="recharge.html"
+                        data-action-id="recharge">
                         <span
                             class="mobile-quick-icon mobile-quick-icon--convert">
-                            <i class="ri-exchange-funds-line"></i>
+                            <i class="ri-smartphone-line"></i>
                         </span>
-                        <span>Convert</span>
+                        <span>Recharge</span>
                     </a>
-                    <a class="mobile-quick-item" href="wallet.html"
-                        data-action-id="wallet">
+                    <a class="mobile-quick-item mobile-quick-item--survey" href="surveys.html"
+                        data-action-id="surveys">
                         <span
-                            class="mobile-quick-icon mobile-quick-icon--convert">
-                            <i class="ri-wallet-line"></i>
+                            class="mobile-quick-icon mobile-quick-icon--alerts">
+                            <i class="ri-clipboard-line"></i>
                         </span>
-                        <span>Wallet</span>
+                        <span>Surveys</span>
                     </a>
                     <a class="mobile-quick-item" href="refer.html"
                         data-action-id="refer">
@@ -1834,31 +1921,23 @@
                             class="mobile-quick-icon mobile-quick-icon--refer">
                             <i class="ri-share-forward-line"></i>
                         </span>
-                        <span>Refer</span>
+                        <span>Refer &amp; Earn</span>
                     </a>
-                    <a class="mobile-quick-item" href="support.html"
-                        data-action-id="support">
-                        <span
-                            class="mobile-quick-icon mobile-quick-icon--support">
-                            <i class="ri-customer-service-2-line"></i>
-                        </span>
-                        <span>Support</span>
-                    </a>
-                    <a class="mobile-quick-item" href="refer.html#leaderboard"
-                        data-action-id="leaderboard">
+                    <a class="mobile-quick-item" href="spin.html"
+                        data-action-id="spin">
                         <span
                             class="mobile-quick-icon mobile-quick-icon--leaderboard">
-                            <i class="ri-trophy-line"></i>
+                            <i class="ri-refresh-line"></i>
                         </span>
-                        <span>Leaderboard</span>
+                        <span>Spin Wheel</span>
                     </a>
-                    <a class="mobile-quick-item" href="notifications.html"
-                        data-action-id="showall">
+                    <a class="mobile-quick-item" href="tasks.html#section-daily"
+                        data-action-id="daily-checkin">
                         <span
-                            class="mobile-quick-icon mobile-quick-icon--alerts">
-                            <i class="ri-notification-3-line"></i>
+                            class="mobile-quick-icon mobile-quick-icon--convert">
+                            <i class="ri-calendar-check-line"></i>
                         </span>
-                        <span>Notifications</span>
+                        <span>Daily Check-in</span>
                     </a>
                 </div>
 
@@ -1877,6 +1956,20 @@
                         <div class="home-quick-cta">Recharge Now <i
                                 class="ri-arrow-right-line"></i></div>
                     </a>
+                    <a class="card home-quick-card home-quick-card--survey" href="surveys.html">
+                        <div class="feature-head">
+                            <div class="feature-icon"
+                                style="background: rgba(124, 137, 255, 0.10); color: var(--primary);">
+                                <i class="ri-clipboard-line"></i>
+                            </div>
+                            <div class="feature-copy">
+                                <h3>Surveys</h3>
+                                <p>Complete surveys and earn reward points faster.</p>
+                            </div>
+                        </div>
+                        <div class="home-quick-cta">Start Surveys <i
+                                class="ri-arrow-right-line"></i></div>
+                    </a>
                     <a class="card home-quick-card" href="refer.html">
                         <div class="feature-head">
                             <div class="feature-icon"
@@ -1891,18 +1984,32 @@
                         <div class="home-quick-cta">Share Invite <i
                                 class="ri-arrow-right-line"></i></div>
                     </a>
-                    <a class="card home-quick-card" href="tasks.html">
+                    <a class="card home-quick-card" href="spin.html">
                         <div class="feature-head">
                             <div class="feature-icon"
-                                style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
-                                <i class="ri-task-line"></i>
+                                style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                                <i class="ri-refresh-line"></i>
                             </div>
                             <div class="feature-copy">
-                                <h3>Daily Tasks</h3>
-                                <p>Complete tasks to boost earnings.</p>
+                                <h3>Spin Wheel</h3>
+                                <p>Spin daily for surprise rewards.</p>
                             </div>
                         </div>
-                        <div class="home-quick-cta">Start Tasks <i
+                        <div class="home-quick-cta">Play Now <i
+                                class="ri-arrow-right-line"></i></div>
+                    </a>
+                    <a class="card home-quick-card" href="tasks.html#section-daily">
+                        <div class="feature-head">
+                            <div class="feature-icon"
+                                style="background: rgba(34, 197, 94, 0.12); color: #22c55e;">
+                                <i class="ri-calendar-check-line"></i>
+                            </div>
+                            <div class="feature-copy">
+                                <h3>Daily Check-in</h3>
+                                <p>Claim your daily login reward.</p>
+                            </div>
+                        </div>
+                        <div class="home-quick-cta">Claim Now <i
                                 class="ri-arrow-right-line"></i></div>
                     </a>
                 </div>
@@ -2064,9 +2171,9 @@
 
         </div>
 
-        <script src="config.js?v=20260528-1"></script>
+        <script defer src="config.js?v=20260528-1"></script>
 
-        <script defer src="js/auth.js?v=20260525-2"></script>
+        <script defer src="js/auth.js?v=20260702-1"></script>
         <script>
         // UI-only enhancements: streak / today earnings / level + announcements + mini leaderboard preview.
         // Keeps existing API/auth logic untouched.

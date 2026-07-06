@@ -44,6 +44,18 @@ const connectDB = async () => {
             }
         }
 
+        const legacyMobileIndex = indexes.find((index) => index.name === 'mobileNumber_1');
+        if (legacyMobileIndex?.unique && !legacyMobileIndex.sparse && !legacyMobileIndex.partialFilterExpression) {
+            console.warn('Dropping legacy users.mobileNumber_1 unique index because mobileNumber is optional.');
+            try {
+                await usersCollection.dropIndex('mobileNumber_1');
+            } catch (error) {
+                if (error.codeName !== 'IndexNotFound') {
+                    throw error;
+                }
+            }
+        }
+
         if (referralIndex?.unique && !referralIndex.partialFilterExpression) {
             console.warn('Replacing legacy users.referralCode_1 unique index with a partial unique index.');
             try {

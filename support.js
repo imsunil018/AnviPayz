@@ -11,6 +11,7 @@
     const statusBox = document.getElementById('support-status');
     const submitBtn = document.getElementById('support-submit-btn');
     const originalButtonHtml = submitBtn?.innerHTML || 'Send Message';
+    let statusTimer = null;
 
     const ISSUE_LABELS = {
         General: 'General',
@@ -45,14 +46,30 @@
             return;
         }
 
+        if (statusTimer) {
+            window.clearTimeout(statusTimer);
+            statusTimer = null;
+        }
+
         const normalizedTone = ['success', 'warning', 'error', 'loading'].includes(tone) ? tone : 'info';
         statusBox.className = `support-status is-visible${normalizedTone !== 'info' ? ` is-${normalizedTone}` : ''}`;
         statusBox.textContent = message;
+
+        if (normalizedTone === 'success' || normalizedTone === 'warning') {
+            statusTimer = window.setTimeout(() => {
+                clearStatus();
+                statusTimer = null;
+            }, 5000);
+        }
     };
 
     const clearStatus = () => {
         if (!statusBox) {
             return;
+        }
+        if (statusTimer) {
+            window.clearTimeout(statusTimer);
+            statusTimer = null;
         }
         statusBox.className = 'support-status';
         statusBox.textContent = '';
@@ -145,13 +162,13 @@
 
             const ticketId = String(response.ticketId || '').trim();
             setStatus(
-                `✅ Support ticket submitted successfully.\n\nTicket ID: ${ticketId}\n\nOur team will respond as soon as possible.`,
+                `Support ticket submitted successfully.\n\nTicket ID: ${ticketId}\n\nOur team will respond as soon as possible.`,
                 'success'
             );
 
             if (response.emailStatus === 'failed') {
                 setStatus(
-                    `✅ Support ticket submitted successfully.\n\nTicket ID: ${ticketId}\n\nOur team will respond as soon as possible.\n\nNote: we could not send the notification email right now, but your ticket has been saved.`,
+                    `Support ticket submitted successfully.\n\nTicket ID: ${ticketId}\n\nOur team will respond as soon as possible.\n\nNote: we could not send the notification email right now, but your ticket has been saved.`,
                     'warning'
                 );
             }
