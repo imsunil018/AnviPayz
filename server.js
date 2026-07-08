@@ -108,7 +108,10 @@ app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false
 }));
-app.use(compression());
+app.use(compression({
+    level: 9,
+    threshold: 256
+}));
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
@@ -152,20 +155,18 @@ app.use(express.static(__dirname, {
                 return;
             }
 
-            // Other static assets: cache for 30 days in production, otherwise no-store.
-            if (NODE_ENV === 'production') {
-                if (ext === '.js' || ext === '.css') {
-                    res.setHeader('Cache-Control', `public, max-age=${Math.floor(ONE_HOUR_MS / 1000)}`);
-                    return;
-                }
-
-                if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.gif' || ext === '.svg' || ext === '.ico' || ext === '.woff2' || ext === '.woff' || ext === '.ttf') {
-                    res.setHeader('Cache-Control', `public, max-age=${Math.floor(THIRTY_DAYS_MS / 1000)}`);
-                    return;
-                }
+            // Other static assets: cache for 1 hour for JS/CSS, 30 days for images/fonts.
+            if (ext === '.js' || ext === '.css') {
+                res.setHeader('Cache-Control', `public, max-age=${Math.floor(ONE_HOUR_MS / 1000)}`);
+                return;
             }
 
-            res.setHeader('Cache-Control', 'no-store');
+            if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.gif' || ext === '.svg' || ext === '.ico' || ext === '.woff2' || ext === '.woff' || ext === '.ttf') {
+                res.setHeader('Cache-Control', `public, max-age=${Math.floor(THIRTY_DAYS_MS / 1000)}`);
+                return;
+            }
+
+            res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
         } catch (_) {
             // Ignore header failures; defaults will apply.
         }

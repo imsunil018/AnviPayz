@@ -187,31 +187,34 @@ const MOBILE_NAV_META = {
 const HOME_QUICK_ACTIONS_KEY = "anvi-home-quick-actions";
 
 const QUICK_ACTIONS_META = [
-    { id: "convert", label: "Convert", href: "wallet.html#convert-section", icon: "ri-exchange-funds-line", tone: "convert" },
-    { id: "refer", label: "Refer", href: "refer.html", icon: "ri-share-forward-line", tone: "refer" },
-    { id: "support", label: "Support", href: "support.html", icon: "ri-customer-service-2-line", tone: "support" },
-    { id: "leaderboard", label: "Leaderboard", href: "refer.html#leaderboard", icon: "ri-trophy-line", tone: "leaderboard" },
-    { id: "wallet", label: "Wallet", href: "wallet.html", icon: "ri-wallet-line", tone: "convert" },
+    { id: "refer", label: "Refer & Earn", href: "refer.html", icon: "ri-share-forward-line", tone: "refer" },
     { id: "tasks", label: "Tasks", href: "tasks.html", icon: "ri-task-line", tone: "alerts" },
-    { id: "recharge", label: "Recharge", href: "recharge.html", icon: "ri-flashlight-fill", tone: "convert" },
+    { id: "leaderboard", label: "Leaderboard", href: "refer.html#leaderboard", icon: "ri-trophy-line", tone: "leaderboard" },
+    { id: "surveys", label: "Surveys", href: "surveys.html", icon: "ri-clipboard-line", tone: "alerts" },
+    { id: "spin", label: "Spin Wheel", href: "spin.html", icon: "ri-refresh-line", tone: "leaderboard" },
+    { id: "daily-checkin", label: "Daily Check-in", href: "tasks.html#section-daily", icon: "ri-calendar-check-line", tone: "convert" },
+    { id: "wallet", label: "Wallet", href: "wallet.html", icon: "ri-wallet-line", tone: "convert" },
+    { id: "recharge", label: "Recharge", href: "recharge.html", icon: "ri-smartphone-line", tone: "convert" },
+    { id: "convert", label: "Convert", href: "wallet.html#convert-section", icon: "ri-exchange-funds-line", tone: "convert" },
+    { id: "support", label: "Support", href: "support.html", icon: "ri-customer-service-2-line", tone: "support" },
     { id: "profile", label: "Profile", href: "profile.html", icon: "ri-user-line", tone: "support" },
+    { id: "showall", label: "Notifications", href: "notifications.html", icon: "ri-notification-3-line", tone: "alerts" },
     { id: "privacy", label: "Privacy", href: "privacy.html", icon: "ri-shield-check-line", tone: "showall" },
     { id: "terms", label: "Terms", href: "terms.html", icon: "ri-file-text-line", tone: "showall" },
     { id: "refund", label: "Refund", href: "refund.html", icon: "ri-refund-2-line", tone: "showall" },
     { id: "disclaimer", label: "Disclaimer", href: "disclaimer.html", icon: "ri-information-line", tone: "showall" },
-    { id: "legal", label: "Legal", href: "legal.html", icon: "ri-bank-card-line", tone: "showall" },
-    { id: "showall", label: "Notifications", href: "notifications.html", icon: "ri-notification-3-line", tone: "alerts" }
+    { id: "legal", label: "Legal", href: "legal.html", icon: "ri-bank-card-line", tone: "showall" }
 ];
 
 function defaultHomeQuickActions() {
-    return ["convert", "wallet", "refer", "support", "leaderboard", "showall"];
+    return ["refer", "tasks", "leaderboard", "surveys", "spin", "daily-checkin", "wallet", "recharge"];
 }
 
 function loadHomeQuickActions() {
     try {
         const raw = localStorage.getItem(HOME_QUICK_ACTIONS_KEY);
         const parsed = raw ? JSON.parse(raw) : null;
-        const ids = Array.isArray(parsed)
+        let ids = Array.isArray(parsed)
             ? parsed
                 .map((id) => String(id || "").trim())
                 .filter(Boolean)
@@ -219,6 +222,12 @@ function loadHomeQuickActions() {
             : [];
         const available = new Set(QUICK_ACTIONS_META.map((item) => item.id));
         let unique = Array.from(new Set(ids)).filter((id) => available.has(id));
+
+        // Auto-upgrade existing configs to the new defaults if they don't have surveys or tasks
+        if (unique.length > 0 && (!unique.includes("surveys") || !unique.includes("tasks"))) {
+            unique = defaultHomeQuickActions();
+            saveHomeQuickActions(unique);
+        }
 
         return unique.length ? unique : defaultHomeQuickActions();
     } catch (error) {
@@ -247,14 +256,17 @@ function renderHomeQuickActions() {
         return;
     }
 
-    container.innerHTML = records.map((action) => `
-        <a class="mobile-quick-item" href="${escapeHtml(action.href)}" data-action-id="${escapeHtml(action.id)}">
-            <span class="mobile-quick-icon mobile-quick-icon--${escapeHtml(action.tone || "showall")}">
-                <i class="${escapeHtml(action.icon)}"></i>
-            </span>
-            <span>${escapeHtml(action.label)}</span>
-        </a>
-    `).join("");
+    container.innerHTML = records.map((action) => {
+        const extraClass = action.id === "surveys" ? " mobile-quick-item--survey" : "";
+        return `
+            <a class="mobile-quick-item${extraClass}" href="${escapeHtml(action.href)}" data-action-id="${escapeHtml(action.id)}">
+                <span class="mobile-quick-icon mobile-quick-icon--${escapeHtml(action.tone || "showall")}">
+                    <i class="${escapeHtml(action.icon)}"></i>
+                </span>
+                <span>${escapeHtml(action.label)}</span>
+            </a>
+        `;
+    }).join("");
 }
 
 function shortcutTileMarkup(action, { checked = false } = {}) {

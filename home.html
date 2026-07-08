@@ -1014,31 +1014,24 @@
         /* Mobile quick actions: app-like horizontal row (always accessible) */
         @media (max-width: 900px) {
             body[data-page="home"] .mobile-quick-actions {
-                display: flex;
-                gap: 0.65rem;
-                overflow-x: auto;
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 0.75rem 0.5rem;
                 padding: 0.15rem 0.1rem 0.55rem;
-                scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-            }
-
-            body[data-page="home"] .mobile-quick-actions::-webkit-scrollbar {
-                display: none;
             }
 
             body[data-page="home"] .mobile-quick-item {
-                min-width: 4.7rem;
-                flex: 0 0 auto;
-                padding: 0.55rem 0.55rem 0.5rem;
-                border-radius: 18px;
+                min-width: 0;
+                width: 100%;
+                flex: none;
+                padding: 0.6rem 0.25rem 0.5rem;
+                border-radius: 16px;
                 border: 1px solid rgba(167, 183, 206, 0.16);
                 background:
                     radial-gradient(circle at 18% 16%, rgba(124, 137, 255, 0.10), transparent 60%),
                     linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 255, 0.98));
-                box-shadow: 0 14px 26px rgba(15, 23, 42, 0.10);
+                box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
                 color: rgba(15, 23, 42, 0.72);
-                scroll-snap-align: start;
                 transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
             }
 
@@ -1066,10 +1059,15 @@
             }
 
             body[data-page="home"] .mobile-quick-item span:last-child {
-                font-size: 0.72rem;
-                font-weight: 900;
-                letter-spacing: 0.01em;
+                font-size: 0.65rem;
+                line-height: 1.2;
+                font-weight: 800;
+                letter-spacing: -0.01em;
                 color: rgba(15, 23, 42, 0.78);
+                margin-top: 0.3rem;
+                display: block;
+                width: 100%;
+                word-wrap: break-word;
             }
 
             html[data-theme="dark"] body[data-page="home"] .mobile-quick-item span:last-child {
@@ -1079,9 +1077,13 @@
             body[data-page="home"] .mobile-quick-icon {
                 width: 3.05rem;
                 height: 3.05rem;
-                border-radius: 18px;
+                border-radius: 50%;
                 box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 12px 22px rgba(15, 23, 42, 0.12);
                 transition: transform 0.18s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto;
             }
 
             html[data-theme="dark"] body[data-page="home"] .mobile-quick-icon {
@@ -1892,20 +1894,36 @@
                     <a
                         class="btn-primary--ghost btn-inline section-title-action section-title-cta"
                         href="shortcuts.html"
-                        aria-label="Customize quick actions"
-                        title="Customize quick actions">
-                        <i class="ri-settings-3-line"></i>
-                        <span>Customize</span>
+                        aria-label="View all quick actions"
+                        title="View all quick actions">
+                        <i class="ri-grid-fill"></i>
+                        <span>View All</span>
                     </a>
                 </div>
                 <div class="mobile-quick-actions" id="home-quick-actions">
-                    <a class="mobile-quick-item" href="recharge.html"
-                        data-action-id="recharge">
+                    <a class="mobile-quick-item" href="refer.html"
+                        data-action-id="refer">
                         <span
-                            class="mobile-quick-icon mobile-quick-icon--convert">
-                            <i class="ri-smartphone-line"></i>
+                            class="mobile-quick-icon mobile-quick-icon--refer">
+                            <i class="ri-share-forward-line"></i>
                         </span>
-                        <span>Recharge</span>
+                        <span>Refer &amp; Earn</span>
+                    </a>
+                    <a class="mobile-quick-item" href="tasks.html"
+                        data-action-id="tasks">
+                        <span
+                            class="mobile-quick-icon mobile-quick-icon--alerts">
+                            <i class="ri-task-line"></i>
+                        </span>
+                        <span>Tasks</span>
+                    </a>
+                    <a class="mobile-quick-item" href="refer.html#leaderboard"
+                        data-action-id="leaderboard">
+                        <span
+                            class="mobile-quick-icon mobile-quick-icon--leaderboard">
+                            <i class="ri-trophy-line"></i>
+                        </span>
+                        <span>Leaderboard</span>
                     </a>
                     <a class="mobile-quick-item mobile-quick-item--survey" href="surveys.html"
                         data-action-id="surveys">
@@ -1914,14 +1932,6 @@
                             <i class="ri-clipboard-line"></i>
                         </span>
                         <span>Surveys</span>
-                    </a>
-                    <a class="mobile-quick-item" href="refer.html"
-                        data-action-id="refer">
-                        <span
-                            class="mobile-quick-icon mobile-quick-icon--refer">
-                            <i class="ri-share-forward-line"></i>
-                        </span>
-                        <span>Refer &amp; Earn</span>
                     </a>
                     <a class="mobile-quick-item" href="spin.html"
                         data-action-id="spin">
@@ -1938,6 +1948,22 @@
                             <i class="ri-calendar-check-line"></i>
                         </span>
                         <span>Daily Check-in</span>
+                    </a>
+                    <a class="mobile-quick-item" href="wallet.html"
+                        data-action-id="wallet">
+                        <span
+                            class="mobile-quick-icon mobile-quick-icon--convert">
+                            <i class="ri-wallet-line"></i>
+                        </span>
+                        <span>Wallet</span>
+                    </a>
+                    <a class="mobile-quick-item" href="recharge.html"
+                        data-action-id="recharge">
+                        <span
+                            class="mobile-quick-icon mobile-quick-icon--convert">
+                            <i class="ri-smartphone-line"></i>
+                        </span>
+                        <span>Recharge</span>
                     </a>
                 </div>
 
