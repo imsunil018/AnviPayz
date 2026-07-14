@@ -64,8 +64,8 @@ const PendingMobileChangeSchema = new mongoose.Schema({
 }, { _id: false });
 
 const UserSchema = new mongoose.Schema({
-    email: { type: String, required: false, unique: true, sparse: true, lowercase: true, default: null },
-    mobileNumber: { type: String, required: false, unique: true, sparse: true, trim: true, index: true, default: null },
+    email: { type: String, required: false, unique: true, sparse: true, lowercase: true },
+    mobileNumber: { type: String, required: false, unique: true, sparse: true, trim: true, index: true },
     name: { type: String, default: 'AnviPayz Member' },
     fullName: { type: String, default: 'AnviPayz Member' },
     phone: { type: String, default: undefined, trim: true, unique: true, sparse: true },

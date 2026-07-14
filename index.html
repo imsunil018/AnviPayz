@@ -10,6 +10,12 @@
                 <title>AnviPayz | Online Rewards Platform, Daily Tasks & Mobile Recharge Benefits</title>
 
         <link rel="icon" type="image/png" href="favicon.png">
+        <link rel="manifest" href="manifest.json">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="AnviPayz">
+        <link rel="apple-touch-icon" href="favicon.png">
         <link rel="canonical" href="https://anvipayz.com/">
         <link rel="alternate" hreflang="en-IN" href="https://anvipayz.com/">
         <link rel="alternate" hreflang="hi-IN" href="https://anvipayz.com/">
@@ -29,10 +35,16 @@
                     #050814;
                 color: #ffffff;
                 z-index: 9999;
+                transition: opacity 250ms ease, visibility 250ms ease;
                 opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            #anvi-splash.fade-out {
+                opacity: 0;
+                visibility: hidden;
                 pointer-events: none;
-                animation: anviSplashOut 220ms ease forwards;
-                animation-delay: 180ms;
             }
 
             #anvi-splash .inner {
@@ -67,26 +79,10 @@
                     transform: rotate(360deg);
                 }
             }
-
-            @keyframes anviSplashOut {
-                to {
-                    opacity: 0;
-                    visibility: hidden;
-                }
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                #anvi-splash {
-                    animation-duration: 1ms;
-                    animation-delay: 0ms;
-                }
-            }
         </style>
 
-        <link rel="preload" href="css/style.css?v=20260507-2" as="style"
-            onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="css/landing.css?v=20260626-9" as="style"
-            onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="stylesheet" href="css/style.css?v=20260507-2">
+        <link rel="stylesheet" href="css/landing.css?v=20260626-9">
         <link rel="preload" href="config.js?v=20260528-1" as="script">
         <link rel="preload" href="js/auth.js?v=20260625-1" as="script">
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -147,10 +143,7 @@
             })();
         </script>
 
-        <noscript>
-            <link href="css/style.css?v=20260507-2" rel="stylesheet">
-            <link rel="stylesheet" href="css/landing.css?v=20260626-9">
-        </noscript>
+
         <link
             href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
             rel="stylesheet">
@@ -302,6 +295,7 @@
                             <a href="#how-it-works" class="navbar-link">How It Works</a>
                             <a href="#rewards" class="navbar-link">Rewards</a>
                             <a href="#faq" class="navbar-link">FAQ</a>
+                            <a href="about.html" class="navbar-link">About Us</a>
                         </div>
                         
                         <!-- Right: Actions -->
@@ -312,6 +306,14 @@
                                 aria-label="Toggle dark/light mode">
                                 <i class="ri-moon-line" id="theme-icon"></i>
                             </button>
+                            <a href="download.html"
+                                class="navbar-btn"
+                                id="app-install-nav-btn"
+                                aria-label="Download App"
+                                title="Download App"
+                                style="display: inline-flex; align-items: center; justify-content: center; padding: 0 10px;">
+                                <i class="ri-download-cloud-2-line" aria-hidden="true" style="font-size: 1.25rem; color: #4f46e5;"></i>
+                            </a>
                             <a href="login.html"
                                 class="navbar-btn navbar-btn-login btn-desktop-only"
                                 aria-label="Login to your account">
@@ -375,8 +377,17 @@
 
                         <!-- Menu Links Section -->
                         <div class="drawer-links">
+                            <a href="download.html" class="drawer-link drawer-btn-close-target download-drawer-link" style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%); border: 1px solid rgba(79, 70, 229, 0.2); border-radius: 12px; margin-bottom: 12px; padding: 12px 16px; display: flex; align-items: center; text-decoration: none;">
+                                <span class="drawer-link-text" style="color: #4f46e5; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; flex-grow: 1;"><i class="ri-download-cloud-2-fill"></i> Download App</span>
+                                <span class="badge" style="background: #4f46e5; color: white; font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: bold; text-transform: uppercase;">Install</span>
+                                <i class="ri-arrow-right-s-line arrow-icon" style="color: #4f46e5; margin-left: 8px;"></i>
+                            </a>
                             <a href="#hero" class="drawer-link drawer-btn-close-target">
                                 <span class="drawer-link-text"><i class="ri-home-5-line"></i> Home</span>
+                                <i class="ri-arrow-right-s-line arrow-icon"></i>
+                            </a>
+                            <a href="about.html" class="drawer-link drawer-btn-close-target">
+                                <span class="drawer-link-text"><i class="ri-information-line"></i> About Us</span>
                                 <i class="ri-arrow-right-s-line arrow-icon"></i>
                             </a>
                             <a href="#modules" class="drawer-link drawer-btn-close-target">
@@ -1115,6 +1126,8 @@
                         <div class="footer-nav-col">
                             <h4>Earn Faster</h4>
                             <div class="footer-links">
+                                <a href="download.html"><i
+                                        class="ri-arrow-right-s-line"></i> Install App</a>
                                 <a href="#modules"><i
                                         class="ri-arrow-right-s-line"></i> Daily Tasks</a>
                                 <a href="#modules"><i
@@ -1131,6 +1144,8 @@
                             <div class="footer-links">
                                 <a href="support.html"><i
                                         class="ri-arrow-right-s-line"></i> Help Center</a>
+                                <a href="about.html"><i
+                                        class="ri-arrow-right-s-line"></i> About Us</a>
                                 <a href="notifications.html"><i
                                         class="ri-arrow-right-s-line"></i> Announcements</a>
                                 <a href="mailto:anvipayz@gmail.com"><i
@@ -1180,14 +1195,10 @@
                     onclick="scrollToSection('seo')"></div>
                 <div class="nav-dot" data-section="modules"
                     onclick="scrollToSection('modules')"></div>
-                <div class="nav-dot" data-section="wallet-preview"
-                    onclick="scrollToSection('wallet-preview')"></div>
                 <div class="nav-dot" data-section="smart"
                     onclick="scrollToSection('smart')"></div>
                 <div class="nav-dot" data-section="rewards"
                     onclick="scrollToSection('rewards')"></div>
-                <div class="nav-dot" data-section="testimonials"
-                    onclick="scrollToSection('testimonials')"></div>
                 <div class="nav-dot" data-section="video"
                     onclick="scrollToSection('video')"></div>
                 <div class="nav-dot" data-section="how-it-works"
@@ -1462,7 +1473,7 @@
         }
 
         // ============ MOBILE NAV HIGHLIGHT ============
-        const NAV_SECTIONS = ['hero', 'seo', 'modules', 'smart', 'rewards', 'testimonials', 'video', 'how-it-works', 'faq'];
+        const NAV_SECTIONS = ['hero', 'seo', 'modules', 'smart', 'rewards', 'video', 'how-it-works', 'faq'];
         const MOBILE_NAV_MAP = {
             hero: 'hero',
             seo: 'hero',
@@ -1551,51 +1562,6 @@
             }
         }
 
-        // ============ HERO LIVE SIGNALS ============
-        function setupHeroSignals() {
-            const liveValue = document.getElementById('hero-live-value');
-            const rewardTitle = document.getElementById('hero-reward-title');
-            const rewardDetail = document.getElementById('hero-reward-detail');
-
-            if (!liveValue && !rewardTitle && !rewardDetail) return;
-
-            const updates = [
-                {
-                    live: 'Tasks updating now',
-                    title: 'Daily bonus unlocked',
-                    detail: 'Fresh reward tracking is active'
-                },
-                {
-                    live: 'Instant points tracked',
-                    title: 'Task complete',
-                    detail: 'Points reflected in the dashboard'
-                },
-                {
-                    live: 'Recharge discounts ready',
-                    title: 'Reward added',
-                    detail: 'Mobile recharge benefit is available'
-                },
-                {
-                    live: 'Referral rewards live',
-                    title: 'Bonus credited',
-                    detail: 'Referral and daily rewards stay synced'
-                }
-            ];
-
-            let index = 0;
-
-            const applyUpdate = () => {
-                const update = updates[index % updates.length];
-                if (liveValue) liveValue.textContent = update.live;
-                if (rewardTitle) rewardTitle.textContent = update.title;
-                if (rewardDetail) rewardDetail.textContent = update.detail;
-                index += 1;
-            };
-
-            applyUpdate();
-            window.setInterval(applyUpdate, 3600);
-        }
-
         // ============ FAQ TOGGLE ============
         function toggleFaq(element) {
             const faqItem = element.parentElement;
@@ -1628,7 +1594,6 @@
 
             // Setup modal events
             setupModalEvents();
-            setupHeroSignals();
 
             // Enable Enter-to-next behavior for auth forms
             setupFormEnterNavigation('login-form');
@@ -1709,6 +1674,14 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal();
+            }
+        });
+
+        // Smooth fade out of splash screen when page finishes loading
+        window.addEventListener('load', function() {
+            const splash = document.getElementById('anvi-splash');
+            if (splash) {
+                splash.classList.add('fade-out');
             }
         });
     </script>
@@ -1947,6 +1920,183 @@
                         }
                     });
                 })();
+            </script>
+            
+            <!-- Custom PWA Install Popup Banner -->
+            <style>
+                .pwa-install-banner {
+                    position: fixed;
+                    bottom: 24px;
+                    left: 20px;
+                    right: 20px;
+                    background: rgba(15, 23, 42, 0.95);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(99, 102, 241, 0.15);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border-radius: 20px;
+                    padding: 16px;
+                    z-index: 10000;
+                    display: none;
+                    flex-direction: column;
+                    gap: 14px;
+                    font-family: system-ui, -apple-system, sans-serif;
+                    color: #ffffff;
+                    animation: pwaSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                @keyframes pwaSlideUp {
+                    from { transform: translateY(120%); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+
+                .pwa-banner-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                .pwa-banner-logo {
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 10px;
+                    border: 1px solid rgba(255,255,255,0.1);
+                }
+
+                .pwa-banner-text {
+                    flex: 1;
+                }
+
+                .pwa-banner-title {
+                    font-size: 0.95rem;
+                    font-weight: 700;
+                    margin-bottom: 2px;
+                    color: #ffffff;
+                }
+
+                .pwa-banner-subtitle {
+                    font-size: 0.75rem;
+                    color: #94a3b8;
+                    line-height: 1.4;
+                }
+
+                .pwa-banner-actions {
+                    display: flex;
+                    gap: 10px;
+                    justify-content: flex-end;
+                }
+
+                .pwa-btn {
+                    border: none;
+                    border-radius: 10px;
+                    padding: 10px 16px;
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                }
+
+                .pwa-btn-primary {
+                    background: linear-gradient(135deg, #3b82f6 0%, #7c3aed 100%);
+                    color: #ffffff;
+                }
+
+                .pwa-btn-secondary {
+                    background: rgba(255, 255, 255, 0.08);
+                    color: #cbd5e1;
+                }
+            </style>
+
+            <div id="pwa-install-banner" class="pwa-install-banner">
+                <div class="pwa-banner-content">
+                    <img src="favicon.png" alt="AnviPayz Logo" class="pwa-banner-logo">
+                    <div class="pwa-banner-text">
+                        <h4 class="pwa-banner-title">Install AnviPayz App</h4>
+                        <p class="pwa-banner-subtitle">Get a faster experience & mobile recharge discounts instantly!</p>
+                    </div>
+                </div>
+                <div class="pwa-banner-actions">
+                    <button id="pwa-btn-later" class="pwa-btn pwa-btn-secondary">Maybe Later</button>
+                    <button id="pwa-btn-install" class="pwa-btn pwa-btn-primary">Install Now</button>
+                </div>
+            </div>
+            
+            <!-- PWA Registration & Install Capture -->
+            <script>
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('/sw.js')
+                            .then((reg) => console.log('Service Worker registered successfully:', reg.scope))
+                            .catch((err) => console.error('Service Worker registration failed:', err));
+                    });
+                }
+
+                // Capture PWA install prompt globally
+                window.deferredPrompt = null;
+                
+                function showCustomPwaPopup() {
+                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const isDismissed = sessionStorage.getItem('pwa-install-dismissed') === 'true';
+
+                    if (isMobile && !isStandalone && !isDismissed) {
+                        const banner = document.getElementById('pwa-install-banner');
+                        if (banner) {
+                            banner.style.display = 'flex';
+                        }
+                    }
+                }
+
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    window.deferredPrompt = e;
+                    console.log('[PWA] beforeinstallprompt event captured');
+                    
+                    // Show custom banner
+                    showCustomPwaPopup();
+                    
+                    // Notify any listener (like the download page) that the prompt is ready
+                    window.dispatchEvent(new CustomEvent('pwaPromptReady'));
+                });
+
+                // Auto-trigger custom popup on iOS Safari where beforeinstallprompt doesn't fire
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        const isIPhone = /ipad|iphone|ipod/i.test(navigator.userAgent);
+                        if (isIPhone) {
+                            showCustomPwaPopup();
+                        }
+                    }, 2500);
+                });
+
+                // Actions handlers
+                const pwaBanner = document.getElementById('pwa-install-banner');
+                const btnLater = document.getElementById('pwa-btn-later');
+                const btnInstall = document.getElementById('pwa-btn-install');
+
+                if (btnLater && pwaBanner) {
+                    btnLater.addEventListener('click', () => {
+                        pwaBanner.style.display = 'none';
+                        sessionStorage.setItem('pwa-install-dismissed', 'true');
+                    });
+                }
+
+                if (btnInstall && pwaBanner) {
+                    btnInstall.addEventListener('click', async () => {
+                        pwaBanner.style.display = 'none';
+                        sessionStorage.setItem('pwa-install-dismissed', 'true');
+
+                        if (window.deferredPrompt) {
+                            window.deferredPrompt.prompt();
+                            const { outcome } = await window.deferredPrompt.userChoice;
+                            console.log('[PWA] user install outcome:', outcome);
+                            window.deferredPrompt = null;
+                        } else {
+                            // No native installer (iOS Safari), redirect to guide
+                            window.location.href = 'download.html';
+                        }
+                    });
+                }
             </script>
         </body>
 

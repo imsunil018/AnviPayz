@@ -1,0 +1,25 @@
+{
+  "name": "AnviPayz",
+  "short_name": "AnviPayz",
+  "description": "Complete simple daily tasks, invite friends, earn rewards, and save on mobile recharges.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#050814",
+  "theme_color": "#050814",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

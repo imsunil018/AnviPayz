@@ -855,6 +855,9 @@ html[data-theme="light"] .hero-section {
     opacity: 0.45;
     mix-blend-mode: plus-lighter;
     animation: ambient-pulse 12s ease-in-out infinite alternate;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 html[data-theme="light"] .glow-orb {
@@ -6123,6 +6126,17 @@ html[data-theme="light"] .trust-card p {
         display: inline-flex !important;
         justify-content: center !important;
         align-items: center !important;
+    }
+
+    /* Light mode color corrections for mobile CTA */
+    html[data-theme="light"] .footer-cta-text h3 {
+        color: #0f172a !important;
+    }
+    html[data-theme="light"] .footer-cta-text p {
+        color: #475569 !important;
+    }
+    html[data-theme="light"] .footer-cta-points span {
+        color: #1e293b !important;
     }
 }
 

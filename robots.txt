@@ -4,5 +4,13 @@ Disallow: /home.html
 Disallow: /tasks.html
 Disallow: /wallet.html
 Disallow: /refer.html
+Disallow: /recharge.html
+Disallow: /surveys.html
+Disallow: /spin.html
+Disallow: /notifications.html
+Disallow: /shortcuts.html
+Disallow: /profile.html
+Disallow: /pan-success.html
+Disallow: /support.html
 
 Sitemap: https://anvipayz.com/sitemap.xml

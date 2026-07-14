@@ -36,6 +36,24 @@ const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const INDIA_TIME_ZONE_OFFSET = '+05:30';
 const POLICY_VERSION = '2026-03-31';
 
+const isValidEmail = (emailStr) => {
+    if (!emailStr) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr) && emailStr.toLowerCase().endsWith('@gmail.com');
+};
+
+const isValidIndianPhone = (phoneStr) => {
+    if (!phoneStr) return false;
+    const clean = phoneStr.replace(/\D/g, '');
+    return /^[6-9]\d{9}$/.test(clean) || /^91[6-9]\d{9}$/.test(clean);
+};
+
+const normalizeIndianMobile = (phoneStr) => {
+    if (!phoneStr) return '';
+    const clean = phoneStr.replace(/\D/g, '');
+    return clean.length === 10 ? '91' + clean : clean;
+};
+
+
 function indiaDateKey(value = Date.now()) {
     return new Intl.DateTimeFormat('en-CA', {
         timeZone: INDIA_TIME_ZONE,
@@ -483,9 +501,8 @@ const sendEmailViaBrevo = async (toEmail, otp, mode = 'login') => {
 const sendOTP = async (req, res) => {
     try {
         const identityRaw = String(req.body?.identity || req.body?.mobileNumber || req.body?.phone || req.body?.email || '').trim();
-
         if (!identityRaw) {
-            return res.status(400).json({ success: false, message: 'Please enter a valid email or mobile number' });
+            return res.status(400).json({ success: false, message: 'Mobile number or Gmail address is required' });
         }
 
         const isEmail = identityRaw.includes('@');
@@ -494,21 +511,10 @@ const sendOTP = async (req, res) => {
 
         if (isEmail) {
             email = identityRaw.toLowerCase();
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                return res.status(400).json({ success: false, message: 'Please enter a valid email address' });
+            if (!isValidEmail(email)) {
+                return res.status(400).json({ success: false, message: 'Please enter a valid Gmail address' });
             }
         } else {
-            // Check if valid Indian mobile number
-            const isValidIndianPhone = (phoneStr) => {
-                const clean = phoneStr.replace(/\D/g, '');
-                return /^[6-9]\d{9}$/.test(clean) || /^91[6-9]\d{9}$/.test(clean);
-            };
-            const normalizeIndianMobile = (phoneStr) => {
-                const clean = phoneStr.replace(/\D/g, '');
-                return clean.length === 10 ? '91' + clean : clean;
-            };
-
             if (!isValidIndianPhone(identityRaw)) {
                 return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number' });
             }
@@ -535,22 +541,7 @@ const sendOTP = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Account not registered. Please register first.' });
         }
 
-        let targetEmail = '';
-        if (isEmail) {
-            targetEmail = email;
-        } else {
-            if (!existingUser.email) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'No registered email address found for this mobile number. Please register with your email address.'
-                });
-            }
-            targetEmail = existingUser.email;
-        }
-
-        // We use user.email or user.mobileNumber as identifier for OTP throttling
-        const identifier = existingUser.email || existingUser.mobileNumber || targetEmail;
-        const canRequest = await OTP.canRequestOTP(identifier);
+        const canRequest = await OTP.canRequestOTP(isEmail ? email : normalizedPhone);
         if (!canRequest) {
             return res.status(429).json({
                 success: false,
@@ -563,19 +554,30 @@ const sendOTP = async (req, res) => {
         const otpHash = OTP.hashOTP(otp);
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
         
-        // Save the OTP record using the user's primary email so verifyOTP can look it up by email
         const otpRecord = await OTP.create({
-            email: targetEmail,
+            email: isEmail ? email : null,
+            phone: isEmail ? null : normalizedPhone,
             otpHash,
             expiresAt
         });
 
-        try {
-            await sendEmailViaBrevo(targetEmail, otp, 'login');
-        } catch (emailError) {
-            console.error('[Email Error] Failed to send email OTP:', emailError.message);
-            await OTP.deleteOne({ _id: otpRecord._id });
-            throw emailError;
+        if (isEmail) {
+            try {
+                await sendEmailViaBrevo(email, otp, 'login');
+            } catch (emailError) {
+                console.error('[Email Error] Failed to send email OTP:', emailError.message);
+                await OTP.deleteOne({ _id: otpRecord._id });
+                throw emailError;
+            }
+        } else {
+            try {
+                const apitxt = require('../services/apitxt.service');
+                await apitxt.sendOtpSms({ mobile: normalizedPhone, otp });
+            } catch (smsError) {
+                console.error('[SMS Error] Failed to send SMS OTP:', smsError.message);
+                await OTP.deleteOne({ _id: otpRecord._id });
+                throw smsError;
+            }
         }
 
         const maskEmail = (emailStr) => {
@@ -589,10 +591,18 @@ const sendOTP = async (req, res) => {
             return name.slice(0, 2) + '***' + name.slice(-1) + '@' + domain;
         };
 
+        const maskPhone = (phoneStr) => {
+            const clean = phoneStr.replace(/\D/g, '');
+            const display = clean.startsWith('91') ? clean.slice(2) : clean;
+            return display.slice(0, 3) + '*****' + display.slice(-2);
+        };
+
         res.status(200).json({
             success: true,
-            message: `OTP sent to your registered email: ${maskEmail(targetEmail)}`,
-            email: targetEmail
+            message: isEmail 
+                ? `OTP sent to your registered email: ${maskEmail(email)}` 
+                : `OTP sent to your registered mobile: ${maskPhone(normalizedPhone)}`,
+            email: isEmail ? email : normalizedPhone
         });
     } catch (error) {
         console.error('Send OTP Error:', error);
@@ -605,17 +615,33 @@ const sendOTP = async (req, res) => {
 
 const registerSendOTP = async (req, res) => {
     try {
-        const email = req.body?.email?.trim().toLowerCase();
+        const identityRaw = (req.body?.identity || req.body?.email || '').trim();
         const name = req.body?.name?.trim();
         const acceptedTerms = Boolean(req.body?.acceptedTerms);
         let referCode = req.body?.referCode?.trim().toUpperCase() || null;
 
-        if (!email || !name) {
-            return res.status(400).json({ success: false, message: 'Email and Name are required' });
+        if (!identityRaw || !name) {
+            return res.status(400).json({ success: false, message: 'Mobile/Email and Name are required' });
         }
 
         if (!acceptedTerms) {
             return res.status(400).json({ success: false, message: 'Please accept the Terms & Conditions to continue.' });
+        }
+
+        const isEmail = identityRaw.includes('@');
+        let email = null;
+        let normalizedPhone = null;
+
+        if (isEmail) {
+            email = identityRaw.toLowerCase();
+            if (!isValidEmail(email)) {
+                return res.status(400).json({ success: false, message: 'Please enter a valid Gmail address' });
+            }
+        } else {
+            if (!isValidIndianPhone(identityRaw)) {
+                return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit Indian mobile number' });
+            }
+            normalizedPhone = normalizeIndianMobile(identityRaw);
         }
 
         const isValidReferralCode = (code) => {
@@ -664,7 +690,18 @@ const registerSendOTP = async (req, res) => {
             }
         }
 
-        let existingUser = await User.findOne({ email });
+        let existingUser = null;
+        if (isEmail) {
+            existingUser = await User.findOne({ email });
+        } else {
+            existingUser = await User.findOne({
+                $or: [
+                    { mobileNumber: normalizedPhone },
+                    { phone: normalizedPhone }
+                ]
+            });
+        }
+
         if (existingUser && await purgeUserIfExpired(existingUser)) {
             existingUser = null;
         }
@@ -679,10 +716,15 @@ const registerSendOTP = async (req, res) => {
                 });
             }
 
-            return res.status(400).json({ success: false, message: 'Email already registered. Please login.' });
+            return res.status(400).json({
+                success: false,
+                message: isEmail 
+                    ? 'Email already registered. Please login.' 
+                    : 'Mobile number already registered. Please login.'
+            });
         }
 
-        const canRequest = await OTP.canRequestOTP(email);
+        const canRequest = await OTP.canRequestOTP(isEmail ? email : normalizedPhone);
         if (!canRequest) {
             return res.status(429).json({ success: false, message: 'Please wait 30s before retrying' });
         }
@@ -690,23 +732,35 @@ const registerSendOTP = async (req, res) => {
         const otp = OTP.generateOTP();
         const otpHash = OTP.hashOTP(otp);
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        
         const otpRecord = await OTP.create({
-            email,
+            email: isEmail ? email : null,
+            phone: isEmail ? null : normalizedPhone,
             otpHash,
             expiresAt,
             referCode: referCode || undefined  // Store referCode for verification phase
         });
 
-        try {
-            await sendEmailViaBrevo(email, otp, 'register');
-        } catch (emailError) {
-            await OTP.deleteOne({ _id: otpRecord._id });
-            throw emailError;
+        if (isEmail) {
+            try {
+                await sendEmailViaBrevo(email, otp, 'register');
+            } catch (emailError) {
+                await OTP.deleteOne({ _id: otpRecord._id });
+                throw emailError;
+            }
+        } else {
+            try {
+                const apitxt = require('../services/apitxt.service');
+                await apitxt.sendOtpSms({ mobile: normalizedPhone, otp });
+            } catch (smsError) {
+                await OTP.deleteOne({ _id: otpRecord._id });
+                throw smsError;
+            }
         }
 
         res.status(200).json({
             success: true,
-            message: 'Registration OTP sent successfully'
+            message: isEmail ? 'Registration OTP sent to email successfully' : 'Registration OTP sent via SMS successfully'
         });
     } catch (error) {
         console.error('Register Send OTP Error:', error);
@@ -716,18 +770,27 @@ const registerSendOTP = async (req, res) => {
 
 const verifyOTP = async (req, res) => {
     try {
-        const email = req.body?.email?.trim().toLowerCase();
+        const identity = req.body?.email?.trim(); // client sends identifier under 'email' field
         const otp = req.body?.otp?.trim();
 
-        if (!email || !otp) {
+        if (!identity || !otp) {
             return res.status(400).json({
                 success: false,
-                message: 'Email and OTP are required'
+                message: 'Identity and OTP are required'
             });
         }
 
-        const otpRecord = await OTP.findValidOTP(email);
+        const isEmail = identity.includes('@');
+        let email = null;
+        let normalizedPhone = null;
 
+        if (isEmail) {
+            email = identity.toLowerCase();
+        } else {
+            normalizedPhone = normalizeIndianMobile(identity);
+        }
+
+        const otpRecord = await OTP.findValidOTP(isEmail ? email : normalizedPhone);
         if (!otpRecord) {
             return res.status(400).json({
                 success: false,
@@ -746,9 +809,18 @@ const verifyOTP = async (req, res) => {
             });
         }
 
-        // Only allow login for existing registered users. If the email is
-        // not registered, ask the client to use the registration flow first.
-        let user = await User.findOne({ email });
+        let user = null;
+        if (isEmail) {
+            user = await User.findOne({ email });
+        } else {
+            user = await User.findOne({
+                $or: [
+                    { mobileNumber: normalizedPhone },
+                    { phone: normalizedPhone }
+                ]
+            });
+        }
+
         if (user && await purgeUserIfExpired(user)) {
             user = null;
         }
@@ -757,7 +829,7 @@ const verifyOTP = async (req, res) => {
             await OTP.deleteOne({ _id: otpRecord._id });
             return res.status(400).json({
                 success: false,
-                message: 'Email not registered. Please register before attempting to login.'
+                message: 'Account not registered. Please register first.'
             });
         }
 
@@ -860,7 +932,11 @@ const verifyOTP = async (req, res) => {
 
         user.lastLogin = new Date();
         user.loginCount = Number(user.loginCount || 0) + 1;
-        user.emailVerifiedAt = user.emailVerifiedAt || new Date();
+        if (isEmail) {
+            user.emailVerifiedAt = user.emailVerifiedAt || new Date();
+        } else {
+            user.mobileVerifiedAt = user.mobileVerifiedAt || new Date();
+        }
 
         // Ensure user has referral code
         if (!user.referralCode) {
@@ -936,16 +1012,16 @@ const verifyOTP = async (req, res) => {
 
 const registerVerifyOTP = async (req, res) => {
     try {
-        const email = req.body?.email?.trim().toLowerCase();
+        const identityRaw = (req.body?.identity || req.body?.email || '').trim();
         const otp = req.body?.otp?.trim();
         const name = req.body?.name?.trim();
         const bodyReferCode = req.body?.referCode?.trim().toUpperCase();
         const acceptedTerms = Boolean(req.body?.acceptedTerms);
 
-        if (!email || !otp || !name) {
+        if (!identityRaw || !otp || !name) {
             return res.status(400).json({
                 success: false,
-                message: 'Name, email and OTP are required'
+                message: 'Name, email/mobile and OTP are required'
             });
         }
 
@@ -956,7 +1032,17 @@ const registerVerifyOTP = async (req, res) => {
             });
         }
 
-        const otpRecord = await OTP.findValidOTP(email);
+        const isEmail = identityRaw.includes('@');
+        let email = null;
+        let normalizedPhone = null;
+
+        if (isEmail) {
+            email = identityRaw.toLowerCase();
+        } else {
+            normalizedPhone = normalizeIndianMobile(identityRaw);
+        }
+
+        const otpRecord = await OTP.findValidOTP(isEmail ? email : normalizedPhone);
         if (!otpRecord) {
             return res.status(400).json({
                 success: false,
@@ -981,7 +1067,18 @@ const registerVerifyOTP = async (req, res) => {
             console.warn(`Referral code mismatch during registration verify. Using stored referCode=${storedReferCode}, body referCode=${bodyReferCode}`);
         }
 
-        let existingUser = await User.findOne({ email });
+        let existingUser = null;
+        if (isEmail) {
+            existingUser = await User.findOne({ email });
+        } else {
+            existingUser = await User.findOne({
+                $or: [
+                    { mobileNumber: normalizedPhone },
+                    { phone: normalizedPhone }
+                ]
+            });
+        }
+
         if (existingUser && await purgeUserIfExpired(existingUser)) {
             existingUser = null;
         }
@@ -991,7 +1088,7 @@ const registerVerifyOTP = async (req, res) => {
             if (isPendingDeletion(existingUser)) {
                 return res.status(409).json({
                     success: false,
-                    message: `This email already belongs to an account scheduled for deletion. Login first to restore it before ${new Date(existingUser.deleteAfter).toLocaleString('en-IN')}.`,
+                    message: `This account is scheduled for deletion. Login first to restore it before ${new Date(existingUser.deleteAfter).toLocaleString('en-IN')}.`,
                     code: 'ACCOUNT_PENDING_DELETION',
                     recovery: getDeletionMetadata(existingUser)
                 });
@@ -999,7 +1096,7 @@ const registerVerifyOTP = async (req, res) => {
 
             return res.status(400).json({
                 success: false,
-                message: 'Email already registered. Please login.'
+                message: isEmail ? 'Email already registered. Please login.' : 'Mobile number already registered. Please login.'
             });
         }
 
@@ -1047,16 +1144,25 @@ const registerVerifyOTP = async (req, res) => {
             }
         }
 
-        const user = new User({
-            email,
+        const userFields = {
             name,
             points: WELCOME_POINTS,
             lifetimeXp: WELCOME_POINTS,
             referredByCode: referCode || '',
-            emailVerifiedAt: new Date(),
             termsAcceptedAt: new Date(),
             acceptedPolicyVersion: POLICY_VERSION
-        });
+        };
+
+        if (isEmail) {
+            userFields.email = email;
+            userFields.emailVerifiedAt = new Date();
+        } else {
+            userFields.mobileNumber = normalizedPhone;
+            userFields.phone = normalizedPhone;
+            userFields.mobileVerifiedAt = new Date();
+        }
+
+        const user = new User(userFields);
 
         // Generate referral code for new user
         await user.ensureReferralCode();

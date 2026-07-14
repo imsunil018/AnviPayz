@@ -343,16 +343,117 @@
             transform: translateY(-2px); /* Lift on hover */
         }
 
-        #profile-edit-btn {
-            background: var(--primary); /* Distinct color for edit button */
-            border-color: rgba(255,255,255,0.2); /* Light border */
-            color: #fff;
+        #profile-settings-toggle-btn {
+            background: rgba(255, 255, 255, 0.18) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            padding: 0.5rem 1rem !important;
+            min-height: 2.3rem !important;
+            font-size: 0.85rem !important;
+            font-weight: 700 !important;
+            border-radius: 12px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.45rem !important;
+            line-height: 1 !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
         }
-        
-        #profile-email-change-btn {
-            background: #d332cb;
-            border-color: rgba(210, 199, 199, 0.676);
-            color: #fffdfd;
+        #profile-settings-toggle-btn i {
+            color: #ffffff !important;
+            font-size: 1.1rem !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+        }
+        #profile-settings-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.28) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .profile-settings-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+        }
+        .profile-step-block[hidden],
+        .profile-settings-flow-area[hidden] {
+            display: none !important;
+        }
+        .settings-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+        .settings-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .settings-title-row h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .settings-back-btn {
+            align-self: flex-start;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-main);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.5rem 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .settings-back-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(99, 102, 241, 0.12);
+        }
+        .profile-settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .profile-settings-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .profile-settings-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .profile-settings-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 1rem 0;
+        }
+        .profile-step-block {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .profile-step-block p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
         }
 
         .profile-stat-grid,
@@ -861,198 +962,276 @@
                 </header>
 
                 <div class="profile-shell">
-                    <section class="profile-panel profile-hero">
-                        <div class="profile-hero-head">
-                            <div class="profile-identity">
-                                <div id="profile-avatar"
-                                    class="profile-avatar">A</div>
-                                <div class="profile-identity-copy">
-                                    <h2 id="profile-title">Loading...</h2>
-                                    <p id="profile-subtitle">Verified rewards
-                                        account</p>
-                                    <div class="profile-chip-row">
-                                        <div class="profile-chip" id="profile-mobile-chip">
-                                            <i class="ri-shield-check-line"></i>
-                                            <span id="profile-mobile-chip-text">Mobile status</span>
-                                        </div>
-                                        <div class="profile-chip ghost" id="profile-email-chip">
-                                            <i class="ri-mail-line"></i>
-                                            <span id="profile-email-chip-text">Email status</span>
+                    <div id="profile-hero-section">
+                        <section class="profile-panel profile-hero">
+                            <div class="profile-hero-head">
+                                <div class="profile-identity">
+                                    <div id="profile-avatar"
+                                        class="profile-avatar">A</div>
+                                    <div class="profile-identity-copy">
+                                        <h2 id="profile-title">Loading...</h2>
+                                        <p id="profile-subtitle">Verified rewards
+                                            account</p>
+                                        <div class="profile-chip-row">
+                                            <div class="profile-chip" id="profile-mobile-chip">
+                                                <i class="ri-shield-check-line"></i>
+                                                <span id="profile-mobile-chip-text">Mobile status</span>
+                                            </div>
+                                            <div class="profile-chip ghost" id="profile-email-chip">
+                                                <i class="ri-mail-line"></i>
+                                                <span id="profile-email-chip-text">Email status</span>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="profile-hero-actions">
+                                    <button type="button"
+                                        class="profile-btn primary hero-action"
+                                        id="profile-settings-toggle-btn"><i
+                                            class="ri-settings-4-line"></i> Settings & Security</button>
                                 </div>
                             </div>
-                            <div class="profile-hero-actions">
-                                <button type="button"
-                                    class="profile-btn hero-action"
-                                    id="profile-edit-btn"><i
-                                        class="ri-edit-line"></i> Edit
-                                    Profile</button>
-                                <button type="button"
-                                    class="profile-btn hero-action"
-                                    id="profile-email-change-btn"><i
-                                        class="ri-mail-settings-line"></i>
-                                    Change Email</button>
+                            <div class="profile-stat-grid">
+                                <div class="profile-stat-card"><span>Total
+                                        Points</span><strong
+                                        id="profile-points">0</strong></div>
+                                <div class="profile-stat-card"><span>Available
+                                        Tokens</span><strong
+                                        id="profile-tokens">0</strong></div>
                             </div>
-                        </div>
-                        <div class="profile-stat-grid">
-                            <div class="profile-stat-card"><span>Total
-                                    Points</span><strong
-                                    id="profile-points">0</strong></div>
-                            <div class="profile-stat-card"><span>Available
-                                    Tokens</span><strong
-                                    id="profile-tokens">0</strong></div>
-                        </div>
-                    </section>
+                        </section>
+                    </div>
 
-                    <div class="profile-layout">
-                        <div class="profile-stack">
-                            <section
-                                class="profile-panel profile-panel-primary">
-                                <div class="profile-section-head">
-                                    <div>
-                                        <h3>Account Details</h3>
-                                        <p>Only the essentials are shown here.
-                                            Name is editable, email updates
-                                            follow a secure OTP flow.</p>
+                    <!-- VIEW PROFILE SECTION -->
+                    <div id="profile-view-section">
+                        <div class="profile-layout">
+                            <div class="profile-stack">
+                                <section class="profile-panel profile-panel-primary">
+                                    <div class="profile-section-head">
+                                        <div>
+                                            <h3>Account Details</h3>
+                                            <p>Only the essentials are shown here. Settings can be managed from the Settings & Security panel.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="profile-info-grid">
-                                    <article class="profile-info-card"><div
-                                            class="profile-info-label"><span>Full
-                                                Name</span></div><div
-                                            class="profile-info-value"
-                                            id="profile-name">-</div></article>
-                                    <article class="profile-info-card"><div
-                                            class="profile-info-label"><span>Email
-                                                Address</span><span
-                                                id="profile-email-inline-badge"
-                                                class="profile-inline-badge"><i
-                                                    class="ri-shield-check-line"></i>
-                                                Status</span></div><div
-                                            class="profile-info-value"
-                                            id="profile-email">-</div></article>
-                                    <article class="profile-info-card"><div
-                                            class="profile-info-label"><span>Mobile</span></div><div
-                                            class="profile-info-value"
-                                            id="profile-phone">Not added yet</div><div
-                                            class="profile-info-note"
-                                            id="profile-mobile-note">Add or
-                                            verify your mobile number from the
-                                            Account Security section below.</div></article>
-                                    <article class="profile-info-card"><div
-                                            class="profile-info-label"><span>Joined
-                                                On</span></div><div
-                                            class="profile-info-value"
-                                            id="profile-joined">-</div></article>
-                                </div>
-                            </section>
+                                    <div class="profile-info-grid">
+                                        <article class="profile-info-card">
+                                            <div class="profile-info-label"><span>Full Name</span></div>
+                                            <div class="profile-info-value" id="profile-name">-</div>
+                                        </article>
+                                        <article class="profile-info-card">
+                                            <div class="profile-info-label">
+                                                <span>Email Address</span>
+                                                <span id="profile-email-inline-badge" class="profile-inline-badge"><i class="ri-shield-check-line"></i> Status</span>
+                                            </div>
+                                            <div class="profile-info-value" id="profile-email">-</div>
+                                        </article>
+                                        <article class="profile-info-card">
+                                            <div class="profile-info-label"><span>Mobile</span></div>
+                                            <div class="profile-info-value" id="profile-phone">Not added yet</div>
+                                        </article>
+                                        <article class="profile-info-card">
+                                            <div class="profile-info-label"><span>Joined On</span></div>
+                                            <div class="profile-info-value" id="profile-joined">-</div>
+                                        </article>
+                                    </div>
+                                </section>
 
-                            <section class="profile-panel" id="account-security">
-                                <div class="profile-section-head">
-                                    <div>
-                                        <h3>Referral Tools</h3>
-                                        <p>Share your invite code quickly with
-                                            one-tap copy and WhatsApp
-                                            sharing.</p>
-                                    </div>
-                                </div>
-                                <div class="profile-referral-card">
-                                    <div class="profile-referral-code">
-                                        <div class="profile-referral-copy">
-                                            <strong
-                                                id="profile-referral-code">-</strong>
-                                            <span
-                                                id="profile-referral-inline">Invite
-                                                friends and grow your reward
-                                                network.</span>
+                                <section class="profile-panel">
+                                    <div class="profile-section-head">
+                                        <div>
+                                            <h3>Referral Tools</h3>
+                                            <p>Share your invite code quickly with one-tap copy and WhatsApp sharing.</p>
                                         </div>
-                                        <i class="ri-share-forward-line"
-                                            style="font-size:1.35rem; color:var(--text-muted);"></i>
                                     </div>
-                                    <div class="profile-button-row">
-                                        <button type="button"
-                                            class="profile-btn subtle"
-                                            id="profile-copy-code-btn"><i
-                                                class="ri-file-copy-line"></i>
-                                            Copy Code</button>
-                                        <button type="button"
-                                            class="profile-btn subtle"
-                                            id="profile-share-whatsapp-btn"><i
-                                                class="ri-whatsapp-line"></i>
-                                            Share via WhatsApp</button>
+                                    <div class="profile-referral-card">
+                                        <div class="profile-referral-code">
+                                            <div class="profile-referral-copy">
+                                                <strong id="profile-referral-code">-</strong>
+                                                <span id="profile-referral-inline">Invite friends and grow your reward network.</span>
+                                            </div>
+                                            <i class="ri-share-forward-line" style="font-size:1.35rem; color:var(--text-muted);"></i>
+                                        </div>
+                                        <div class="profile-button-row">
+                                            <button type="button" class="profile-btn subtle" id="profile-copy-code-btn"><i class="ri-file-copy-line"></i> Copy Code</button>
+                                            <button type="button" class="profile-btn subtle" id="profile-share-whatsapp-btn"><i class="ri-whatsapp-line"></i> Share via WhatsApp</button>
+                                        </div>
                                     </div>
-                                </div>
-                            </section>
-                        </div>
+                                </section>
+                            </div>
 
-                        <div class="profile-stack profile-side-stack">
-                            <section
-                                class="profile-panel profile-panel-secondary">
-                                <div class="profile-section-head">
-                                    <div><h3>Profile Snapshot</h3><p>Fast
-                                            overview of your identity and
-                                            account timeline.</p></div>
-                                </div>
-                                <div class="profile-stack">
-                                    <div
-                                        class="profile-summary-item"><span>Primary
-                                            Email</span><strong
-                                            id="profile-summary-email">-</strong></div>
-                                    <div
-                                        class="profile-summary-item"><span>Referral
-                                            Code</span><strong
-                                            id="profile-referral-inline-secondary">-</strong></div>
-                                    <div
-                                        class="profile-summary-item"><span>Joined</span><strong
-                                            id="profile-summary-joined">-</strong></div>
-                                </div>
-                            </section>
-
-                            <section class="profile-panel">
-                                <div class="profile-section-head">
-                                    <div><h3>Account Security</h3><p>Manage your verified identity and login details.</p></div>
-                                </div>
-                                <div class="profile-stack">
-                                    <div class="profile-summary-item">
-                                        <span>Full Name</span>
-                                        <strong id="security-user-name">-</strong>
+                            <div class="profile-stack profile-side-stack">
+                                <section class="profile-panel profile-panel-secondary">
+                                    <div class="profile-section-head">
+                                        <div><h3>Profile Snapshot</h3><p>Fast overview of your identity and account timeline.</p></div>
                                     </div>
-                                    <div class="profile-summary-item" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 0.5rem;">
-                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                            <span style="font-size: 0.8rem; color: var(--text-muted);">Mobile Number</span>
-                                            <strong id="security-phone-text" style="font-size: 0.95rem;">-</strong>
-                                        </div>
-                                        <div id="security-mobile-action-area">
-                                            <!-- Button or badge will be injected here dynamically -->
-                                        </div>
+                                    <div class="profile-stack">
+                                        <div class="profile-summary-item"><span>Primary Email</span><strong id="profile-summary-email">-</strong></div>
+                                        <div class="profile-summary-item"><span>Referral Code</span><strong id="profile-referral-inline-secondary">-</strong></div>
+                                        <div class="profile-summary-item"><span>Joined</span><strong id="profile-summary-joined">-</strong></div>
                                     </div>
-                                    <div class="profile-summary-item" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 0.5rem;">
-                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                            <span style="font-size: 0.8rem; color: var(--text-muted);">Email Address</span>
-                                            <strong id="security-email-text" style="font-size: 0.95rem;">-</strong>
-                                        </div>
-                                        <div id="security-email-action-area">
-                                            <!-- Button or badge will be injected here dynamically -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
+                                </section>
+                            </div>
                         </div>
                     </div>
 
-                    <section class="profile-panel profile-danger">
-                        <div class="profile-section-head">
-                            <div><h3>Delete Account</h3><p>Your account will be
-                                    signed out immediately and scheduled for
-                                    permanent deletion after 7 days. Login again
-                                    within the recovery window to restore
-                                    it.</p></div>
+                    <!-- EDIT PROFILE & SETTINGS SECTION -->
+                    <div id="profile-settings-section" hidden>
+                        <div class="settings-header">
+                            <div class="settings-title-row">
+                                <h2>Account Settings & Security</h2>
+                                <button type="button" class="settings-back-btn" id="settings-back-btn">
+                                    <i class="ri-arrow-left-line"></i> Back to Profile
+                                </button>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Update your public display identity, link or change security credentials, or manage your account deletion request.</p>
                         </div>
-                        <button id="delete-account-btn" class="profile-btn"><i
-                                class="ri-delete-bin-line"></i> Delete My
-                            Account</button>
-                    </section>
+                        <div class="profile-layout">
+                            <div class="profile-stack">
+                                <!-- Profile Info Form -->
+                                <section class="profile-panel">
+                                    <div class="profile-section-head">
+                                        <div><h3>Edit Profile Information</h3><p>Manage your public display details.</p></div>
+                                    </div>
+                                    <form id="profile-name-form" class="profile-form-field">
+                                        <label for="profile-name-input">Display Name</label>
+                                        <div style="display: flex; gap: 0.75rem; width: 100%;">
+                                            <input id="profile-name-input" type="text" maxlength="30" placeholder="Enter your name" style="flex: 1;">
+                                            <button type="submit" class="profile-btn primary" id="profile-name-save" style="min-width: 120px;">Save Changes</button>
+                                        </div>
+                                        <div class="profile-helper" id="profile-name-helper">Use 3-30 characters. Letters, numbers, spaces, dot, apostrophe, or hyphen only.</div>
+                                        <div class="profile-helper" id="profile-name-change-limit" style="margin-top: 0.5rem;"></div>
+                                    </form>
+                                </section>
+
+                                <!-- Mobile Number Verification -->
+                                <section class="profile-panel">
+                                    <div class="profile-section-head">
+                                        <div><h3>Mobile Number Verification</h3><p>Verify or update your phone number for secure transaction support.</p></div>
+                                    </div>
+                                    <div class="profile-settings-card">
+                                        <div class="profile-settings-row">
+                                            <div>
+                                                <span class="profile-settings-label">Current Mobile</span>
+                                                <strong id="settings-mobile-text" class="profile-settings-value">-</strong>
+                                            </div>
+                                            <div id="settings-mobile-badge-area">
+                                                <!-- Badge/Button will be dynamically rendered here -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="profile-settings-divider"></div>
+                                        
+                                        <div class="profile-settings-flow-area" id="mobile-flow-area" hidden>
+                                            <div class="profile-email-status" id="profile-mobile-status">Verify your current mobile number to unlock secure mobile change.</div>
+                                            
+                                            <!-- Step 1: Send OTP to current -->
+                                            <div class="profile-step-block" data-mobile-step="old-request">
+                                                <p>We will send a 6-digit OTP to your registered mobile number ending with <strong id="profile-mobile-current">-</strong>.</p>
+                                                <button type="button" class="profile-btn primary" id="profile-mobile-send-old-btn">Send OTP to Current Mobile</button>
+                                            </div>
+                                            
+                                            <!-- Step 2: Verify OTP for current -->
+                                            <div class="profile-step-block" data-mobile-step="old-verify" hidden>
+                                                <div class="profile-form-field">
+                                                    <label for="profile-old-mobile-otp">Current Mobile OTP</label>
+                                                    <input id="profile-old-mobile-otp" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP">
+                                                </div>
+                                                <button type="button" class="profile-btn primary" id="profile-mobile-verify-old-btn">Verify Current Mobile</button>
+                                            </div>
+                                            
+                                            <!-- Step 3: Enter new mobile -->
+                                            <div class="profile-step-block" data-mobile-step="new-request" hidden>
+                                                <div class="profile-form-field">
+                                                    <label for="profile-new-mobile-input">New Mobile Number</label>
+                                                    <input id="profile-new-mobile-input" type="text" placeholder="10-digit mobile number" autocomplete="tel">
+                                                </div>
+                                                <button type="button" class="profile-btn primary" id="profile-mobile-send-new-btn">Send OTP to New Mobile</button>
+                                            </div>
+                                            
+                                            <!-- Step 4: Verify OTP for new mobile -->
+                                            <div class="profile-step-block" data-mobile-step="new-verify" hidden>
+                                                <p>Enter the OTP sent to <strong id="profile-mobile-target">Not requested yet</strong>.</p>
+                                                <div class="profile-form-field">
+                                                    <label for="profile-new-mobile-otp">New Mobile OTP</label>
+                                                    <input id="profile-new-mobile-otp" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP">
+                                                </div>
+                                                <button type="button" class="profile-btn primary" id="profile-mobile-verify-new-btn">Verify & Update Mobile</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+
+                            <div class="profile-stack profile-side-stack">
+                                <!-- Email Address Verification -->
+                                <section class="profile-panel">
+                                    <div class="profile-section-head">
+                                        <div><h3>Email Address Verification</h3><p>Verify or update your primary login email address.</p></div>
+                                    </div>
+                                    <div class="profile-settings-card">
+                                        <div class="profile-settings-row">
+                                            <div>
+                                                <span class="profile-settings-label">Current Email</span>
+                                                <strong id="settings-email-text" class="profile-settings-value">-</strong>
+                                            </div>
+                                            <div id="settings-email-badge-area">
+                                                <!-- Badge/Button will be dynamically rendered here -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="profile-settings-divider"></div>
+                                        
+                                        <div class="profile-settings-flow-area" id="email-flow-area" hidden>
+                                            <div class="profile-email-status" id="profile-email-status">Verify your current email to unlock secure email change.</div>
+                                            <div class="profile-helper" id="profile-email-change-limit" style="margin-top: 0.5rem; margin-bottom: 0.5rem;"></div>
+                                            
+                                            <!-- Step 1: Send OTP to current -->
+                                            <div class="profile-step-block" data-email-step="old-request">
+                                                <p>We will send a 6-digit OTP to <strong id="profile-email-current">-</strong>.</p>
+                                                <button type="button" class="profile-btn primary" id="profile-email-send-old-btn">Send OTP to Current Email</button>
+                                            </div>
+                                            
+                                            <!-- Step 2: Verify OTP for current -->
+                                            <div class="profile-step-block" data-email-step="old-verify" hidden>
+                                                <div class="profile-form-field">
+                                                    <label for="profile-old-email-otp">Current Email OTP</label>
+                                                    <input id="profile-old-email-otp" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP">
+                                                </div>
+                                                <button type="button" class="profile-btn primary" id="profile-email-verify-old-btn">Verify Current Email</button>
+                                            </div>
+                                            
+                                            <!-- Step 3: Enter new email -->
+                                            <div class="profile-step-block" data-email-step="new-request" hidden>
+                                                <div class="profile-form-field">
+                                                    <label for="profile-new-email-input">New Email Address</label>
+                                                    <input id="profile-new-email-input" type="email" placeholder="name@example.com" autocomplete="email">
+                                                </div>
+                                                <button type="button" class="profile-btn primary" id="profile-email-send-new-btn">Send OTP to New Email</button>
+                                            </div>
+                                            
+                                            <!-- Step 4: Verify OTP for new email -->
+                                            <div class="profile-step-block" data-email-step="new-verify" hidden>
+                                                <p>Enter the OTP sent to <strong id="profile-email-target">Not requested yet</strong>.</p>
+                                                <div class="profile-form-field">
+                                                    <label for="profile-new-email-otp">New Email OTP</label>
+                                                    <input id="profile-new-email-otp" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP">
+                                                </div>
+                                                <button type="button" class="profile-btn primary" id="profile-email-verify-new-btn">Verify & Update Email</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <!-- Danger Zone -->
+                                <section class="profile-panel profile-danger">
+                                    <div class="profile-section-head">
+                                        <div><h3>Delete Account</h3><p>Your account will be signed out immediately and scheduled for permanent deletion after 7 days. Login again within the recovery window to restore it.</p></div>
+                                    </div>
+                                    <button id="delete-account-btn" class="profile-btn"><i class="ri-delete-bin-line"></i> Delete My Account</button>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <footer class="app-footer">
@@ -1079,517 +1258,11 @@
             </nav>
         </div>
 
-        <div class="profile-modal" id="profile-edit-modal" hidden>
-            <div class="profile-modal-card">
-                <div class="profile-modal-head">
-                    <div><h3>Edit Profile</h3><p>Only your display name can be
-                            updated directly.</p></div>
-                    <button type="button" class="icon-btn"
-                        data-profile-modal-close="profile-edit-modal"><i
-                            class="ri-close-line"></i></button>
-                </div>
-                <div class="profile-modal-body">
-                    <form id="profile-name-form" class="profile-form-field">
-                        <label for="profile-name-input">Display Name</label>
-                        <input id="profile-name-input" type="text"
-                            maxlength="30" placeholder="Enter your name">
-                        <div class="profile-helper" id="profile-name-helper">Use
-                            3-30 characters. Letters, numbers, spaces, dot,
-                            apostrophe, or hyphen only.</div>
-                        <div class="profile-helper"
-                            id="profile-name-change-limit"
-                            style="margin-top: 0.5rem;"></div>
-                        <div class="profile-modal-actions">
-                            <button type="button" class="profile-btn subtle"
-                                data-profile-modal-close="profile-edit-modal">Cancel</button>
-                            <button type="submit" class="profile-btn primary"
-                                id="profile-name-save">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
 
-        <div class="profile-modal" id="profile-email-modal" hidden>
-            <div class="profile-modal-card">
-                <div class="profile-modal-head">
-                    <div><h3>Secure Email Change</h3><p>Verify your current
-                            email first, then confirm your new email before we
-                            update your login identity.</p></div>
-                    <button type="button" class="icon-btn"
-                        data-profile-modal-close="profile-email-modal"><i
-                            class="ri-close-line"></i></button>
-                </div>
-                <div class="profile-modal-body">
-                    <div class="profile-email-status"
-                        id="profile-email-status">Verify your current email to
-                        unlock a secure email change.</div>
-                    <div class="profile-helper" id="profile-email-change-limit"
-                        style="margin-top: 0.5rem;"></div>
-                    <section class="profile-email-step"
-                        data-email-step="old-request">
-                        <h4>Step 1: Verify current email</h4>
-                        <p>We will send a 6-digit OTP to <strong
-                                id="profile-email-current">-</strong>.</p>
-                        <div class="profile-modal-actions"><button type="button"
-                                class="profile-btn primary"
-                                id="profile-email-send-old-btn">Send OTP to
-                                Current Email</button></div>
-                    </section>
-                    <section class="profile-email-step"
-                        data-email-step="old-verify" hidden>
-                        <h4>Step 2: Confirm current email OTP</h4>
-                        <div class="profile-form-field"><label
-                                for="profile-old-email-otp">Current Email
-                                OTP</label><input id="profile-old-email-otp"
-                                type="text" inputmode="numeric" maxlength="6"
-                                placeholder="Enter 6-digit OTP"></div>
-                        <div class="profile-modal-actions"><button type="button"
-                                class="profile-btn primary"
-                                id="profile-email-verify-old-btn">Verify Current
-                                Email</button></div>
-                    </section>
-                    <section class="profile-email-step"
-                        data-email-step="new-request" hidden>
-                        <h4>Step 3: Enter your new email</h4>
-                        <div class="profile-form-field"><label
-                                for="profile-new-email-input">New Email
-                                Address</label><input
-                                id="profile-new-email-input" type="email"
-                                placeholder="name@example.com"
-                                autocomplete="email"></div>
-                        <div class="profile-modal-actions"><button type="button"
-                                class="profile-btn primary"
-                                id="profile-email-send-new-btn">Send OTP to New
-                                Email</button></div>
-                    </section>
-                    <section class="profile-email-step"
-                        data-email-step="new-verify" hidden>
-                        <h4>Step 4: Confirm your new email</h4>
-                        <p>Enter the OTP sent to <strong
-                                id="profile-email-target">Not requested
-                                yet</strong>.</p>
-                        <div class="profile-form-field"><label
-                                for="profile-new-email-otp">New Email
-                                OTP</label><input id="profile-new-email-otp"
-                                type="text" inputmode="numeric" maxlength="6"
-                                placeholder="Enter 6-digit OTP"></div>
-                        <div class="profile-modal-actions"><button type="button"
-                                class="profile-btn primary"
-                                id="profile-email-verify-new-btn">Verify &
-                                Update Email</button></div>
-                    </section>
-                </div>
-            </div>
-        </div>
 
         <script defer src="config.js?v=20260528-1"></script>
 
         <script defer src="js/auth.js?v=20260525-1"></script>
-        <script>
-        (function () {
-            const AVATAR_SEED_KEY = "anvi_avatar_seed";
 
-            const getSafeRefCode = () => {
-                const el = document.getElementById("profile-referral-code");
-                const val = el?.textContent?.trim();
-                return (val && val !== "-") ? val : "";
-            };
-
-            const getDisplayName = () => {
-                const name = document.getElementById("profile-name")?.textContent?.trim();
-                if (name && name !== "-" && name.toLowerCase() !== "loading...") {
-                    return name;
-                }
-                const title = document.getElementById("profile-title")?.textContent?.trim();
-                if (title && title.toLowerCase() !== "loading...") {
-                    return title;
-                }
-                return "";
-            };
-
-            const femaleNames = new Set([
-                "aanya", "aarti", "aishwarya", "ananya", "anika", "ankita",
-                "avani", "bhavya", "deepika", "divya", "esha", "khushi",
-                "kriti", "kiran", "kavya", "manisha", "meera", "neha",
-                "nisha", "priya", "radhika", "riya", "sanya", "shreya",
-                "sneha", "sonam", "tanvi", "trisha"
-            ]);
-
-            const guessGender = (name) => {
-                if (!name) {
-                    return "male";
-                }
-                const tokens = name.toLowerCase().split(/\s+/);
-                for (const token of tokens) {
-                    if (femaleNames.has(token)) {
-                        return "female";
-                    }
-                }
-                return "male";
-            };
-
-            const hashString = (value) => {
-                let hash = 0;
-                for (let i = 0; i < value.length; i += 1) {
-                    hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
-                }
-                return Math.abs(hash);
-            };
-
-            const pickSeed = (name, list) => {
-                const hash = hashString(name || "anvipayz");
-                return list[hash % list.length];
-            };
-
-            const getFallbackSeed = () => {
-                let seed = localStorage.getItem(AVATAR_SEED_KEY);
-                if (!seed) {
-                    const randomPart = Math.random().toString(36).slice(2, 10).toUpperCase();
-                    seed = `AV-${randomPart}`;
-                    localStorage.setItem(AVATAR_SEED_KEY, seed);
-                }
-                return seed;
-            };
-
-            const getAvatarUrl = () => {
-                const name = getDisplayName();
-                const gender = guessGender(name);
-                const femaleSeeds = ["Lia", "Mira", "Tara", "Ava", "Ria"];
-                const maleSeeds = ["Arjun", "Kabir", "Vihaan", "Neil", "Rohan"];
-                const seedBase = name ? pickSeed(name, gender === "female" ? femaleSeeds : maleSeeds) : getFallbackSeed();
-                const seed = `${seedBase}-${hashString(name || seedBase) % 9999}`;
-                const set = gender === "female" ? "lorelei" : "adventurer";
-                return `https://api.dicebear.com/7.x/${set}/svg?seed=${encodeURIComponent(seed)}&radius=20`;
-            };
-
-            const updateAvatar = () => {
-                const avatar = document.getElementById("profile-avatar");
-                if (!avatar) {
-                    return;
-                }
-                const name = getDisplayName();
-                const fallback = name ? name.trim()[0]?.toUpperCase() : "A";
-                const img = document.createElement("img");
-                img.alt = "Profile avatar";
-                img.loading = "lazy";
-                img.src = getAvatarUrl();
-                img.onerror = () => {
-                    avatar.textContent = fallback || "A";
-                };
-                avatar.innerHTML = "";
-                avatar.appendChild(img);
-            };
-
-            const applyReferralCode = (code) => {
-                if (!code || code === "-") return;
-                const targets = [
-                    document.getElementById("profile-referral-code"),
-                    document.getElementById("profile-referral-inline-secondary")
-                ];
-                targets.forEach((el) => {
-                    if (el && el.textContent !== code) {
-                        el.textContent = code;
-                    }
-                });
-                const inline = document.getElementById("profile-referral-inline");
-                if (inline) {
-                    inline.textContent = `Share ${code} with friends to unlock rewards.`;
-                }
-            };
-
-            const copyText = async (text) => {
-                if (!text) {
-                    return;
-                }
-                try {
-                    await navigator.clipboard.writeText(text);
-                } catch (error) {
-                    const temp = document.createElement("textarea");
-                    temp.value = text;
-                    temp.setAttribute("readonly", "");
-                    temp.style.position = "absolute";
-                    temp.style.left = "-9999px";
-                    document.body.appendChild(temp);
-                    temp.select();
-                    try {
-                        document.execCommand("copy");
-                    } catch (err) {
-                        // ignore
-                    }
-                    document.body.removeChild(temp);
-                }
-            };
-
-            const shareWhatsApp = (code) => {
-                const text = encodeURIComponent(`Join AnviPayz with my invite code ${code}.`);
-                window.open(`https://wa.me/?text=${text}`, "_blank");
-            };
-
-            updateAvatar();
-
-            const copyBtn = document.getElementById("profile-copy-code-btn");
-            if (copyBtn) {
-                copyBtn.onclick = () => copyText(getSafeRefCode());
-            }
-            const whatsappBtn = document.getElementById("profile-share-whatsapp-btn");
-            if (whatsappBtn) {
-                whatsappBtn.onclick = () => shareWhatsApp(getSafeRefCode());
-            }
-
-            const watch = (el, cb) => {
-                if (!el) {
-                    return;
-                }
-                const observer = new MutationObserver(cb);
-                observer.observe(el, { childList: true, characterData: true, subtree: true });
-            };
-
-            watch(document.getElementById("profile-name"), () => {
-                applyReferralCode(getSafeRefCode());
-                updateAvatar();
-            });
-            watch(document.getElementById("profile-title"), updateAvatar);
-            watch(document.getElementById("profile-referral-code"), () => applyReferralCode(getSafeRefCode()));
-            watch(document.getElementById("profile-referral-inline-secondary"), () => applyReferralCode(getSafeRefCode()));
-
-            // --- Modal UI Fixes ---
-            const toggleModal = (id, show) => {
-                const modal = document.getElementById(id);
-                if (modal) {
-                    if (show) modal.removeAttribute('hidden');
-                    else modal.setAttribute('hidden', '');
-                    document.body.style.overflow = show ? 'hidden' : '';
-                }
-            };
-
-            document.getElementById("profile-edit-btn")?.addEventListener("click", () => toggleModal("profile-edit-modal", true));
-            document.getElementById("profile-email-change-btn")?.addEventListener("click", () => toggleModal("profile-email-modal", true));
-
-            document.querySelectorAll("[data-profile-modal-close]").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    toggleModal(btn.getAttribute("data-profile-modal-close"), false);
-                });
-            });
-
-            // --- Helper: Update Limit UI ---
-            const refreshLimitsUI = () => {
-                if (!state.user) return;
-                
-                const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
-                
-                // Name Limit
-                const nameLimitEl = document.getElementById("profile-name-change-limit");
-                if (nameLimitEl) {
-                    // Reset count if month doesn't match current month
-                    const usedCount = state.user.lastNameChangeMonth === currentMonth ? (state.user.nameChangeCountThisMonth || 0) : 0;
-                    const remaining = Math.max(0, 5 - usedCount);
-                    
-                    nameLimitEl.textContent = `Limit: ${remaining} changes remaining this month.`;
-                    nameLimitEl.style.color = remaining === 0 ? "var(--danger)" : "var(--text-muted)";
-                }
-
-                // Email Limit
-                const emailLimitEl = document.getElementById("profile-email-change-limit");
-                if (emailLimitEl) {
-                    const usedCount = state.user.lastEmailChangeMonth === currentMonth ? (state.user.emailChangeCountThisMonth || 0) : 0;
-                    const remaining = Math.max(0, 5 - usedCount);
-                    
-                    emailLimitEl.textContent = `Limit: ${remaining} changes remaining this month.`;
-                    emailLimitEl.style.color = remaining === 0 ? "var(--danger)" : "var(--text-muted)";
-                }
-            };
-
-            // --- Profile Name Update Logic ---
-            const nameForm = document.getElementById("profile-name-form");
-            nameForm?.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                e.stopImmediatePropagation(); 
-
-                const input = document.getElementById("profile-name-input");
-                const saveBtn = document.getElementById("profile-name-save");
-                const nextName = input?.value?.trim();
-                const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
-
-                if (!nextName || nextName.length < 3) {
-                    if (typeof showToast === "function") showToast("Name must be at least 3 characters.", "error");
-                    return;
-                }
-
-                const usedCount = state.user?.lastNameChangeMonth === currentMonth ? (state.user.nameChangeCountThisMonth || 0) : 0;
-                if (usedCount >= 5) {
-                    showToast("Monthly name change limit reached. Try again next month.", "error");
-                    return;
-                }
-
-                if (typeof withButtonState === "function") {
-                    await withButtonState(saveBtn, "Saving...", async () => {
-                        try {
-                            // Use requestFirst to prevent 404 by trying both likely paths
-                            const data = await requestFirst([
-                                { path: "/user/update-profile", method: "PATCH", body: { name: nextName } },
-                                { path: "/profile/update", method: "PATCH", body: { name: nextName } }
-                            ], {
-                                auth: true
-                            });
-                            
-                            if (data.success) {
-                                if (data.user) {
-                                    state.user = normalizeUser(data.user);
-                                    persistUser(state.user);
-                                }
-                                setText("profile-name", nextName);
-                                setText("profile-title", nextName);
-                                updateAvatar();
-                                refreshLimitsUI();
-                                toggleModal("profile-edit-modal", false);
-                                if (typeof showToast === "function") showToast("Profile updated successfully.", "success");
-                            }
-                        } catch (err) {
-                            console.error("Name update error:", err);
-                            if (typeof showToast === "function") showToast(err.message || "Error updating name.", "error");
-                        }
-                    });
-                }
-            });
-
-            // --- Secure Email Change Flow ---
-            // Step 1: Request OTP for current email
-            document.getElementById("profile-email-send-old-btn")?.addEventListener("click", async (e) => {
-                const button = e.currentTarget;
-                await withButtonState(button, "Sending...", async () => {
-                    try {
-                        const res = await requestJson("/user/request-email-change", {
-                            method: "POST",
-                            body: { step: "old-email" },
-                            auth: true
-                        });
-                        if (res.success) {
-                            document.getElementById("profile-email-status").textContent = "OTP sent to your current email.";
-                            document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "old-verify");
-                        }
-                    } catch (err) {
-                        if (typeof showToast === "function") showToast(err.message || "Failed to send OTP.", "error");
-                    }
-                });
-            });
-
-            // Step 2: Verify OTP for current email
-            document.getElementById("profile-email-verify-old-btn")?.addEventListener("click", async (e) => {
-                const otp = document.getElementById("profile-old-email-otp")?.value?.trim();
-                if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
-                const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
-                
-                const usedCount = state.user?.lastEmailChangeMonth === currentMonth ? (state.user.emailChangeCountThisMonth || 0) : 0;
-                if (usedCount >= 5) {
-                    showToast("Monthly email change limit reached.", "error");
-                    toggleModal("profile-email-modal", false);
-                    return;
-                }
-
-                await withButtonState(e.currentTarget, "Verifying...", async () => {
-                    try {
-                        const res = await requestJson("/user/verify-email-change", {
-                            method: "POST",
-                            body: { step: "old-email", otp },
-                            auth: true
-                        });
-                        if (res.success) {
-                            document.getElementById("profile-email-status").textContent = "Verified. Enter your new email address.";
-                            document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "new-request");
-                        }
-                    } catch (err) {
-                        if (typeof showToast === "function") showToast(err.message || "Invalid OTP.", "error");
-                    }
-                });
-            });
-
-            // Step 3: Request OTP for new email
-            document.getElementById("profile-email-send-new-btn")?.addEventListener("click", async (e) => {
-                const newEmail = document.getElementById("profile-new-email-input")?.value?.trim();
-                if (!newEmail || !newEmail.includes("@")) return showToast("Enter a valid new email.", "error");
-
-                await withButtonState(e.currentTarget, "Sending...", async () => {
-                    try {
-                        const res = await requestJson("/user/request-email-change", {
-                            method: "POST",
-                            body: { step: "new-email", newEmail },
-                            auth: true
-                        });
-                        if (res.success) {
-                            document.getElementById("profile-email-target").textContent = newEmail;
-                            document.getElementById("profile-email-status").textContent = "OTP sent to " + newEmail;
-                            document.querySelectorAll(".profile-email-step").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "new-verify");
-                        }
-                    } catch (err) {
-                        if (typeof showToast === "function") showToast(err.message || "Failed to send OTP.", "error");
-                    }
-                });
-            });
-
-            // Step 4: Verify OTP for new email & Update
-            document.getElementById("profile-email-verify-new-btn")?.addEventListener("click", async (e) => {
-                const otp = document.getElementById("profile-new-email-otp")?.value?.trim();
-                if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
-
-                await withButtonState(e.currentTarget, "Updating Email...", async () => {
-                    try {
-                        const data = await requestJson("/user/verify-email-change", {
-                            method: "POST",
-                            body: { step: "new-email", otp },
-                            auth: true
-                        });
-                        if (data.success) {
-                            if (data.user) {
-                                state.user = normalizeUser(data.user);
-                                persistUser(state.user);
-                            }
-                            setText("profile-email", state.user.email);
-                            setText("profile-summary-email", state.user.email);
-                            refreshLimitsUI();
-                            toggleModal("profile-email-modal", false);
-                            if (typeof showToast === "function") showToast("Email updated successfully!", "success");
-                        }
-                    } catch (err) {
-                        if (typeof showToast === "function") showToast(err.message || "Verification failed.", "error");
-                    }
-                });
-            });
-
-            // Pre-populate fields when opening modals
-            document.getElementById("profile-edit-btn")?.addEventListener("click", () => {
-                const nameInput = document.getElementById("profile-name-input");
-                if (nameInput) nameInput.value = document.getElementById("profile-name")?.textContent || "";
-                refreshLimitsUI();
-            });
-
-            document.addEventListener("click", (e) => {
-                const btn = e.target.closest("#profile-email-change-btn");
-                if (btn) {
-                    const currentDisplay = document.getElementById("profile-email-current");
-                    if (currentDisplay) {
-                        currentDisplay.textContent = state.user?.email || "-";
-                    }
-                    
-                    if (!state.user?.email) {
-                        document.getElementById("profile-email-status").textContent = "Add a secure email address to your account.";
-                        document.querySelectorAll(".profile-email-step").forEach(el => {
-                            el.hidden = el.getAttribute("data-email-step") !== "new-request";
-                        });
-                    } else {
-                        document.getElementById("profile-email-status").textContent = "Verify your current email to unlock a secure email change.";
-                        document.querySelectorAll(".profile-email-step").forEach(el => {
-                            el.hidden = el.getAttribute("data-email-step") !== "old-request";
-                        });
-                    }
-                    
-                    refreshLimitsUI();
-                    toggleModal("profile-email-modal", true);
-                    return;
-                }
-
-            });
-        })();
-        </script>
     </body>
 </html>

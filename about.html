@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en-IN" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="dark light">
+
+    <!-- SEO Meta Tags -->
+    <title>About AnviPayz | Reward Platform for Mobile Recharge Savings</title>
+    <meta name="description" content="Learn about AnviPayz, our mission, reward system, mobile recharge discounts, and how users earn points through surveys, tasks and referrals.">
+    <meta name="keywords" content="About AnviPayz, earn recharge discounts, mobile recharge savings, transparent rewards India, CPX research surveys, refer and earn, safe recharge wallet">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://anvipayz.com/about.html">
+
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="theme-color" content="#050814">
+    <meta name="application-name" content="AnviPayz">
+
+    <!-- Theme Initializer -->
+    <script>
+        (function () {
+            const STORAGE_KEY = 'anvi-theme';
+            let savedTheme;
+
+            try {
+                savedTheme = window.localStorage.getItem(STORAGE_KEY);
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const activeTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+            document.documentElement.setAttribute('data-theme', activeTheme);
+
+            const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
+            if (colorSchemeMeta) {
+                colorSchemeMeta.setAttribute('content', activeTheme === 'dark' ? 'dark light' : 'light dark');
+            }
+
+            const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+            if (themeColorMeta) {
+                themeColorMeta.setAttribute('content', activeTheme === 'dark' ? '#050814' : '#ffffff');
+            }
+        })();
+    </script>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=20260507-2">
+    <link rel="stylesheet" href="css/landing.css?v=20260626-9">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Preload critical files -->
+    <link rel="preload" href="config.js?v=20260528-1" as="script">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue: #3b82f6;
+            --purple: #7c3aed;
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --bg-page: #050814;
+            --bg-card: rgba(15, 23, 42, 0.45);
+            --border: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            --shadow-hover: 0 20px 40px rgba(124, 58, 237, 0.15);
+            --font-display: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        html[data-theme="light"] {
+            --bg-page: #fcfaff;
+            --bg-card: rgba(255, 255, 255, 0.7);
+            --border: rgba(124, 58, 237, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            --shadow-hover: 0 20px 40px rgba(79, 70, 229, 0.06);
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* ── Splash Screen ── */
+        #anvi-splash {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: #050814;
+            color: #ffffff;
+            z-index: 9999;
+            transition: opacity 250ms ease, visibility 250ms ease;
+            opacity: 1;
+            visibility: visible;
+        }
+        #anvi-splash.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        #anvi-splash .spinner {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--purple);
+            animation: spin 650ms linear infinite;
+        }
+        html[data-theme="light"] #anvi-splash {
+            background: #ffffff;
+            color: #0f172a;
+        }
+        html[data-theme="light"] #anvi-splash .spinner {
+            border-color: rgba(15, 23, 42, 0.2);
+            border-top-color: var(--purple);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Background Noise & Mesh ── */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.45;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(rgba(124, 58, 237, 0.07) 1.5px, transparent 1.5px),
+                radial-gradient(rgba(59, 130, 246, 0.07) 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+        }
+
+        .blur-blob {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+            transform: translate3d(0, 0, 0);
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+        .blob-1 { top: 5%; left: -150px; background: var(--blue); }
+        .blob-2 { bottom: 15%; right: -150px; background: var(--purple); }
+
+        .about-wrap {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ── Glass Cards ── */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            box-shadow: var(--shadow);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s, border-color 0.35s;
+        }
+        .glass-card:hover {
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(124, 58, 237, 0.18);
+        }
+
+        /* ── ANIMATIONS ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
+        }
+        .reveal.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── HERO SECTION ── */
+        .about-hero {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 50px;
+            align-items: center;
+            padding: 130px 0 70px;
+        }
+        @media (max-width: 900px) {
+            .about-hero {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                text-align: center;
+                padding: 100px 0 50px;
+            }
+        }
+        .hero-badge {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--purple);
+            background: rgba(124, 58, 237, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            padding: 6px 14px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .about-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.3rem, 5vw, 3.3rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+        .dl-grad-text {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .about-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 30px;
+            max-width: 580px;
+        }
+        @media (max-width: 900px) {
+            .about-desc { margin-left: auto; margin-right: auto; }
+        }
+
+        /* ── Mockup Phone Preview (Dashboard visual) ── */
+        .mock-dashboard-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .phone-frame {
+            width: 290px;
+            height: 580px;
+            border: 10px solid #0f172a;
+            border-radius: 40px;
+            background: #ffffff;
+            box-shadow: 
+                -20px 25px 50px -10px rgba(15, 23, 42, 0.12), 
+                0 0 0 1px rgba(15, 23, 42, 0.04),
+                0 0 0 4px #e2e8f0;
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+            transform: rotateY(-10deg) rotateX(6deg) rotateZ(2deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        html[data-theme="dark"] .phone-frame {
+            border-color: #1e293b;
+            background: #0b0f19;
+            box-shadow: 
+                -20px 25px 50px -10px rgba(0, 0, 0, 0.5), 
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 0 0 4px #334155;
+        }
+        @media (max-width: 900px) {
+            .phone-frame {
+                transform: none;
+                width: 270px;
+                height: 540px;
+                margin: 0 auto;
+            }
+        }
+        .phone-notch {
+            width: 100px;
+            height: 16px;
+            background: #0f172a;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        html[data-theme="dark"] .phone-notch { background: #1e293b; }
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 12px 12px;
+            box-sizing: border-box;
+            font-size: 0.72rem;
+            overflow: hidden;
+        }
+        html[data-theme="dark"] .phone-screen { background: #0f172a; }
+        .mock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 12px;
+        }
+        html[data-theme="dark"] .mock-header { border-bottom-color: rgba(255,255,255,0.05); }
+        .mock-brand { font-weight: 800; font-family: var(--font-display); color: var(--text-primary); display: flex; align-items: center; gap: 4px; }
+        .mock-brand img { width: 14px; height: 14px; border-radius: 3px; }
+        .mock-time { font-size: 0.6rem; color: var(--text-muted); font-weight: 600; }
+        .mock-card {
+            border-radius: var(--radius-md);
+            padding: 10px;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .mock-card.coins { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .mock-card.tokens { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+        .mock-lbl { font-size: 0.52rem; opacity: 0.95; font-weight: 600; text-transform: uppercase; }
+        .mock-val { font-size: 0.9rem; font-weight: 800; margin-top: 2px; }
+        .mock-sec-lbl { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin: 8px 0 6px; letter-spacing: 0.5px; }
+        .mock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .mock-btn { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 8px; text-align: center; color: var(--text-secondary); font-size: 0.6rem; font-weight: 600; }
+        html[data-theme="dark"] .mock-btn { background: #1e293b; border-color: rgba(255,255,255,0.05); color: #cbd5e1; }
+        .mock-btn i { display: block; font-size: 0.9rem; margin-bottom: 3px; color: var(--purple); }
+
+        /* ── SECTION HEADER ── */
+        .sec-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .sec-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(124, 58, 237, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            font-family: var(--font-display);
+        }
+        .sec-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        /* ── OUR STORY SECTION ── */
+        .story-section { padding: 80px 0; }
+        .story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        @media (max-width: 768px) {
+            .story-grid { grid-template-columns: 1fr; gap: 30px; }
+        }
+        .story-p { font-size: 1rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; }
+
+        /* ── WHY CHOOSE US ── */
+        .why-section { padding: 80px 0; }
+        .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .why-card { display: flex; flex-direction: column; gap: 12px; }
+        .why-icon { width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700; }
+        .why-card:nth-child(1) .why-icon { background: rgba(59, 130, 246, 0.06); color: var(--blue); }
+        .why-card:nth-child(2) .why-icon { background: rgba(16, 185, 129, 0.06); color: var(--emerald); }
+        .why-card:nth-child(3) .why-icon { background: rgba(245, 158, 11, 0.06); color: var(--amber); }
+        .why-card:nth-child(4) .why-icon { background: rgba(124, 58, 237, 0.06); color: var(--purple); }
+
+        /* ── HOW IT WORKS FLOW ── */
+        .flow-section { padding: 80px 0; }
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            position: relative;
+            margin-top: 30px;
+        }
+        @media (max-width: 900px) {
+            .flow-grid { grid-template-columns: 1fr; gap: 30px; }
+        }
+        .flow-node {
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            position: relative;
+        }
+        .flow-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--purple);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+        }
+        .flow-title { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
+        .flow-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+        
+        /* Arrow connectors */
+        .flow-node::after {
+            content: "\eb92"; /* Remixicon arrow-right-line */
+            font-family: 'remixicon';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            z-index: 10;
+        }
+        .flow-node:last-child::after { display: none; }
+        @media (max-width: 900px) {
+            .flow-node::after {
+                content: "\ea58"; /* arrow-down-line */
+                right: auto;
+                left: 50%;
+                top: auto;
+                bottom: -22px;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* ── EARNINGS SECTION ── */
+        .earn-section { padding: 80px 0; }
+        .earn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+        .earn-card { display: flex; flex-direction: column; gap: 12px; position: relative; }
+        .earn-reward-badge { position: absolute; top: 20px; right: 20px; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 99px; }
+        .earn-reward-badge.blue { background: rgba(59, 130, 246, 0.08); color: var(--blue); }
+        .earn-reward-badge.purple { background: rgba(124, 58, 237, 0.08); color: var(--purple); }
+        .earn-reward-badge.emerald { background: rgba(16, 185, 129, 0.08); color: var(--emerald); }
+        .earn-reward-badge.amber { background: rgba(245, 158, 11, 0.08); color: var(--amber); }
+
+        /* ── CALCULATOR SECTION ── */
+        .calc-section { padding: 80px 0; }
+        .calc-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; }
+        @media (max-width: 768px) {
+            .calc-container { grid-template-columns: 1fr; gap: 30px; }
+        }
+        .calc-slider-box { display: flex; flex-direction: column; gap: 20px; }
+        .slider-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 1rem; font-family: var(--font-display); }
+        .custom-range {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 99px;
+            background: #e2e8f0;
+            outline: none;
+        }
+        html[data-theme="dark"] .custom-range { background: rgba(255,255,255,0.1); }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--purple);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            border: 2px solid #ffffff;
+            transition: transform 0.2s;
+        }
+        .custom-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .calc-results-box {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-left: 30px;
+            border-left: 1px solid var(--border);
+        }
+        @media (max-width: 768px) {
+            .calc-results-box { border-left: none; padding-left: 0; padding-top: 20px; border-top: 1px solid var(--border); }
+        }
+        .calc-result-item { display: flex; justify-content: space-between; align-items: center; }
+        .calc-result-lbl { font-size: 0.92rem; color: var(--text-secondary); }
+        .calc-result-val { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); font-family: var(--font-display); }
+        .calc-result-val.highlight { color: var(--emerald); }
+
+        /* ── TRUST & SECURITY BADGES ── */
+        .trust-section { padding: 50px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: rgba(124, 58, 237, 0.02); }
+        .trust-flex { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; align-items: center; }
+        @media (max-width: 600px) { .trust-flex { gap: 24px; } }
+        .trust-item { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.95rem; color: var(--text-secondary); }
+        .trust-item i { font-size: 1.4rem; color: var(--emerald); }
+
+        /* ── STATS SECTION ── */
+        .stats-section { padding: 80px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        }
+        .stat-num { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+        .stat-lbl { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; }
+
+        /* ── TIMELINE ROADMAP ── */
+        .timeline-section { padding: 80px 0; }
+        .timeline-container { position: relative; max-width: 800px; margin: 40px auto 0; padding: 20px 0; }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; left: 50%;
+            width: 2px; background: var(--border);
+            transform: translateX(-50%);
+        }
+        @media (max-width: 768px) {
+            .timeline-container::before { left: 20px; }
+        }
+        .timeline-item { position: relative; width: 50%; padding: 0 40px 30px; box-sizing: border-box; }
+        .timeline-item.left { left: 0; text-align: right; }
+        .timeline-item.right { left: 50%; text-align: left; }
+        @media (max-width: 768px) {
+            .timeline-item { width: 100%; left: 0 !important; text-align: left !important; padding: 0 0 30px 45px; }
+        }
+        .timeline-dot {
+            width: 14px; height: 14px; border-radius: 50%;
+            background: var(--bg-page); border: 3px solid var(--purple);
+            position: absolute; top: 4px; left: 50%;
+            transform: translateX(-50%); z-index: 5;
+        }
+        @media (max-width: 768px) {
+            .timeline-dot { left: 20px; transform: none; }
+        }
+        .timeline-item.completed .timeline-dot { background: var(--purple); }
+        .timeline-date { font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; color: var(--purple); text-transform: uppercase; margin-bottom: 4px; }
+        .timeline-card-title { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; }
+        .timeline-card-desc { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; }
+
+        /* ── VALUES SECTION ── */
+        .values-section { padding: 80px 0; }
+        .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        @media (max-width: 768px) {
+            .values-grid { grid-template-columns: 1fr; }
+        }
+        .value-card { display: flex; flex-direction: column; gap: 12px; }
+        .value-title { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
+
+        /* ── FAQ ACCORDION ── */
+        .faq-section { padding: 80px 0; }
+        .faq-container { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+        .faq-card { cursor: pointer; }
+        .faq-question { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
+        .faq-toggle-btn { font-size: 1.2rem; color: var(--text-muted); transition: transform 0.3s; }
+        .faq-card.open .faq-toggle-btn { transform: rotate(180deg); color: var(--purple); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), margin 0.3s; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.65; }
+        .faq-card.open .faq-answer { max-height: 250px; margin-top: 12px; }
+
+        /* ── BOTTOM CTA ── */
+        .cta-section { padding: 80px 0; }
+        .cta-banner {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(124, 58, 237, 0.04) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 56px 40px;
+            box-shadow: var(--shadow);
+        }
+        .cta-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; margin-bottom: 12px; }
+        .cta-desc { font-size: 1.05rem; color: var(--text-secondary); max-width: 520px; margin: 0 auto 28px; line-height: 1.6; }
+        .dl-btn-box { display: flex; align-items: center; justify-content: center; gap: 16px; }
+        @media (max-width: 600px) { .dl-btn-box { flex-direction: column; width: 100%; } .dl-btn-box button { width: 100%; } }
+        .btn-grad {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            color: #ffffff; border: none; border-radius: var(--radius-lg);
+            padding: 16px 36px; font-size: 1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.16); transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none; font-family: var(--font-display);
+        }
+        .btn-grad:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(124, 58, 237, 0.26); }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Splash Screen -->
+    <div id="anvi-splash" role="status" aria-live="polite" aria-label="Loading">
+        <div class="inner">
+            <div class="spinner" aria-hidden="true"></div>
+            <div>Loading…</div>
+        </div>
+    </div>
+
+    <!-- MAIN SHELL -->
+    <main class="landing-page app-shell">
+        
+        <!-- SITE HEADER - Identical to index.html -->
+        <header class="site-header">
+            <nav class="navbar">
+                <div class="navbar-container">
+                    <!-- Left: Logo -->
+                    <a href="index.html" class="navbar-logo" aria-label="AnviPayz home">
+                        <img loading="lazy" src="favicon.png" alt="AnviPayz Logo - Free Mobile Recharge App" class="navbar-logo-img" width="32" height="32" decoding="async">
+                        <span>AnviPayz</span>
+                    </a>
+                    
+                    <!-- Center: Links mapping back to index anchors -->
+                    <div class="navbar-menu">
+                        <a href="index.html#modules" class="navbar-link">Features</a>
+                        <a href="index.html#how-it-works" class="navbar-link">How It Works</a>
+                        <a href="index.html#rewards" class="navbar-link">Rewards</a>
+                        <a href="index.html#faq" class="navbar-link">FAQ</a>
+                        <a href="about.html" class="navbar-link active">About Us</a>
+                    </div>
+                    
+                    <!-- Right: Actions -->
+                    <div class="navbar-actions">
+                        <button class="navbar-btn navbar-btn-theme" id="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
+                            <i class="ri-moon-line" id="theme-icon"></i>
+                        </button>
+                        <a href="download.html" class="navbar-btn" id="app-install-nav-btn" aria-label="Download App" title="Download App" style="display: inline-flex; align-items: center; justify-content: center; padding: 0 10px;">
+                            <i class="ri-download-cloud-2-line" aria-hidden="true" style="font-size: 1.25rem; color: #4f46e5;"></i>
+                        </a>
+                        <a href="login.html" class="navbar-btn navbar-btn-login btn-desktop-only" aria-label="Login to your account">
+                            <i class="ri-user-line" aria-hidden="true"></i>
+                            <span class="btn-text">Login</span>
+                        </a>
+                        <a href="register.html" class="navbar-btn navbar-btn-register btn-desktop-only" aria-label="Create a new account">
+                            <i class="ri-user-add-line" aria-hidden="true"></i>
+                            <span class="btn-text">Sign up</span>
+                        </a>
+                        
+                        <!-- Mobile hamburger -->
+                        <button class="navbar-hamburger" id="navbar-hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
+                            <span class="hamburger-line line-1"></span>
+                            <span class="hamburger-line line-2"></span>
+                            <span class="hamburger-line line-3"></span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Mobile Slide-In Drawer Menu -->
+            <div class="mobile-drawer" id="mobile-drawer" aria-hidden="true">
+                <div class="drawer-overlay" id="drawer-overlay" tabindex="-1"></div>
+                <div class="drawer-content" role="dialog" aria-modal="true" aria-labelledby="drawer-title-id">
+                    <div class="drawer-header">
+                        <span class="drawer-title" id="drawer-title-id">Menu</span>
+                        <button class="drawer-close" id="drawer-close" aria-label="Close menu">
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="drawer-promo-card">
+                        <div class="drawer-promo-brand">
+                            <img loading="lazy" src="favicon.png" alt="AnviPayz Logo" class="drawer-promo-logo" width="24" height="24">
+                            <div class="drawer-promo-brand-text">
+                                <span class="brand-name">AnviPayz</span>
+                                <span class="brand-tagline">Reward & Recharge Platform</span>
+                            </div>
+                        </div>
+                        <ul class="drawer-promo-features">
+                            <li><i class="ri-checkbox-circle-fill"></i> Free to Join</li>
+                            <li><i class="ri-checkbox-circle-fill"></i> Secure Verification</li>
+                            <li><i class="ri-checkbox-circle-fill"></i> Referral Rewards</li>
+                            <li><i class="ri-checkbox-circle-fill"></i> Recharge Benefits</li>
+                        </ul>
+                        <a href="register.html" class="drawer-promo-cta drawer-btn-close-target">Create Free Account</a>
+                        <div class="drawer-promo-login">
+                            <span>Already a member?</span>
+                            <a href="login.html" class="drawer-promo-login-link drawer-btn-close-target">Log In →</a>
+                        </div>
+                    </div>
+
+                    <div class="drawer-links">
+                        <a href="download.html" class="drawer-link drawer-btn-close-target download-drawer-link" style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%); border: 1px solid rgba(79, 70, 229, 0.2); border-radius: 12px; margin-bottom: 12px; padding: 12px 16px; display: flex; align-items: center; text-decoration: none;">
+                            <span class="drawer-link-text" style="color: #4f46e5; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; flex-grow: 1;"><i class="ri-download-cloud-2-fill"></i> Download App</span>
+                            <span class="badge" style="background: #4f46e5; color: white; font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: bold; text-transform: uppercase;">Install</span>
+                            <i class="ri-arrow-right-s-line arrow-icon" style="color: #4f46e5; margin-left: 8px;"></i>
+                        </a>
+                        <a href="index.html" class="drawer-link drawer-btn-close-target"><span class="drawer-link-text"><i class="ri-home-5-line"></i> Home</span><i class="ri-arrow-right-s-line arrow-icon"></i></a>
+                        <a href="about.html" class="drawer-link drawer-btn-close-target"><span class="drawer-link-text"><i class="ri-information-line"></i> About Us</span><i class="ri-arrow-right-s-line arrow-icon"></i></a>
+                        <a href="index.html#modules" class="drawer-link drawer-btn-close-target"><span class="drawer-link-text"><i class="ri-shield-flash-line"></i> Features</span><i class="ri-arrow-right-s-line arrow-icon"></i></a>
+                        <a href="index.html#how-it-works" class="drawer-link drawer-btn-close-target"><span class="drawer-link-text"><i class="ri-settings-4-line"></i> How It Works</span><i class="ri-arrow-right-s-line arrow-icon"></i></a>
+                        <a href="index.html#faq" class="drawer-link drawer-btn-close-target"><span class="drawer-link-text"><i class="ri-questionnaire-line"></i> FAQ</span><i class="ri-arrow-right-s-line arrow-icon"></i></a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Blur blobs -->
+        <div class="blur-blob blob-1"></div>
+        <div class="blur-blob blob-2"></div>
+
+        <!-- HERO SECTION -->
+        <div class="about-wrap">
+            <section class="about-hero">
+                <!-- Left: Narrative -->
+                <div class="reveal">
+                    <div class="hero-badge">Made for Smart Mobile Recharge Savings</div>
+                    <h1 class="about-title">
+                        Building India's Rewards Platform for <span class="dl-grad-text">Everyday Mobile Savings</span>
+                    </h1>
+                    <p class="about-desc">
+                        AnviPayz is a token-based reward system designed to make daily internet and mobile plans affordable. By completing tasks, users earn reward points, convert them to secure utility tokens, and claim direct discount reductions on recharges.
+                    </p>
+                    <div class="dl-btn-box" style="justify-content: flex-start;">
+                        <a href="register.html" class="btn-grad">Create Free Account</a>
+                        <a href="download.html" class="btn-grad" style="background: rgba(255, 255, 255, 0.08); color: var(--text-primary); border: 1px solid var(--border); box-shadow: none;">Install App</a>
+                    </div>
+                </div>
+
+                <!-- Right: Dashboard Preview Mockup -->
+                <div class="mock-dashboard-wrapper reveal">
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="mock-header">
+                                <span class="mock-brand"><img src="favicon.png"> AnviPayz</span>
+                                <span class="mock-time">10:00 AM</span>
+                            </div>
+                            
+                            <div class="mock-card coins">
+                                <span class="mock-lbl">Coins Balance</span>
+                                <span class="mock-val">🪙 5,000 Coins</span>
+                            </div>
+                            <div class="mock-card tokens">
+                                <span class="mock-lbl">Utility Tokens</span>
+                                <span class="mock-val">⚡ 50.00 Tokens</span>
+                            </div>
+
+                            <span class="mock-sec-lbl">Convert & Earn</span>
+                            <div class="mock-grid">
+                                <div class="mock-btn"><i class="ri-survey-line"></i>Surveys</div>
+                                <div class="mock-btn"><i class="ri-refresh-line"></i>Spin Wheel</div>
+                            </div>
+                            
+                            <span class="mock-sec-lbl">Operator Discount</span>
+                            <div style="background: rgba(16, 185, 129, 0.08); padding: 8px; border-radius: var(--radius-md); font-size: 0.58rem; color: var(--emerald); font-weight: 600; display: flex; justify-content: space-between; border: 1px dashed rgba(16, 185, 129, 0.3);">
+                                <span>Token Saving:</span>
+                                <span>- ₹50.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- COMPANY STORY -->
+        <div class="about-wrap">
+            <section class="story-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-history-line"></i> Our Mission</div>
+                    <h2 class="sec-title">Our Story</h2>
+                </div>
+                <div class="story-grid">
+                    <div>
+                        <p class="story-p">
+                            In an increasingly digital India, mobile connectivity is not a luxury—it is a necessity for education, work, and communication. However, with rising mobile tariff plans, maintaining continuous mobile data has become a monthly financial burden for millions of students and daily-wage earners.
+                        </p>
+                        <p class="story-p">
+                            AnviPayz started with a simple question: <em>How can we empower users to subsidize their own mobile connectivity costs using their spare time?</em>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="story-p">
+                            Our team built a platform that translates daily micro-tasks, feedback surveys, and game modules into real, tangible monetary savings on recharges. We bypass complex points schemas with a direct, transparent utility token system.
+                        </p>
+                        <p class="story-p">
+                            <strong>Our Vision:</strong> To democratize internet access across India, ensuring no student or worker is ever cut off from opportunities due to recharge constraints.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- WHY CHOOSE ANVIPAYZ -->
+        <div class="about-wrap">
+            <section class="why-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-sparkling-fill"></i> Why Us</div>
+                    <h2 class="sec-title">Why Choose AnviPayz</h2>
+                </div>
+                <div class="why-grid">
+                    <div class="glass-card why-card">
+                        <div class="why-icon">⚡</div>
+                        <h3 class="flow-title">Instant Token Conversion</h3>
+                        <p class="flow-desc">No wait times. Convert your earned task points into utility tokens instantly with a single tap in your wallet.</p>
+                    </div>
+                    <div class="glass-card why-card">
+                        <div class="why-icon">🔒</div>
+                        <h3 class="flow-title">100% Secure & Private</h3>
+                        <p class="flow-desc">Your credentials and transaction tokens are protected by standard industry-grade SSL encryption protocols.</p>
+                    </div>
+                    <div class="glass-card why-card">
+                        <div class="why-icon">💎</div>
+                        <h3 class="flow-title">Zero Hidden Fees</h3>
+                        <p class="flow-desc">What you earn is what you save. We charge absolutely zero fees for conversions or checkout payments.</p>
+                    </div>
+                    <div class="glass-card why-card">
+                        <div class="why-icon">📱</div>
+                        <h3 class="flow-title">PWA Support</h3>
+                        <p class="flow-desc">Install our Progressive Web App (PWA) on your phone directly from the browser for a faster, full-screen experience.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- HOW IT WORKS FLOW -->
+        <div class="about-wrap">
+            <section class="flow-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-git-commit-line"></i> User Flow</div>
+                    <h2 class="sec-title">How It Works</h2>
+                </div>
+                <div class="flow-grid">
+                    <div class="flow-node">
+                        <span class="flow-num">1</span>
+                        <h3 class="flow-title">Sign Up</h3>
+                        <p class="flow-desc">Create your free account on AnviPayz in under 30 seconds.</p>
+                    </div>
+                    <div class="flow-node">
+                        <span class="flow-num">2</span>
+                        <h3 class="flow-title">Earn Points</h3>
+                        <p class="flow-desc">Complete micro-tasks, surveys, daily spins, and referrals.</p>
+                    </div>
+                    <div class="flow-node">
+                        <span class="flow-num">3</span>
+                        <h3 class="flow-title">Convert</h3>
+                        <p class="flow-desc">Convert task points into secure AnviPayz utility tokens.</p>
+                    </div>
+                    <div class="flow-node">
+                        <span class="flow-num">4</span>
+                        <h3 class="flow-title">Save</h3>
+                        <p class="flow-desc">Apply tokens at checkout to redeem mobile recharge discounts.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TRUST & SECURITY BADGES -->
+        <section class="trust-section reveal">
+            <div class="about-wrap">
+                <div class="trust-flex">
+                    <div class="trust-item"><i class="ri-shield-check-fill"></i> SSL Protected</div>
+                    <div class="trust-item"><i class="ri-key-2-fill"></i> OTP Verification</div>
+                    <div class="trust-item"><i class="ri-wallet-3-fill"></i> Secure Wallet</div>
+                    <div class="trust-item"><i class="ri-price-tag-3-fill"></i> No Hidden Fees</div>
+                    <div class="trust-item"><i class="ri-eye-fill"></i> Transparent Reward System</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATS SECTION -->
+        <div class="about-wrap">
+            <section class="stats-section reveal">
+                <div class="stats-grid">
+                    <div>
+                        <div class="stat-num">100K+</div>
+                        <div class="stat-lbl">Active Users</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">1.2M+</div>
+                        <div class="stat-lbl">Tasks Completed</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">₹5Lakh+</div>
+                        <div class="stat-lbl">Rewards Distributed</div>
+                    </div>
+                    <div>
+                        <div class="stat-num">100%</div>
+                        <div class="stat-lbl">Supported Operators</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- EARNINGS SECTION -->
+        <div class="about-wrap">
+            <section class="earn-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-wallet-line"></i> Rewards Menu</div>
+                    <h2 class="sec-title">Earning Pathways</h2>
+                </div>
+                <div class="earn-grid">
+                    <!-- Card 1 -->
+                    <div class="glass-card earn-card">
+                        <span class="earn-reward-badge blue">Survey</span>
+                        <div class="why-icon">📋</div>
+                        <h3 class="flow-title" style="margin-top: 10px;">CPX Research Surveys</h3>
+                        <p class="flow-desc">Participate in short feedback surveys matched specifically to your demographics and earn high coin rewards.</p>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="glass-card earn-card">
+                        <span class="earn-reward-badge purple">Tasks</span>
+                        <div class="why-icon">⚡</div>
+                        <h3 class="flow-title" style="margin-top: 10px;">Daily Tasks</h3>
+                        <p class="flow-desc">Check-in daily, complete profile goals, and click short verification links to claim instant coins payouts.</p>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="glass-card earn-card">
+                        <span class="earn-reward-badge emerald">Games</span>
+                        <div class="why-icon">🎡</div>
+                        <h3 class="flow-title" style="margin-top: 10px;">Spin Wheel</h3>
+                        <p class="flow-desc">Try your luck once every hour. Spin the interactive reward wheel to win extra bonus points for free.</p>
+                    </div>
+                    <!-- Card 4 -->
+                    <div class="glass-card earn-card">
+                        <span class="earn-reward-badge amber">Referral</span>
+                        <div class="why-icon">🎁</div>
+                        <h3 class="flow-title" style="margin-top: 10px;">Refer & Earn</h3>
+                        <p class="flow-desc">Invite friends using your unique referral code. Earn a percentage bonus of all coins your referrals collect.</p>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 30px; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                    *Rewards and points payouts may change over time based on partner requirements.
+                </p>
+            </section>
+        </div>
+
+        <!-- DYNAMIC SAVINGS CALCULATOR -->
+        <div class="about-wrap">
+            <section class="calc-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-calculator-line"></i> Estimator</div>
+                    <h2 class="sec-title">Calculate Your Savings</h2>
+                </div>
+                <div class="glass-card calc-container">
+                    <div class="calc-slider-box">
+                        <div class="slider-header">
+                            <span>Adjust Earned Points</span>
+                            <span id="slider-points-display" class="dl-grad-text">5,000 Points</span>
+                        </div>
+                        <input type="range" class="custom-range" id="points-range" min="1000" max="50000" step="1000" value="5000">
+                        <p class="flow-desc">Drag the slider to estimate how your daily activity translates into direct discount savings on your phone recharge plan.</p>
+                    </div>
+
+                    <div class="calc-results-box">
+                        <div class="calc-result-item">
+                            <span class="calc-result-lbl">Earned Points:</span>
+                            <span class="calc-result-val" id="calc-points-val">5,000</span>
+                        </div>
+                        <div class="calc-result-item">
+                            <span class="calc-result-lbl">Converted Tokens:</span>
+                            <span class="calc-result-val" id="calc-tokens-val" style="color: var(--purple);">50</span>
+                        </div>
+                        <div class="calc-result-item">
+                            <span class="calc-result-lbl">Estimated Cash Discount:</span>
+                            <span class="calc-result-val highlight" id="calc-discount-val">₹50.00</span>
+                        </div>
+                        <div class="calc-result-item" style="border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 4px;">
+                            <span class="calc-result-lbl" style="font-weight: 700; color: var(--text-primary);">Avg. Recharge Saving:</span>
+                            <span class="calc-result-val" id="calc-saving-percent" style="color: var(--emerald);">21% OFF</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TIMELINE ROADMAP -->
+        <div class="about-wrap">
+            <section class="timeline-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-map-pin-2-line"></i> Timeline</div>
+                    <h2 class="sec-title">Our Roadmap</h2>
+                </div>
+                
+                <div class="timeline-container">
+                    <div class="timeline-item left completed">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">Q1 2026</div>
+                        <h3 class="timeline-card-title">Initial Launch</h3>
+                        <p class="timeline-card-desc">Beta version release with daily check-ins, micro-tasks, and Jio/Airtel discounts integrations.</p>
+                    </div>
+                    <div class="timeline-item right completed">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">Q2 2026</div>
+                        <h3 class="timeline-card-title">CPX Survey Integration</h3>
+                        <p class="timeline-card-desc">Partnered with CPX Research to offer survey boards with instant coin rewards.</p>
+                    </div>
+                    <div class="timeline-item left">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">Q3 2026</div>
+                        <h3 class="timeline-card-title">PWA & Notifications</h3>
+                        <p class="timeline-card-desc">Launching Progressive Web App (PWA) and push alerts for task and token updates.</p>
+                    </div>
+                    <div class="timeline-item right">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">Q4 2026</div>
+                        <h3 class="timeline-card-title">Roadmap expansion</h3>
+                        <p class="timeline-card-desc">Adding multiple referral levels, gift cards redemptions, and new micro-gaming reward rooms.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- COMMITMENT & VALUES -->
+        <div class="about-wrap">
+            <section class="values-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-user-heart-line"></i> Ethics</div>
+                    <h2 class="sec-title">Our Values</h2>
+                </div>
+                <div class="values-grid">
+                    <div class="glass-card value-card">
+                        <h3 class="value-title" style="color: var(--purple);">User Payout First</h3>
+                        <p class="flow-desc">We prioritize low conversion thresholds and direct payouts, ensuring users can claim discounts immediately without hurdles.</p>
+                    </div>
+                    <div class="glass-card value-card">
+                        <h3 class="value-title" style="color: var(--blue);">Complete Transparency</h3>
+                        <p class="flow-desc">Points conversions and token balances are displayed directly in the wallet ledger. Zero hidden fees or unexpected charges.</p>
+                    </div>
+                    <div class="glass-card value-card">
+                        <h3 class="value-title" style="color: var(--emerald);">Data Protection</h3>
+                        <p class="flow-desc">We store credentials securely. User search patterns or profiles are never shared or sold to marketing aggregators.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- FAQ ACCORDION -->
+        <div class="about-wrap">
+            <section class="faq-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-question-fill"></i> FAQ</div>
+                    <h2 class="sec-title">About FAQ</h2>
+                </div>
+                <div class="faq-container">
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>How does AnviPayz subsidize recharges?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            We partner with advertising platforms and research agencies (like CPX Research). When you complete tasks or surveys, these partners pay us. We pass the majority of this payout directly back to you as reward points.
+                        </div>
+                    </div>
+
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>What is the conversion value of tokens?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Every 1,000 points converts into 10 AnviPayz Utility Tokens. 1 Token equals a direct ₹1 discount reduction on any mobile recharge plan checkout.
+                        </div>
+                    </div>
+
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>Are there any charges for converting tokens?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            No. Conversion from points to tokens is completely free. We do not deduct any processing fees or maintenance overheads.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- BOTTOM CTA -->
+        <div class="about-wrap">
+            <section class="cta-section reveal">
+                <div class="cta-banner">
+                    <h2 class="cta-title">Ready to Start Saving?</h2>
+                    <p class="cta-desc">Join thousands of users earning reward points and recharge discounts every day.</p>
+                    <div class="dl-btn-box">
+                        <a href="register.html" class="btn-grad">Create Free Account</a>
+                        <a href="download.html" class="btn-grad" style="background: rgba(255, 255, 255, 0.08); color: var(--text-primary); border: 1px solid var(--border); box-shadow: none;">Install App</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- FOOTER SECTION - Identical to index.html -->
+        <footer class="landing-footer">
+            <div class="footer-container">
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <a href="index.html" class="navbar-logo">
+                            <img src="favicon.png" alt="AnviPayz Logo" width="32" height="32">
+                            <span>AnviPayz</span>
+                        </a>
+                        <p class="footer-brand-text">Token-based recharge rewards platform. Tasks complete karo, coins ko token mein convert karo, har recharge par real-time discount pao.</p>
+                        <div class="footer-social-links">
+                            <a href="#" aria-label="Facebook"><i class="ri-facebook-circle-fill"></i></a>
+                            <a href="#" aria-label="Instagram"><i class="ri-instagram-line"></i></a>
+                            <a href="#" aria-label="Twitter"><i class="ri-twitter-x-line"></i></a>
+                            <a href="#" aria-label="Telegram"><i class="ri-telegram-line"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="footer-nav-col">
+                        <h4>Earn Faster</h4>
+                        <div class="footer-links">
+                            <a href="download.html"><i class="ri-arrow-right-s-line"></i> Install App</a>
+                            <a href="index.html#modules"><i class="ri-arrow-right-s-line"></i> Daily Tasks</a>
+                            <a href="index.html#modules"><i class="ri-arrow-right-s-line"></i> Refer & Earn</a>
+                            <a href="wallet.html"><i class="ri-arrow-right-s-line"></i> Token Wallet</a>
+                            <a href="recharge.html"><i class="ri-arrow-right-s-line"></i> Recharge</a>
+                        </div>
+                    </div>
+
+                    <div class="footer-nav-col">
+                        <h4>Support</h4>
+                        <div class="footer-links">
+                            <a href="support.html"><i class="ri-arrow-right-s-line"></i> Help Center</a>
+                            <a href="about.html" class="active"><i class="ri-arrow-right-s-line"></i> About Us</a>
+                            <a href="notifications.html"><i class="ri-arrow-right-s-line"></i> Announcements</a>
+                            <a href="mailto:anvipayz@gmail.com"><i class="ri-arrow-right-s-line"></i> Email Support</a>
+                        </div>
+                    </div>
+
+                    <div class="footer-nav-col">
+                        <h4>Contact</h4>
+                        <div class="footer-contact-info">
+                            <p class="contact-item">
+                                <i class="ri-mail-line"></i>
+                                <a href="mailto:anvipayz@gmail.com">anvipayz@gmail.com</a>
+                            </p>
+                            <p class="contact-item">
+                                <i class="ri-map-pin-line"></i>
+                                <span>India</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <p class="footer-copyright">&copy; 2026 AnviPayz. All rights reserved. Made with <span style="color:#ef4444;">&#10084;</span> in India</p>
+                    <div class="footer-policy-links">
+                        <a href="privacy.html">Privacy</a>
+                        <a href="terms.html">Terms</a>
+                        <a href="refund.html">Refund</a>
+                        <a href="disclaimer.html">Disclaimer</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- JAVASCRIPT FUNCTIONS -->
+    <script>
+        (function () {
+            // ─── Scroll Reveal Observer ─────────────────────────────────
+            function initScrollReveal() {
+                const reveals = document.querySelectorAll('.reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('show');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                
+                reveals.forEach(rev => observer.observe(rev));
+            }
+            initScrollReveal();
+
+            // ─── Interactive Calculator Logic ─────────────────────────
+            function initCalculator() {
+                const slider = document.getElementById('points-range');
+                const pointsDisplay = document.getElementById('slider-points-display');
+                const pointsVal = document.getElementById('calc-points-val');
+                const tokensVal = document.getElementById('calc-tokens-val');
+                const discountVal = document.getElementById('calc-discount-val');
+                const savingPercent = document.getElementById('calc-saving-percent');
+
+                if (!slider) return;
+
+                const formatNum = (num) => new Intl.NumberFormat('en-IN').format(num);
+
+                function updateCalc() {
+                    const points = parseInt(slider.value);
+                    // 1000 points = 10 tokens
+                    const tokens = Math.floor(points / 100); 
+                    // 1 token = 1 rupee discount
+                    const discount = tokens; 
+
+                    // Est. Saving Percentage based on standard ₹239 Jio/Airtel recharge plan
+                    const percent = Math.min(Math.round((discount / 239) * 100), 100);
+
+                    pointsDisplay.textContent = `${formatNum(points)} Points`;
+                    pointsVal.textContent = formatNum(points);
+                    tokensVal.textContent = formatNum(tokens);
+                    discountVal.textContent = `₹${formatNum(discount)}.00`;
+                    savingPercent.textContent = `${percent}% OFF`;
+                }
+
+                slider.addEventListener('input', updateCalc);
+                updateCalc(); // Run initially
+            }
+            initCalculator();
+
+            // ─── Sticky Header & Scroll Top ───────────────────────────
+            const navbar = document.querySelector('.navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 20) {
+                    navbar.classList.add('navbar-scrolled');
+                } else {
+                    navbar.classList.remove('navbar-scrolled');
+                }
+            }, { passive: true });
+
+            // ─── Mobile Drawer Menu toggle ────────────────────────────
+            const hamburger = document.getElementById('navbar-hamburger');
+            const drawer = document.getElementById('mobile-drawer');
+            const drawerClose = document.getElementById('drawer-close');
+            const drawerOverlay = document.getElementById('drawer-overlay');
+            const drawerLinks = document.querySelectorAll('.drawer-btn-close-target');
+            
+            function openDrawer() {
+                hamburger.classList.add('active');
+                hamburger.setAttribute('aria-expanded', 'true');
+                drawer.classList.add('active');
+                drawer.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeDrawer() {
+                hamburger.classList.remove('active');
+                hamburger.setAttribute('aria-expanded', 'false');
+                drawer.classList.remove('active');
+                drawer.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+            
+            hamburger.addEventListener('click', () => {
+                if (drawer.classList.contains('active')) {
+                    closeDrawer();
+                } else {
+                    openDrawer();
+                }
+            });
+            
+            drawerClose.addEventListener('click', closeDrawer);
+            drawerOverlay.addEventListener('click', closeDrawer);
+            drawerLinks.forEach(link => link.addEventListener('click', closeDrawer));
+
+            // Fade out splash screen when loaded
+            window.addEventListener('load', () => {
+                const splash = document.getElementById('anvi-splash');
+                if (splash) splash.classList.add('fade-out');
+            });
+
+            // FAQ Accordion Toggle
+            const faqCards = document.querySelectorAll('.faq-card');
+            faqCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const isOpen = card.classList.contains('open');
+                    faqCards.forEach(c => c.classList.remove('open'));
+                    if (!isOpen) {
+                        card.classList.add('open');
+                    }
+                });
+            });
+
+            // Sync theme toggle icon on initial load
+            const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const themeIcon = document.getElementById('theme-icon');
+            if (themeIcon) {
+                themeIcon.className = initialTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+            }
+
+        })();
+    </script>
+
+    <script defer src="config.js?v=20260528-1"></script>
+    <script defer src="js/auth.js?v=20260625-1"></script>
+</body>
+
+</html>

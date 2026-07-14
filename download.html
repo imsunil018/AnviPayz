@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="en-IN" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+
+    <!-- SEO Meta Tags -->
+    <title>Install AnviPayz App | Free PWA — Earn Coins & Mobile Recharge Discounts</title>
+    <meta name="description" content="Install the AnviPayz Web App (PWA) directly from your browser. No Play Store download required. Enjoy a fast, secure, app-like experience for daily rewards and mobile recharges.">
+    <meta name="keywords" content="AnviPayz app download, earn coins app India, mobile recharge discount app, free reward app, CPX survey app, PWA install, online earning India 2026, refer and earn coins">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://anvipayz.com/download.html">
+
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#fcfaff">
+    <meta name="application-name" content="AnviPayz">
+
+    <!-- Theme Initializer -->
+    <script>
+        (function () {
+            const STORAGE_KEY = 'anvi-theme';
+            let savedTheme;
+
+            try {
+                savedTheme = window.localStorage.getItem(STORAGE_KEY);
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const activeTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+            document.documentElement.setAttribute('data-theme', activeTheme);
+
+            const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
+            if (colorSchemeMeta) {
+                colorSchemeMeta.setAttribute('content', activeTheme === 'dark' ? 'dark light' : 'light dark');
+            }
+
+            const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+            if (themeColorMeta) {
+                themeColorMeta.setAttribute('content', activeTheme === 'dark' ? '#050814' : '#ffffff');
+            }
+        })();
+    </script>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=20260507-2">
+    <link rel="stylesheet" href="css/landing.css?v=20260626-9">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- QRious CDN for QR Code Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+    <!-- SEO Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AnviPayz",
+      "operatingSystem": "Android, iOS",
+      "applicationCategory": "FinanceApplication",
+      "applicationSubCategory": "RewardsApplication",
+      "downloadUrl": "https://anvipayz.com/download.html",
+      "url": "https://anvipayz.com",
+      "image": "https://anvipayz.com/favicon.png",
+      "offers": { "@type": "Offer", "price": "0.00", "priceCurrency": "INR" },
+      "description": "AnviPayz is a free token-based rewards platform for India. Earn coins by completing daily tasks, CPX micro-surveys, spin wheel, and referrals, and get mobile recharge discounts."
+    }
+    </script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue: #3b82f6;
+            --purple: #7c3aed;
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --bg-page: #fcfaff;
+            --bg-card: rgba(255, 255, 255, 0.7);
+            --border: rgba(124, 58, 237, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            --shadow-hover: 0 20px 40px rgba(79, 70, 229, 0.06);
+            --font-display: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ── Background Noise & Mesh ── */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.45;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(rgba(124, 58, 237, 0.07) 1.5px, transparent 1.5px),
+                radial-gradient(rgba(59, 130, 246, 0.07) 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+        }
+
+        .dl-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Blur decoration elements ── */
+        .blur-blob {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .blob-1 { top: 5%; left: -150px; background: var(--blue); }
+        .blob-2 { bottom: 15%; right: -150px; background: var(--purple); }
+
+        .dl-wrap {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ── TOP NAV ── */
+        .dl-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .dl-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color .2s, transform .2s;
+        }
+        .dl-back:hover {
+            color: var(--purple);
+            transform: translateX(-3px);
+        }
+        .dl-nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        .dl-nav-logo img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        /* ── GLASS CARD STYLING ── */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            box-shadow: var(--shadow);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s, border-color 0.35s;
+        }
+        .glass-card:hover {
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(124, 58, 237, 0.18);
+        }
+
+        /* ── ANIMATIONS ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── HERO SECTION ── */
+        .dl-hero {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 50px;
+            align-items: center;
+            padding: 20px 0 40px;
+        }
+        @media (max-width: 900px) {
+            .dl-hero {
+                grid-template-columns: 1fr;
+                gap: 50px;
+                text-align: center;
+                padding: 30px 0;
+            }
+        }
+
+        .dl-hero-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 900px) {
+            .dl-hero-badge-row { justify-content: center; }
+        }
+        .hero-badge-item {
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--purple);
+            background: rgba(124, 58, 237, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            padding: 6px 12px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dl-hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.3rem, 5.5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -0.03em;
+            margin-bottom: 18px;
+            color: var(--text-primary);
+        }
+        .dl-grad-text {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dl-hero-desc {
+            font-size: 1.08rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 30px;
+            max-width: 580px;
+        }
+        @media (max-width: 900px) {
+            .dl-hero-desc { margin-left: auto; margin-right: auto; }
+        }
+
+        /* BUTTONS */
+        .dl-btn-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 900px) {
+            .dl-btn-box { justify-content: center; flex-direction: column; gap: 12px; }
+        }
+        .btn-grad {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: 18px 40px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(124, 58, 237, 0.22);
+            transition: transform 0.25s, box-shadow 0.25s;
+            text-decoration: none;
+            font-family: var(--font-display);
+            overflow: hidden;
+        }
+        .btn-grad::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .btn-grad:hover::after { opacity: 1; }
+        .btn-grad:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px rgba(124, 58, 237, 0.32);
+        }
+        .btn-grad:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-link-sec {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .btn-link-sec:hover {
+            color: var(--purple);
+            text-decoration: underline;
+        }
+
+        /* ── MOCKUP WRAPPER & ANTIGRAVITY ANIMATION ── */
+        .hero-mockup-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .antigravity-dots {
+            position: absolute;
+            inset: -20px -80px;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .antigravity-dot {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+            transition: transform 0.15s ease-out;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-560px) scale(0.6); opacity: 0; }
+        }
+
+        .phone-frame {
+            width: 310px;
+            height: 620px;
+            border: 12px solid #0f172a;
+            border-radius: 44px;
+            background: #ffffff;
+            box-shadow: 
+                -25px 30px 60px -15px rgba(15, 23, 42, 0.16), 
+                0 0 0 1px rgba(15, 23, 42, 0.05),
+                0 0 0 4px #e2e8f0;
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+            transform: rotateY(-15deg) rotateX(8deg) rotateZ(3deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s;
+            animation: phoneFloat 5s ease-in-out infinite alternate;
+        }
+        @media (max-width: 900px) {
+            .phone-frame {
+                transform: none !important;
+                animation: none;
+                width: 290px;
+                height: 580px;
+            }
+        }
+
+        @keyframes phoneFloat {
+            0% { transform: rotateY(-15deg) rotateX(8deg) rotateZ(3deg) translateY(0px); }
+            100% { transform: rotateY(-15deg) rotateX(8deg) rotateZ(3deg) translateY(-14px); }
+        }
+
+        .phone-notch {
+            width: 110px;
+            height: 18px;
+            background: #0f172a;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        /* ── PHONE SCREEN SIMULATION ── */
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 12px 12px;
+            box-sizing: border-box;
+            font-family: var(--font-body);
+            font-size: 0.72rem;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .mock-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            animation: mockFadeIn 0.3s ease forwards;
+        }
+        .mock-screen.active {
+            display: flex;
+        }
+
+        @keyframes mockFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mockup Top Header */
+        .mock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 10px;
+            font-size: 0.62rem;
+        }
+        .mock-brand {
+            font-weight: 800;
+            font-family: var(--font-display);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .mock-brand img { width: 14px; height: 14px; border-radius: 3px; }
+        .mock-time { font-size: 0.6rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Mockup Dashboard Content */
+        .home-greeting { font-size: 0.62rem; color: var(--text-muted); margin-bottom: 2px; }
+        .home-username { font-size: 0.8rem; font-weight: 700; margin-bottom: 10px; }
+        
+        .mock-balance-card {
+            border-radius: var(--radius-md);
+            padding: 10px;
+            color: #ffffff;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        }
+        .mock-balance-card.coins { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .mock-balance-card.tokens { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+        .mock-bal-lbl { font-size: 0.55rem; text-transform: uppercase; opacity: 0.9; font-weight: 600; }
+        .mock-bal-val { font-size: 0.95rem; font-weight: 800; margin-top: 2px; }
+
+        .mock-section-title { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        
+        .mock-action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .mock-action-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 8px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+        }
+        .mock-action-btn i { display: block; font-size: 1rem; margin-bottom: 4px; color: var(--purple); }
+
+        .mock-task-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .mock-task-details { display: flex; flex-direction: column; }
+        .mock-task-title { font-weight: 700; font-size: 0.66rem; color: var(--text-primary); }
+        .mock-task-payout { font-size: 0.55rem; color: var(--text-muted); }
+        .mock-task-action {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--purple);
+            border-radius: 99px;
+            padding: 2px 8px;
+            font-weight: 700;
+            font-size: 0.55rem;
+        }
+
+        /* Mockup Wallet Content */
+        .wallet-card { background: #faf5ff; border: 1px solid #f3e8ff; border-radius: var(--radius-md); padding: 12px; text-align: center; margin-bottom: 10px; }
+        .wallet-amount { font-size: 1.15rem; font-weight: 800; color: var(--purple); }
+        .convert-slider-wrap {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: var(--radius-md);
+            border: 1px solid #e2e8f0;
+        }
+        .convert-btn {
+            background: var(--purple);
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 7px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        .tx-history-item {
+            padding: 6px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.6rem;
+        }
+        .tx-green { color: var(--emerald); font-weight: 700; }
+
+        /* Mockup Recharge Content */
+        .recharge-operators { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+        .op-logo-mock {
+            height: 28px;
+            border-radius: var(--radius-md);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            font-weight: 700;
+            background: #ffffff;
+        }
+        .op-logo-mock.active { border-color: var(--blue); background: rgba(59, 130, 246, 0.05); color: var(--blue); }
+        .mock-input {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 7px 10px;
+            border-radius: var(--radius-md);
+            font-size: 0.62rem;
+            margin-bottom: 8px;
+            outline: none;
+        }
+        .mock-plans-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+        .mock-plan {
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+        }
+        .mock-plan.selected { border-color: var(--purple); background: #fbfbfe; }
+        .plan-price { font-weight: 800; color: var(--text-primary); }
+
+        /* Mockup Survey Content */
+        .survey-item-mock {
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Mockup Profile Content */
+        .profile-card-mock {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+        .profile-avatar-mock {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        /* ── SECTION HEADER ── */
+        .sec-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .sec-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--emerald);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            font-family: var(--font-display);
+        }
+        .sec-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        /* ── WHY INSTALL SECTION ── */
+        .why-section {
+            padding: 80px 0;
+        }
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+        }
+        .why-card {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+        }
+        .why-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(124, 58, 237, 0.18);
+        }
+        .why-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: rgba(59, 130, 246, 0.06);
+            color: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            transition: transform 0.3s;
+        }
+        .why-card:hover .why-icon {
+            transform: scale(1.1);
+        }
+        .why-card:nth-child(2) .why-icon { background: rgba(16, 185, 129, 0.06); color: var(--emerald); }
+        .why-card:nth-child(3) .why-icon { background: rgba(245, 158, 11, 0.06); color: var(--amber); }
+        .why-card:nth-child(4) .why-icon { background: rgba(124, 58, 237, 0.06); color: var(--purple); }
+        
+        .why-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .why-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ── APPLE STYLE FEATURES PREVIEW ── */
+        .features-section {
+            padding: 80px 0;
+        }
+        .apple-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+        @media (max-width: 900px) {
+            .apple-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+        }
+
+        .apple-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .apple-col {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+            .apple-col-left { order: 2; }
+            .apple-col-right { order: 3; }
+            .apple-grid .phone-container { order: 1; }
+        }
+
+        .apple-label-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-display);
+        }
+        .apple-label-card:hover {
+            border-color: rgba(124, 58, 237, 0.15);
+            background: #ffffff;
+        }
+        .apple-label-card.active {
+            background: #ffffff;
+            border-color: var(--purple);
+            box-shadow: 0 10px 24px rgba(79, 70, 229, 0.05);
+            transform: translateX(4px);
+        }
+        @media (max-width: 900px) {
+            .apple-label-card.active {
+                transform: translateY(-2px);
+            }
+        }
+        .apple-label-card i {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .apple-label-card.active i { color: var(--purple); }
+        .apple-label-title { font-weight: 700; color: var(--text-secondary); font-size: 0.92rem; }
+        .apple-label-card.active .apple-label-title { color: var(--text-primary); }
+
+        /* Center Phone hover effect */
+        .apple-grid .phone-frame {
+            transform: none;
+            width: 300px;
+            height: 600px;
+            margin: 0 auto;
+        }
+        .apple-grid .phone-frame:hover {
+            transform: scale(1.02);
+        }
+
+        /* ── INSTALLATION GUIDE ── */
+        .guide-section {
+            padding: 80px 0;
+        }
+        .guide-box {
+            display: none;
+            animation: guideFade 0.4s ease forwards;
+        }
+        .guide-box.active {
+            display: block;
+        }
+        @keyframes guideFade {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .guide-container {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+        .guide-tab-nav {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .guide-tab-btn {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--border);
+            padding: 10px 22px;
+            border-radius: 99px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: var(--font-display);
+        }
+        .guide-tab-btn:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+        .guide-tab-btn.active {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.2);
+        }
+
+        /* QR Code Layout for Desktop */
+        .qr-card-layout {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .qr-canvas-holder {
+            background: #ffffff;
+            border: 2px solid var(--border);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            display: inline-flex;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+        }
+        .qr-hint {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Guide steps card representation */
+        .steps-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 20px;
+        }
+        .step-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .step-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(124, 58, 237, 0.06);
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            color: var(--purple);
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .step-txt-box {
+            flex: 1;
+        }
+        .step-txt-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .step-txt-body {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Menu Simulator Box */
+        .menu-sim {
+            margin-top: 10px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-md);
+            max-width: 340px;
+            font-size: 0.8rem;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.02);
+            overflow: hidden;
+        }
+        .menu-sim-item {
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+            text-align: left;
+        }
+        .menu-sim-item:last-child { border-bottom: none; }
+        .menu-sim-item.highlight {
+            background: rgba(124, 58, 237, 0.05);
+            font-weight: 700;
+            color: var(--purple);
+        }
+        .menu-sim-item i { font-size: 1.1rem; color: #64748b; }
+        .menu-sim-item.highlight i { color: var(--purple); }
+
+        /* ── FAQ ACCORDION ── */
+        .faq-section {
+            padding: 80px 0;
+        }
+        .faq-container {
+            max-width: 740px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .faq-card {
+            cursor: pointer;
+        }
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+        }
+        .faq-toggle-btn {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            transition: transform 0.3s;
+        }
+        .faq-card.open .faq-toggle-btn {
+            transform: rotate(180deg);
+            color: var(--purple);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), margin 0.3s;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+        .faq-card.open .faq-answer {
+            max-height: 250px;
+            margin-top: 12px;
+        }
+
+        /* ── BOTTOM CTA ── */
+        .cta-section {
+            padding: 80px 0;
+        }
+        .cta-banner {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(124, 58, 237, 0.04) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 56px 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-main-title {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .cta-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 520px;
+            margin: 0 auto 28px;
+            line-height: 1.6;
+        }
+        /* ── Self-contained landing footer style rules for download.html ── */
+        .landing-footer {
+            padding: 3rem 1.5rem 2.5rem;
+            margin-top: 50px;
+            background: linear-gradient(180deg, #eef2ff 0%, #f8faff 55%, #ffffff 100%) !important;
+            border-top: 1px solid rgba(79,70,229,0.12) !important;
+            color: #475569;
+            font-family: var(--font-body);
+        }
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.9fr repeat(3, minmax(0, 1fr)) !important;
+            gap: 2.5rem 3rem !important;
+            padding: 0 0 2.5rem !important;
+            border-bottom: 1px solid rgba(79,70,229,0.12) !important;
+            margin-bottom: 0;
+            text-align: left;
+        }
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+            }
+        }
+        .footer-brand .navbar-logo {
+            margin-bottom: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 1.25rem;
+            font-family: var(--font-display);
+        }
+        .footer-brand .navbar-logo img {
+            border-radius: 6px;
+        }
+        .footer-brand-text {
+            color: #64748b !important;
+            font-size: 0.875rem;
+            line-height: 1.72;
+            max-width: 320px;
+            margin-bottom: 1.4rem;
+        }
+        .footer-social-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .footer-social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.4rem;
+            height: 2.4rem;
+            background: rgba(255,255,255,0.85);
+            border: 1px solid rgba(99,102,241,0.12);
+            border-radius: 12px;
+            color: #64748b;
+            font-size: 1.15rem;
+            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            box-shadow: 0 1px 4px rgba(79,70,229,0.06);
+        }
+        .footer-social-links a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            color: #4f46e5;
+        }
+        .footer-nav-col h4 {
+            font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            margin-bottom: 1.1rem;
+            color: #4f46e5 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+        .footer-links {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.6rem !important;
+        }
+        .footer-links a {
+            color: #475569 !important;
+            font-size: 0.88rem !important;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none !important;
+        }
+        .footer-links a i {
+            font-size: 0.8rem;
+            color: #4f46e5;
+            opacity: 0.6;
+        }
+        .footer-links a:hover {
+            color: #4f46e5 !important;
+            transform: translateX(4px);
+        }
+        .footer-contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.87rem;
+            color: #475569;
+            margin: 0;
+        }
+        .contact-item i {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: rgba(99,102,241,0.08);
+            color: #4f46e5;
+        }
+        .contact-item a {
+            color: #475569;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .contact-item a:hover {
+            color: #4f46e5;
+        }
+        .footer-bottom {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 1rem !important;
+            flex-wrap: wrap !important;
+            padding: 2rem 0 0 !important;
+            border-top: none !important;
+        }
+        .footer-copyright {
+            color: #64748b !important;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+        .footer-policy-links {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .footer-policy-links a {
+            color: #64748b !important;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .footer-policy-links a:hover {
+            color: #4f46e5 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dl-page">
+        <!-- Blur decoration elements -->
+        <div class="blur-blob blob-1"></div>
+        <div class="blur-blob blob-2"></div>
+
+        <!-- NAVIGATION -->
+        <div class="dl-wrap">
+            <nav class="dl-nav">
+                <a href="index.html" class="dl-back"><i class="ri-arrow-left-line"></i> Back to Home</a>
+                <a href="index.html" class="dl-nav-logo">
+                    <img src="favicon.png" alt="AnviPayz Logo">
+                    AnviPayz
+                </a>
+                <div style="width: 38px;"></div> <!-- Spacer matching back button -->
+            </nav>
+        </div>
+
+        <!-- HERO SECTION -->
+        <div class="dl-wrap">
+            <section class="dl-hero">
+                <!-- Pure CSS Floating Reward Coins & Glow Point Particles from index.html -->
+                <div class="particle-field" aria-hidden="true" style="z-index: 0;">
+                    <div class="floating-coin fc-1">✦</div>
+                    <div class="floating-coin fc-2">✦</div>
+                    <div class="floating-coin fc-3">✦</div>
+                    <div class="glow-dot gd-1"></div>
+                    <div class="glow-dot gd-2"></div>
+                    <div class="glow-dot gd-3"></div>
+                    <div class="glow-dot gd-4"></div>
+                </div>
+                <canvas id="antigravity-canvas" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;"></canvas>
+
+                <!-- Left: App CTA -->
+                <div class="reveal" style="position: relative; z-index: 2;">
+                    <div class="dl-hero-badge-row">
+                        <span class="hero-badge-item">Progressive Web App (PWA)</span>
+                    </div>
+                    <h1 class="dl-hero-title">
+                        Install AnviPayz<br>
+                        in <span class="dl-grad-text">10 Seconds</span>
+                    </h1>
+                    <p class="dl-hero-desc">
+                        Install AnviPayz directly from your browser. No Play Store download required. Enjoy a fast, secure, app-like experience for rewards and mobile recharges.
+                    </p>
+                    
+                    <div class="dl-btn-box">
+                        <button class="btn-grad" id="hero-install-btn">
+                            📱 Install App
+                        </button>
+                        <a class="btn-link-sec" id="hero-guide-link">
+                            How to Install
+                        </a>
+                    </div>
+                    
+                    <p class="install-status-msg" id="hero-install-status" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
+                        Checking PWA configuration settings…
+                    </p>
+                </div>
+
+                <!-- Right: Interactive Antigravity Mockup Phone Frame -->
+                <div class="hero-mockup-wrapper reveal" style="position: relative; z-index: 2;">
+                    <div class="phone-frame" id="hero-phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="mock-header">
+                                <span class="mock-brand"><img src="favicon.png"> AnviPayz</span>
+                                <span class="mock-time" id="sim-clock">10:00 AM</span>
+                            </div>
+                            
+                            <!-- Static home dashboard mockup -->
+                            <div class="mock-screen active" style="display: flex;">
+                                <div class="home-greeting">Good Morning,</div>
+                                <div class="home-username">Anvi Earner 👋</div>
+                                
+                                <div class="mock-balance-card coins">
+                                    <span class="mock-bal-lbl">Coins Balance</span>
+                                    <span class="mock-bal-val">🪙 2,450 Coins</span>
+                                </div>
+                                <div class="mock-balance-card tokens">
+                                    <span class="mock-bal-lbl">My Tokens</span>
+                                    <span class="mock-bal-val">⚡ 24.50 Tokens</span>
+                                </div>
+
+                                <span class="mock-section-title">Quick Actions</span>
+                                <div class="mock-action-grid">
+                                    <div class="mock-action-btn"><i class="ri-calendar-check-line"></i>Check-in</div>
+                                    <div class="mock-action-btn"><i class="ri-refresh-line"></i>Spin Wheel</div>
+                                    <div class="mock-action-btn"><i class="ri-survey-line"></i>Surveys</div>
+                                    <div class="mock-action-btn"><i class="ri-share-forward-line"></i>Refer</div>
+                                </div>
+
+                                <span class="mock-section-title">Active Tasks</span>
+                                <div class="mock-task-item">
+                                    <div class="mock-task-details">
+                                        <span class="mock-task-title">Daily Check-in</span>
+                                        <span class="mock-task-payout">Claim daily free coins</span>
+                                    </div>
+                                    <span class="mock-task-action">Claimed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- BENEFITS SECTION -->
+        <div class="dl-wrap">
+            <section class="why-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-sparkling-fill"></i> Key Benefits</div>
+                    <h2 class="sec-title">App Benefits</h2>
+                </div>
+                <div class="why-grid">
+                    <div class="why-card">
+                        <div class="why-icon">⚡</div>
+                        <h3 class="why-title">Faster than browser</h3>
+                        <p class="why-desc">Uses local service worker cache to load pages instantly even on low networks.</p>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon">📱</div>
+                        <h3 class="why-title">Full-screen app experience</h3>
+                        <p class="why-desc">Launches fullscreen from your app drawer, with no navigation bar clutter.</p>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon">🔒</div>
+                        <h3 class="why-title">Secure login</h3>
+                        <p class="why-desc">Secured with SSL encryption, HTTPOnly credentials cookies, and strict JWT tokens.</p>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon">🎁</div>
+                        <h3 class="why-title">Faster access to rewards & recharge</h3>
+                        <p class="why-desc">Earn points and redeem discounts on mobile recharges directly in one tap.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- APPLE STYLE FEATURES PREVIEW (3-COLUMN LAYOUT) -->
+        <div class="dl-wrap">
+            <section class="features-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-eye-fill"></i> Interactive Preview</div>
+                    <h2 class="sec-title">Features Preview</h2>
+                </div>
+                
+                <div class="apple-grid">
+                    <!-- Column 1: Left Tabs -->
+                    <div class="apple-col apple-col-left">
+                        <div class="apple-label-card active" data-mock-screen="mock-home">
+                            <i class="ri-home-5-fill"></i>
+                            <span class="apple-label-title">Home</span>
+                        </div>
+                        <div class="apple-label-card" data-mock-screen="mock-wallet">
+                            <i class="ri-wallet-3-fill"></i>
+                            <span class="apple-label-title">Wallet</span>
+                        </div>
+                        <div class="apple-label-card" data-mock-screen="mock-recharge">
+                            <i class="ri-flashlight-fill"></i>
+                            <span class="apple-label-title">Recharge</span>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Large Mock Phone Frame -->
+                    <div class="phone-container">
+                        <div class="phone-frame" id="preview-phone-frame">
+                            <div class="phone-notch"></div>
+                            <div class="phone-screen" id="preview-phone-screen">
+                                <div class="mock-header">
+                                    <span class="mock-brand"><img src="favicon.png"> AnviPayz</span>
+                                    <span class="mock-time" id="preview-sim-clock">10:00 AM</span>
+                                </div>
+
+                                <!-- Screen: HOME -->
+                                <div class="mock-screen active" id="mock-home">
+                                    <div class="home-greeting">Good Morning,</div>
+                                    <div class="home-username">Anvi Earner 👋</div>
+                                    <div class="mock-balance-card coins">
+                                        <span class="mock-bal-lbl">Coins Balance</span>
+                                        <span class="mock-bal-val">🪙 2,450 Coins</span>
+                                    </div>
+                                    <div class="mock-balance-card tokens">
+                                        <span class="mock-bal-lbl">My Tokens</span>
+                                        <span class="mock-bal-val">⚡ 24.50 Tokens</span>
+                                    </div>
+                                    <span class="mock-section-title">Quick Actions</span>
+                                    <div class="mock-action-grid">
+                                        <div class="mock-action-btn"><i class="ri-calendar-check-line"></i>Check-in</div>
+                                        <div class="mock-action-btn"><i class="ri-refresh-line"></i>Spin Wheel</div>
+                                        <div class="mock-action-btn"><i class="ri-survey-line"></i>Surveys</div>
+                                        <div class="mock-action-btn"><i class="ri-share-forward-line"></i>Refer</div>
+                                    </div>
+                                </div>
+
+                                <!-- Screen: WALLET -->
+                                <div class="mock-screen" id="mock-wallet">
+                                    <span class="mock-section-title">My Wallet Balance</span>
+                                    <div class="wallet-card">
+                                        <div class="mock-bal-lbl" style="color: var(--text-secondary);">Convertible Coins</div>
+                                        <div class="wallet-amount">🪙 2,450</div>
+                                        <div class="mock-bal-lbl" style="color: var(--text-muted); margin-top: 8px;">Value: ⚡ 24.50 Tokens</div>
+                                    </div>
+                                    <div class="convert-slider-wrap">
+                                        <span class="mock-section-title" style="margin-bottom: 4px; display: block;">Convert Coins</span>
+                                        <input type="text" class="mock-input" value="1000 Coins" disabled style="text-align: center; margin-bottom: 8px;">
+                                        <button class="convert-btn">Convert to 10 Tokens</button>
+                                    </div>
+                                    <span class="mock-section-title">Transactions</span>
+                                    <div class="tx-history-item">
+                                        <span>Daily Check-in reward</span>
+                                        <span class="tx-green">+10 Coins</span>
+                                    </div>
+                                </div>
+
+                                <!-- Screen: RECHARGE -->
+                                <div class="mock-screen" id="mock-recharge">
+                                    <span class="mock-section-title">Select Operator</span>
+                                    <div class="recharge-operators">
+                                        <div class="op-logo-mock active">Jio</div>
+                                        <div class="op-logo-mock">Airtel</div>
+                                        <div class="op-logo-mock">Vi</div>
+                                        <div class="op-logo-mock">BSNL</div>
+                                    </div>
+                                    <input type="text" class="mock-input" value="98765 43210" disabled style="text-align: center;">
+                                    <span class="mock-section-title">Select Recharge Plan</span>
+                                    <div class="mock-plans-list">
+                                        <div class="mock-plan selected">
+                                            <div>
+                                                <div style="font-weight: 700; font-size: 0.65rem;">₹239 Plan</div>
+                                                <div style="font-size: 0.52rem; color: var(--text-muted);">1.5 GB/Day, 28 Days</div>
+                                            </div>
+                                            <span class="plan-price">₹239</span>
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(16, 185, 129, 0.08); padding: 8px; border-radius: var(--radius-md); font-size: 0.58rem; color: var(--emerald); font-weight: 600; display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                        <span>Tokens Applied Discount:</span>
+                                        <span>- ₹24.50</span>
+                                    </div>
+                                    <button class="convert-btn" style="background: var(--blue);">Redeem & Recharge</button>
+                                </div>
+
+                                <!-- Screen: SURVEYS -->
+                                <div class="mock-screen" id="mock-surveys">
+                                    <span class="mock-section-title">CPX Survey Offerwall</span>
+                                    <div class="survey-item-mock">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.68rem;">Product Feedback</div>
+                                            <div style="font-size: 0.55rem; color: var(--text-muted);">Duration: 5 Min</div>
+                                        </div>
+                                        <span class="mock-task-action" style="background: rgba(16, 185, 129, 0.1); color: var(--emerald);">+50 Pts</span>
+                                    </div>
+                                    <div class="survey-item-mock">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.68rem;">User Experience</div>
+                                            <div style="font-size: 0.55rem; color: var(--text-muted);">Duration: 8 Min</div>
+                                        </div>
+                                        <span class="mock-task-action" style="background: rgba(16, 185, 129, 0.1); color: var(--emerald);">+75 Pts</span>
+                                    </div>
+                                </div>
+
+                                <!-- Screen: PROFILE -->
+                                <div class="mock-screen" id="mock-profile">
+                                    <span class="mock-section-title" style="text-align: center; display: block; margin-bottom: 12px;">My Account Profile</span>
+                                    <div class="profile-card-mock">
+                                        <div class="profile-avatar-mock">AE</div>
+                                        <div style="font-weight: 700; font-size: 0.8rem; margin-top: 4px;">Anvi Earner</div>
+                                        <div style="font-size: 0.58rem; color: var(--text-secondary);">earner@gmail.com</div>
+                                    </div>
+                                    <button class="convert-btn" style="background: #ef4444;">Logout Account</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Right Tabs -->
+                    <div class="apple-col apple-col-right">
+                        <div class="apple-label-card" data-mock-screen="mock-surveys">
+                            <i class="ri-file-list-3-fill"></i>
+                            <span class="apple-label-title">Surveys</span>
+                        </div>
+                        <div class="apple-label-card" data-mock-screen="mock-profile">
+                            <i class="ri-user-settings-fill"></i>
+                            <span class="apple-label-title">Tasks</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- INSTALLATION SECTION (MOST IMPORTANT) -->
+        <div class="dl-wrap">
+            <section class="guide-section reveal" id="install-guide-sec">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-guide-fill"></i> Installation Guide</div>
+                    <h2 class="sec-title" id="installation-sec-title">How to Install</h2>
+                </div>
+
+                <div class="glass-card guide-container">
+                    <!-- Interactive Tab Selector for Installation Guides -->
+                    <div class="guide-tab-nav" id="guide-tab-navigation">
+                        <button class="guide-tab-btn active" data-guide-tab="guide-desktop" id="tab-btn-desktop">
+                            <i class="ri-qr-code-line"></i> Scan QR Code
+                        </button>
+                        <button class="guide-tab-btn" data-guide-tab="guide-android-chrome" id="tab-btn-android">
+                            <i class="ri-android-line"></i> Android Chrome
+                        </button>
+                        <button class="guide-tab-btn" data-guide-tab="guide-ios-safari" id="tab-btn-ios">
+                            <i class="ri-apple-line"></i> iPhone Safari
+                        </button>
+                    </div>
+                    
+                    <!-- Guide: Desktop QR Code Only -->
+                    <div class="guide-box" id="guide-desktop">
+                        <div class="qr-card-layout">
+                            <h3 class="why-title" style="font-size: 1.3rem;">Continue on your phone</h3>
+                            <p class="qr-hint">Scan this QR code using your mobile phone to install AnviPayz.</p>
+                            <div class="qr-canvas-holder">
+                                <canvas id="qr-code-canvas"></canvas>
+                            </div>
+                            <button class="btn-grad" onclick="window.location.href='index.html';" style="margin-top: 14px; padding: 14px 30px; font-size: 0.95rem;">
+                                Continue in Browser
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Guide: Android Chrome Only -->
+                    <div class="guide-box" id="guide-android-chrome">
+                        <div class="sec-badge"><i class="ri-chrome-fill"></i> Android Chrome</div>
+                        <div class="steps-stack">
+                            <div class="step-row">
+                                <div class="step-badge">1</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Open AnviPayz in Chrome</div>
+                                    <div class="step-txt-body">Open Google Chrome on your Android phone and navigate to <strong>anvipayz.com</strong>.</div>
+                                </div>
+                            </div>
+                            <div class="step-row">
+                                <div class="step-badge">2</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Tap ⋮ Menu</div>
+                                    <div class="step-txt-body">Tap the three vertical dots menu icon in the top-right corner of Chrome.</div>
+                                    <div class="menu-sim">
+                                        <div class="menu-sim-item"><i class="ri-bookmark-line"></i> Bookmarks</div>
+                                        <div class="menu-sim-item highlight"><i class="ri-download-cloud-2-line"></i> Install app</div>
+                                        <div class="menu-sim-item"><i class="ri-computer-line"></i> Desktop site</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-row">
+                                <div class="step-badge">3</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Tap Install App</div>
+                                    <div class="step-txt-body">Select <strong>"Install app"</strong> (or "Add to Home Screen") from the list options.</div>
+                                </div>
+                            </div>
+                            <div class="step-row">
+                                <div class="step-badge">4</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Tap Install</div>
+                                    <div class="step-txt-body">Tap <strong>"Install"</strong> in the browser's verification confirmation box. Done! 🎉</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guide: iPhone Safari Only -->
+                    <div class="guide-box" id="guide-ios-safari">
+                        <div class="sec-badge"><i class="ri-apple-fill"></i> iPhone Safari</div>
+                        <div class="steps-stack">
+                            <div class="step-row">
+                                <div class="step-badge">1</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Open in Safari</div>
+                                    <div class="step-txt-body">Open Safari on your iPhone and go to <strong>anvipayz.com</strong>.</div>
+                                </div>
+                            </div>
+                            <div class="step-row">
+                                <div class="step-badge">2</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Tap Share</div>
+                                    <div class="step-txt-body">Tap the standard <strong>Share</strong> button (square box with an arrow pointing up) in Safari's toolbar.</div>
+                                </div>
+                            </div>
+                            <div class="step-row">
+                                <div class="step-badge">3</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Add to Home Screen</div>
+                                    <div class="step-txt-body">Scroll down the menu list and tap <strong>"Add to Home Screen"</strong>.</div>
+                                    <div class="menu-sim">
+                                        <div class="menu-sim-item"><i class="ri-file-copy-line"></i> Copy Link</div>
+                                        <div class="menu-sim-item highlight"><i class="ri-add-box-line"></i> Add to Home Screen</div>
+                                        <div class="menu-sim-item"><i class="ri-bookmark-3-line"></i> Add Bookmark</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-row">
+                                <div class="step-badge">4</div>
+                                <div class="step-txt-box">
+                                    <div class="step-txt-title">Tap Add</div>
+                                    <div class="step-txt-body">Verify name "AnviPayz" and tap <strong>"Add"</strong> in the top-right corner to finish. Done! 🎉</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <!-- FAQ SECTION -->
+        <div class="dl-wrap">
+            <section class="faq-section reveal">
+                <div class="sec-header">
+                    <div class="sec-badge"><i class="ri-question-fill"></i> FAQ</div>
+                    <h2 class="sec-title">Common Questions</h2>
+                </div>
+                <div class="faq-container">
+                    
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>Is this available on Play Store?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            No, it is distributed directly from our website as a Progressive Web App (PWA). This saves memory space on your phone and lets us deliver instant reward updates without store delay.
+                        </div>
+                    </div>
+
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>Is it safe?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes, AnviPayz is 100% safe. It uses standard secure HTTPS protocol, safe JWT login credentials, and runs securely within your native browser sandbox with zero access to system files.
+                        </div>
+                    </div>
+
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>Does it work offline?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Core pages and elements load offline thanks to the service worker cache. However, completing tasks, surveys, spins, and recharges requires a working internet connection.
+                        </div>
+                    </div>
+
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>How do I update the app?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            You do not need to update it manually. Because AnviPayz is a PWA, it updates automatically in the background every time you open it.
+                        </div>
+                    </div>
+
+                    <div class="glass-card faq-card">
+                        <div class="faq-question">
+                            <span>Can I uninstall anytime?</span>
+                            <i class="ri-arrow-down-s-line faq-toggle-btn"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes. You can uninstall it just like a regular native app. Long-press the AnviPayz icon on your mobile screen and tap "Uninstall" or "Remove App".
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <!-- BOTTOM CTA -->
+        <div class="dl-wrap">
+            <section class="cta-section reveal">
+                <div class="cta-banner">
+                    <h2 class="cta-main-title">Ready to install?</h2>
+                    <p class="cta-desc">Join AnviPayz for free today. Start earning coins and recharge discounts instantly.</p>
+                    <div class="dl-btn-box" style="justify-content: center;">
+                        <button class="btn-grad" id="bottom-install-btn">
+                            Install App
+                        </button>
+                        <button class="btn-grad" onclick="window.location.href='index.html';" style="background: rgba(255, 255, 255, 0.08); color: var(--text-primary); border: 1px solid var(--border); box-shadow: none;">
+                            Back to Home
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer Section -->
+        <footer class="landing-footer">
+            <div class="footer-container">
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <a href="index.html" class="navbar-logo"
+                            aria-label="AnviPayz Home">
+                            <img src="favicon.png" alt="AnviPayz Logo"
+                                class="navbar-logo-img" width="32"
+                                height="32" loading="lazy"
+                                decoding="async">
+                            <span>AnviPayz</span>
+                        </a>
+                        <p class="footer-brand-text"
+                            lang="hi">Token-based recharge rewards platform. Tasks complete karo, coins ko token mein convert karo, har recharge par real-time discount pao.</p>
+                        <div class="footer-social-links">
+                            <a href="#" target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Facebook"><i
+                                    class="ri-facebook-circle-fill"></i></a>
+                            <a href="#" target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Instagram"><i
+                                    class="ri-instagram-line"></i></a>
+                            <a href="#" target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Twitter"><i
+                                    class="ri-twitter-x-line"></i></a>
+                            <a href="#" target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="YouTube"><i
+                                    class="ri-youtube-line"></i></a>
+                            <a href="#" target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Telegram"><i
+                                    class="ri-telegram-line"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="footer-nav-col">
+                        <h4>Earn Faster</h4>
+                        <div class="footer-links">
+                            <a href="download.html"><i
+                                    class="ri-arrow-right-s-line"></i> Install App</a>
+                            <a href="#modules"><i
+                                    class="ri-arrow-right-s-line"></i> Daily Tasks</a>
+                            <a href="#modules"><i
+                                    class="ri-arrow-right-s-line"></i> Refer & Earn</a>
+                            <a href="wallet.html"><i
+                                    class="ri-arrow-right-s-line"></i> Token Wallet</a>
+                            <a href="recharge.html"><i
+                                    class="ri-arrow-right-s-line"></i> Recharge</a>
+                        </div>
+                    </div>
+
+                    <div class="footer-nav-col">
+                        <h4>Support</h4>
+                        <div class="footer-links">
+                            <a href="support.html"><i
+                                    class="ri-arrow-right-s-line"></i> Help Center</a>
+                            <a href="about.html"><i
+                                    class="ri-arrow-right-s-line"></i> About Us</a>
+                            <a href="notifications.html"><i
+                                    class="ri-arrow-right-s-line"></i> Announcements</a>
+                            <a href="mailto:anvipayz@gmail.com"><i
+                                    class="ri-arrow-right-s-line"></i> Email Support</a>
+                        </div>
+                    </div>
+
+                    <div class="footer-nav-col">
+                        <h4>Contact</h4>
+                        <div class="footer-contact-info">
+                            <p class="contact-item">
+                                <i class="ri-mail-line"></i>
+                                <a href="mailto:anvipayz@gmail.com">anvipayz@gmail.com</a>
+                            </p>
+                            <p class="contact-item">
+                                <i class="ri-map-pin-line"></i>
+                                <span>India</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <p class="footer-copyright">&copy; 2026 AnviPayz. All rights reserved. Made with <span
+                            style="color:#ef4444;">&#10084;</span> in India</p>
+                    <div class="footer-policy-links">
+                        <a href="privacy.html">Privacy</a>
+                        <a href="terms.html">Terms</a>
+                        <a href="refund.html">Refund</a>
+                        <a href="disclaimer.html">Disclaimer</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- .dl-page -->
+
+    <!-- JAVASCRIPT FUNCTIONS -->
+    <script>
+        (function () {
+            // ─── Scroll Reveal Observer ─────────────────────────────────
+            function initScrollReveal() {
+                const reveals = document.querySelectorAll('.reveal');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('show');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                
+                reveals.forEach(rev => observer.observe(rev));
+            }
+            initScrollReveal();
+
+            // ─── Antigravity Canvas Particle Animation ───────────────────
+            function initAntigravityDots() {
+                const canvas = document.getElementById('antigravity-canvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const wrapper = document.querySelector('.dl-hero');
+                if (!wrapper) return;
+
+                let particles = [];
+                let mouse = { x: null, y: null, active: false };
+
+                function resizeCanvas() {
+                    const rect = wrapper.getBoundingClientRect();
+                    canvas.width = rect.width;
+                    canvas.height = rect.height;
+                }
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+
+                // Spawning rich set of particles
+                const particleCount = 45;
+                const colors = ['#7c3aed', '#3b82f6', '#c084fc', '#06b6d4'];
+
+                class Particle {
+                    constructor() {
+                        this.reset(true);
+                    }
+
+                    reset(init = false) {
+                        this.x = Math.random() * canvas.width;
+                        this.y = init ? Math.random() * canvas.height : canvas.height + 20;
+                        this.radius = Math.random() * 4 + 2;
+                        
+                        // Velocities (floats upwards for antigravity effect)
+                        this.vx = (Math.random() - 0.5) * 0.4;
+                        this.vy = -(Math.random() * 0.6 + 0.4);
+                        
+                        // Select random color
+                        this.color = colors[Math.floor(Math.random() * colors.length)];
+                        this.baseAlpha = Math.random() * 0.35 + 0.25;
+                        this.alpha = this.baseAlpha;
+                    }
+
+                    update() {
+                        this.y += this.vy;
+                        this.x += this.vx;
+
+                        // Check boundaries
+                        if (this.y < -20) {
+                            this.reset(false);
+                        }
+                        if (this.x < -10) this.x = canvas.width + 10;
+                        if (this.x > canvas.width + 10) this.x = -10;
+
+                        // Mouse proximity displacement force
+                        if (mouse.active && mouse.x !== null && mouse.y !== null) {
+                            const dx = this.x - mouse.x;
+                            const dy = this.y - mouse.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            const activeRadius = 160;
+
+                            if (dist < activeRadius) {
+                                const force = (activeRadius - dist) / activeRadius;
+                                
+                                // Gravitational / magnet push effect (antigravity field)
+                                this.x += (dx / dist) * force * 3;
+                                this.y += (dy / dist) * force * 3;
+                                
+                                // Glow brighter near mouse
+                                this.alpha = Math.min(this.baseAlpha + force * 0.5, 0.95);
+                            } else {
+                                // Decay alpha back to base
+                                if (this.alpha > this.baseAlpha) {
+                                    this.alpha -= 0.02;
+                                }
+                            }
+                        } else {
+                            if (this.alpha > this.baseAlpha) {
+                                this.alpha -= 0.02;
+                            }
+                        }
+                    }
+
+                    draw() {
+                        // Faint outer glow (replaces expensive shadowBlur)
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.radius * 2.2, 0, Math.PI * 2);
+                        ctx.fillStyle = this.color;
+                        ctx.globalAlpha = this.alpha * 0.22;
+                        ctx.fill();
+
+                        // Sharp inner core
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = this.color;
+                        ctx.globalAlpha = this.alpha;
+                        ctx.fill();
+                    }
+                }
+
+                // Initialize particle array
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+
+                // Proximity listeners - Cache rect to prevent layout thrashing
+                let wrapperRect = wrapper.getBoundingClientRect();
+                window.addEventListener('resize', () => { wrapperRect = wrapper.getBoundingClientRect(); });
+                window.addEventListener('scroll', () => { wrapperRect = wrapper.getBoundingClientRect(); }, { passive: true });
+
+                wrapper.addEventListener('mousemove', (e) => {
+                    mouse.x = e.clientX - wrapperRect.left;
+                    mouse.y = e.clientY - wrapperRect.top;
+                    mouse.active = true;
+                });
+
+                wrapper.addEventListener('mouseleave', () => {
+                    mouse.active = false;
+                });
+
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Loop particles
+                    for (let i = 0; i < particles.length; i++) {
+                        const p = particles[i];
+                        p.update();
+                        p.draw();
+
+                        // Draw web lines to mouse cursor
+                        if (mouse.active && mouse.x !== null && mouse.y !== null) {
+                            const dx = p.x - mouse.x;
+                            const dy = p.y - mouse.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 140) {
+                                ctx.beginPath();
+                                ctx.moveTo(p.x, p.y);
+                                ctx.lineTo(mouse.x, mouse.y);
+                                ctx.strokeStyle = p.color;
+                                // Faint connection line based on proximity
+                                ctx.globalAlpha = (140 - dist) / 140 * 0.18;
+                                ctx.lineWidth = 1;
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            }
+            initAntigravityDots();
+
+            // ─── Browser and Device Detection ───────────────────────────
+            function getMobileDeviceAndBrowser() {
+                const ua = navigator.userAgent || navigator.vendor || window.opera;
+                const isAndroid = /android/i.test(ua);
+                const isIPhone = /ipad|iphone|ipod/i.test(ua);
+                
+                let browser = "other";
+                if (/chrome|crios/i.test(ua) && !/edge|edg/i.test(ua) && !/opr/i.test(ua)) {
+                    browser = "chrome";
+                } else if (/samsungbrowser/i.test(ua)) {
+                    browser = "samsung";
+                } else if (/safari/i.test(ua) && !/chrome|crios/i.test(ua)) {
+                    browser = "safari";
+                } else if (/edge|edg/i.test(ua)) {
+                    browser = "edge";
+                }
+
+                return {
+                    isMobile: isAndroid || isIPhone,
+                    isAndroid: isAndroid,
+                    isIPhone: isIPhone,
+                    browser: browser
+                };
+            }
+
+            const device = getMobileDeviceAndBrowser();
+            const heroStatus = document.getElementById('hero-install-status');
+
+            // Apply visibility depending on browser
+            function applyDeviceVisibility(targetGuideId) {
+                // Deactivate all guides
+                document.querySelectorAll('.guide-box').forEach(g => g.classList.remove('active'));
+                
+                // Show the specific guide
+                const target = document.getElementById(targetGuideId);
+                if (target) {
+                    target.classList.add('active');
+                }
+
+                // Update active state on tab buttons
+                document.querySelectorAll('.guide-tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-guide-tab') === targetGuideId) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            // Tab button click listeners
+            const tabButtonsNav = document.querySelectorAll('.guide-tab-btn');
+            tabButtonsNav.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetTabId = btn.getAttribute('data-guide-tab');
+                    applyDeviceVisibility(targetTabId);
+                });
+            });
+
+            // Initialization logic based on browser detection
+            if (!device.isMobile) {
+                // Desktop client
+                applyDeviceVisibility('guide-desktop');
+                if (heroStatus) heroStatus.textContent = "PC detected. Scan the QR code below using your phone camera.";
+                
+                // Generate QR Code
+                if (typeof QRious !== 'undefined') {
+                    new QRious({
+                        element: document.getElementById('qr-code-canvas'),
+                        value: window.location.href,
+                        size: 200,
+                        background: '#ffffff',
+                        foreground: '#7c3aed'
+                    });
+                }
+            } else {
+                // Mobile client -> hide desktop QR tab since we are on mobile!
+                const qrTabBtn = document.getElementById('tab-btn-desktop');
+                if (qrTabBtn) {
+                    qrTabBtn.style.display = 'none';
+                }
+
+                if (device.isIPhone) {
+                    applyDeviceVisibility('guide-ios-safari');
+                    if (heroStatus) heroStatus.textContent = "iOS Safari detected. Follow instructions below to Add to Home Screen.";
+                } else {
+                    // Android default
+                    applyDeviceVisibility('guide-android-chrome');
+                    if (heroStatus) heroStatus.textContent = "Android Chrome detected. Tap install below or follow the guide.";
+                }
+            }
+
+            // ─── PWA Prompt Handler ───────────────────────────────────
+            let deferredPrompt = null;
+            const installBtns = [
+                document.getElementById('hero-install-btn'),
+                document.getElementById('bottom-install-btn')
+            ];
+
+            // Already running in standalone installed PWA?
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+                installBtns.forEach(btn => {
+                    if (btn) {
+                        btn.innerHTML = 'App Installed';
+                        btn.disabled = true;
+                    }
+                });
+                if (heroStatus) heroStatus.textContent = "AnviPayz is already installed. Open it from your home screen.";
+            }
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (heroStatus && device.isAndroid) {
+                    heroStatus.textContent = "Click 'Install App' to install AnviPayz instantly on your phone.";
+                }
+            });
+
+            // Capture from parent window if available
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    if (!deferredPrompt) {
+                        deferredPrompt = (window.parent && window.parent.deferredPrompt) || (window.opener && window.opener.deferredPrompt) || null;
+                    }
+                }, 600);
+            });
+
+            async function triggerInstallation() {
+                const prompt = deferredPrompt || (window.parent && window.parent.deferredPrompt) || (window.opener && window.opener.deferredPrompt);
+                if (!prompt) {
+                    // Smoothly scroll to the guide section
+                    document.getElementById('install-guide-sec').scrollIntoView({ behavior: 'smooth' });
+                    if (heroStatus) heroStatus.textContent = "Auto-install not supported on this browser. Follow instructions below.";
+                    return;
+                }
+                prompt.prompt();
+                const { outcome } = await prompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtns.forEach(btn => {
+                        if (btn) {
+                            btn.innerHTML = 'Installing…';
+                            btn.disabled = true;
+                        }
+                    });
+                    deferredPrompt = null;
+                }
+            }
+
+            installBtns.forEach(btn => {
+                if (btn) btn.addEventListener('click', triggerInstallation);
+            });
+
+            window.addEventListener('appinstalled', () => {
+                installBtns.forEach(btn => {
+                    if (btn) {
+                        btn.innerHTML = 'App Installed!';
+                        btn.disabled = true;
+                    }
+                });
+                if (heroStatus) heroStatus.textContent = "Success! AnviPayz has been installed to your device.";
+                deferredPrompt = null;
+            });
+
+            // Smooth scroll secondary link
+            const guideLink = document.getElementById('hero-guide-link');
+            if (guideLink) {
+                guideLink.addEventListener('click', () => {
+                    document.getElementById('install-guide-sec').scrollIntoView({ behavior: 'smooth' });
+                });
+            }
+
+            // ─── Simulated Clock update ──────────────────────────────
+            function updateClock(elementId) {
+                const now = new Date();
+                let h = now.getHours(), m = now.getMinutes(), ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                m = m < 10 ? '0' + m : m;
+                const clock = document.getElementById(elementId);
+                if (clock) clock.textContent = `${h}:${m} ${ampm}`;
+            }
+            setInterval(() => {
+                updateClock('sim-clock');
+                updateClock('preview-sim-clock');
+            }, 30000);
+            updateClock('sim-clock');
+            updateClock('preview-sim-clock');
+
+            // ─── Features Preview Interactive Tabs ────────────────────
+            const tabButtons = document.querySelectorAll('.apple-label-card');
+            const previewPhoneScreen = document.getElementById('preview-phone-screen');
+
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Switch tab button visual active state
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Switch screen templates
+                    const targetScreenId = btn.getAttribute('data-mock-screen');
+                    const screens = previewPhoneScreen.querySelectorAll('.mock-screen');
+                    
+                    screens.forEach(scr => {
+                        scr.classList.remove('active');
+                        if (scr.id === targetScreenId) {
+                            scr.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // ─── FAQ Accordion Toggle ──────────────────────────────────
+            const faqCards = document.querySelectorAll('.faq-card');
+            faqCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const isOpen = card.classList.contains('open');
+                    
+                    // Close others
+                    faqCards.forEach(c => c.classList.remove('open'));
+                    
+                    if (!isOpen) {
+                        card.classList.add('open');
+                    }
+                });
+            });
+
+            // ─── 3D mouse-tilt on hero phone ───────────────────────────
+            const heroFrame = document.getElementById('hero-phone-frame');
+            if (heroFrame && device.isMobile === false) {
+                const parent = heroFrame.parentElement;
+                let parentRect = parent.getBoundingClientRect();
+                window.addEventListener('resize', () => { parentRect = parent.getBoundingClientRect(); });
+                window.addEventListener('scroll', () => { parentRect = parent.getBoundingClientRect(); }, { passive: true });
+
+                let tiltFrameId = null;
+                parent.addEventListener('mousemove', (e) => {
+                    const x = (e.clientX - parentRect.left - parentRect.width / 2) / (parentRect.width / 2);
+                    const y = (e.clientY - parentRect.top - parentRect.height / 2) / (parentRect.height / 2);
+                    
+                    if (tiltFrameId) cancelAnimationFrame(tiltFrameId);
+                    tiltFrameId = requestAnimationFrame(() => {
+                        heroFrame.style.transform = `rotateY(${x * 25 - 15}deg) rotateX(${-y * 20 + 8}deg) scale(1.02)`;
+                    });
+                });
+                parent.addEventListener('mouseleave', () => {
+                    if (tiltFrameId) cancelAnimationFrame(tiltFrameId);
+                    heroFrame.style.transform = 'rotateY(-15deg) rotateX(8deg) rotateZ(3deg)';
+                });
+            }
+
+            // Sync theme toggle icon on initial load
+            const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const themeIcon = document.getElementById('theme-icon');
+            if (themeIcon) {
+                themeIcon.className = initialTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+            }
+
+        })();
+    </script>
+</body>
+
+</html>

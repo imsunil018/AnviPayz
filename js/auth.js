@@ -94,11 +94,11 @@ function getStoredToken() {
     return token;
 }
 
-const PUBLIC_PAGES = new Set(["index.html", "login.html", "forgot.html", "reset-password.html", "legal.html", "register.html"]);
+const PUBLIC_PAGES = new Set(["index.html", "login.html", "forgot.html", "reset-password.html", "legal.html", "register.html", "about.html", "download.html"]);
 const DEFAULT_ADMIN_TASKS = [];
 const SPIN_REWARDS = [5, 10, 15, 20, 25, 40, 60, 100];
 const SECURITY_ACTIVITY_KEY = "anvi-last-activity";
-const INACTIVITY_LIMIT_MS = 7 * 24 * 60 * 60 * 1000;
+const INACTIVITY_LIMIT_MS = 14 * 24 * 60 * 60 * 1000;
 const NOTIFICATION_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const NOTIFICATION_MAX_STORED = 200;
 const DELETE_ACCOUNT_FLOW_STEPS = [
@@ -474,6 +474,12 @@ async function initApp() {
         }
 
         initAuthPages();
+        return;
+    }
+
+    if (!state.token) {
+        // Guest user on a whitelisted public page (e.g. about.html, download.html)
+        // Skip user hydration to prevent 401 redirects to home.
         return;
     }
 
@@ -1296,13 +1302,19 @@ function initAuthPages() {
     // ============================================
     registerSendOtpBtn?.addEventListener("click", async () => {
         const name = document.getElementById("register-name")?.value.trim();
-        const email = document.getElementById("register-email")?.value.trim();
+        const identity = document.getElementById("register-email")?.value.trim();
         const referCodeRaw = document.getElementById("register-refer")?.value.trim();
         const acceptedTerms = Boolean(document.getElementById("register-terms")?.checked);
 
-        // Validate name and email
-        if (!name || !isValidEmail(email)) {
-            showToast("Enter your name and a valid email address.", "error");
+        const validation = identityValidation(identity);
+
+        if (!name) {
+            showToast("Please enter your name.", "error");
+            return;
+        }
+
+        if (!validation.valid) {
+            showToast(validation.message, "error");
             return;
         }
 
@@ -1319,29 +1331,31 @@ function initAuthPages() {
         }
 
         const referCode = referCodeValidation.code; // Normalized code or null
+        const validatedIdentity = validation.value;
+        const isEmail = validation.type === "email";
 
         // Store in state for verification phase
         otpState.registerData = {
             name,
-            email,
+            identity: validatedIdentity,
+            isEmail,
             referCode: referCode || null,
             acceptedTerms
         };
 
         await withButtonState(registerSendOtpBtn, "Sending OTP...", async () => {
             try {
-                // ✅ NOW SENDING referCode in send-otp request
                 await requestJson("/register-send-otp", {
                     method: "POST",
                     body: {
-                        email,
+                        identity: validatedIdentity,
                         name,
                         acceptedTerms,
                         referCode: referCode || undefined  // Send if exists
                     },
                     auth: false
                 });
-                showToast("OTP sent to your email.", "success");
+                showToast(isEmail ? "OTP sent to your email." : "OTP sent to your mobile number.", "success");
                 registerOtpSection.style.display = "block";
                 registerOtpInput.focus();
                 startResendTimer(registerResendLink);
@@ -1355,10 +1369,10 @@ function initAuthPages() {
 
     registerVerifyOtpBtn?.addEventListener("click", async () => {
         const otp = registerOtpInput?.value.trim();
-        const { name, email, referCode, acceptedTerms } = otpState.registerData;
+        const { name, identity, isEmail, referCode, acceptedTerms } = otpState.registerData;
 
-        if (!email || !isValidEmail(email)) {
-            showToast("Please enter a valid email first.", "error");
+        if (!identity) {
+            showToast("Please request OTP again first.", "error");
             return;
         }
 
@@ -1372,7 +1386,7 @@ function initAuthPages() {
                 const response = await requestJson("/register-verify-otp", {
                     method: "POST",
                     body: {
-                        email,
+                        identity,
                         otp,
                         name,
                         referCode: referCode || undefined,
@@ -1428,7 +1442,7 @@ function initAuthPages() {
                 }, 900);
             } catch (error) {
                 if (error.code === "ACCOUNT_PENDING_DELETION") {
-                    moveToLoginForRecovery(email);
+                    moveToLoginForRecovery(identity);
                 }
                 showToast(error.message || "OTP verification failed.", "error");
                 console.error('❌ Verification error:', error);
@@ -1440,9 +1454,9 @@ function initAuthPages() {
 
     registerResendLink?.addEventListener("click", async (e) => {
         e.preventDefault();
-        const { email, name, acceptedTerms } = otpState.registerData;
-        if (!email || !isValidEmail(email)) {
-            showToast("Please enter a valid email first.", "error");
+        const { identity, name, acceptedTerms, isEmail } = otpState.registerData;
+        if (!identity) {
+            showToast("Please enter a valid email or mobile number first.", "error");
             return;
         }
 
@@ -1450,16 +1464,16 @@ function initAuthPages() {
             try {
                 await requestJson("/register-send-otp", {
                     method: "POST",
-                    body: { email, name, acceptedTerms },
+                    body: { identity, name, acceptedTerms },
                     auth: false
                 });
-                showToast("OTP resent to your email.", "success");
+                showToast(isEmail ? "OTP resent to your email." : "OTP resent to your mobile number.", "success");
                 registerOtpInput.value = "";
                 registerOtpInput.focus();
                 startResendTimer(registerResendLink);
             } catch (error) {
                 if (error.code === "ACCOUNT_PENDING_DELETION") {
-                    moveToLoginForRecovery(email);
+                    moveToLoginForRecovery(identity);
                 }
                 showToast(error.message || "Failed to resend OTP.", "error");
             }
@@ -1606,10 +1620,100 @@ function renderCommonUserState() {
     setText("profile-summary-joined", formatLongDate(state.user.joinedAt));
     setText("profile-referral-inline-secondary", state.user.referralCode || "-");
 
+    const inlineReferral = document.getElementById("profile-referral-inline");
+    if (inlineReferral && state.user.referralCode) {
+        inlineReferral.textContent = `Share ${state.user.referralCode} with friends to unlock rewards.`;
+    }
+
     const avatar = document.getElementById("profile-avatar");
     if (avatar) {
-        avatar.textContent = initialsFromName(state.user.name || "A");
-        avatar.style.background = "linear-gradient(135deg, #6366f1, #22c55e)";
+        const name = state.user.name || "";
+        const fallback = name ? name.trim()[0]?.toUpperCase() : "A";
+        const img = document.createElement("img");
+        img.alt = "Profile avatar";
+        img.loading = "lazy";
+        img.src = getAvatarUrl(name);
+        img.onerror = () => {
+            avatar.textContent = fallback;
+            avatar.style.background = "linear-gradient(135deg, #6366f1, #22c55e)";
+        };
+        avatar.innerHTML = "";
+        avatar.appendChild(img);
+    }
+
+    // Settings Section Fields
+    setText("settings-mobile-text", state.user.phone || "Not added yet");
+    setText("settings-email-text", state.user.email || "Not added yet");
+
+    const mobileBadgeArea = document.getElementById("settings-mobile-badge-area");
+    if (mobileBadgeArea) {
+        if (state.user.phone) {
+            mobileBadgeArea.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="profile-inline-badge"><i class="ri-shield-check-line"></i> Verified</span>
+                    <button type="button" class="profile-btn subtle" id="settings-mobile-action-btn" style="min-height: 2.2rem; padding: 0.4rem 0.8rem; font-size: 0.8rem; margin: 0;">Change</button>
+                </div>
+            `;
+        } else {
+            mobileBadgeArea.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="profile-inline-badge warning" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid; font-size: 0.75rem; font-weight: 600;"><i class="ri-shield-flash-line"></i> Unlinked</span>
+                    <button type="button" class="profile-btn primary" id="settings-mobile-action-btn" style="min-height: 2.2rem; padding: 0.4rem 0.8rem; font-size: 0.8rem; margin: 0;">Add Mobile</button>
+                </div>
+            `;
+        }
+    }
+
+    const emailBadgeArea = document.getElementById("settings-email-badge-area");
+    if (emailBadgeArea) {
+        if (state.user.email) {
+            emailBadgeArea.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="profile-inline-badge"><i class="ri-shield-check-line"></i> Verified</span>
+                    <button type="button" class="profile-btn subtle" id="settings-email-action-btn" style="min-height: 2.2rem; padding: 0.4rem 0.8rem; font-size: 0.8rem; margin: 0;">Change</button>
+                </div>
+            `;
+        } else {
+            emailBadgeArea.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="profile-inline-badge warning" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid; font-size: 0.75rem; font-weight: 600;"><i class="ri-shield-flash-line"></i> Unlinked</span>
+                    <button type="button" class="profile-btn primary" id="settings-email-action-btn" style="min-height: 2.2rem; padding: 0.4rem 0.8rem; font-size: 0.8rem; margin: 0;">Add Email</button>
+                </div>
+            `;
+        }
+    }
+
+    // Hero Chips Status
+    const mobileChip = document.getElementById("profile-mobile-chip");
+    const mobileChipText = document.getElementById("profile-mobile-chip-text");
+    if (mobileChip && mobileChipText) {
+        if (state.user.phone) {
+            mobileChip.className = "profile-chip";
+            mobileChipText.textContent = "Mobile Verified";
+            const icon = mobileChip.querySelector("i");
+            if (icon) icon.className = "ri-shield-check-line";
+        } else {
+            mobileChip.className = "profile-chip ghost";
+            mobileChipText.textContent = "Mobile Unlinked";
+            const icon = mobileChip.querySelector("i");
+            if (icon) icon.className = "ri-shield-flash-line";
+        }
+    }
+
+    const emailChip = document.getElementById("profile-email-chip");
+    const emailChipText = document.getElementById("profile-email-chip-text");
+    if (emailChip && emailChipText) {
+        if (state.user.email) {
+            emailChip.className = "profile-chip";
+            emailChipText.textContent = "Email Verified";
+            const icon = emailChip.querySelector("i");
+            if (icon) icon.className = "ri-shield-check-line";
+        } else {
+            emailChip.className = "profile-chip ghost";
+            emailChipText.textContent = "Email Unlinked";
+            const icon = emailChip.querySelector("i");
+            if (icon) icon.className = "ri-mail-line";
+        }
     }
 
     document.querySelectorAll("#token-available-pill").forEach((pill) => {
@@ -3771,14 +3875,122 @@ function delay(ms) {
 
 async function initProfilePage() {
     renderCommonUserState();
-    const button = document.getElementById("delete-account-btn");
-    button?.addEventListener("click", async () => {
+
+    const viewSection = document.getElementById("profile-view-section");
+    const settingsSection = document.getElementById("profile-settings-section");
+    const toggleBtn = document.getElementById("profile-settings-toggle-btn");
+
+    // Limits UI Helper inside settings view
+    const refreshLimitsUI = () => {
+        if (!state.user) return;
+        const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
+        
+        const nameLimitEl = document.getElementById("profile-name-change-limit");
+        if (nameLimitEl) {
+            const usedCount = state.user.lastNameChangeMonth === currentMonth ? (state.user.nameChangeCountThisMonth || 0) : 0;
+            const remaining = Math.max(0, 5 - usedCount);
+            nameLimitEl.textContent = `Limit: ${remaining} changes remaining this month.`;
+            nameLimitEl.style.color = remaining === 0 ? "var(--danger)" : "var(--text-muted)";
+        }
+
+        const emailLimitEl = document.getElementById("profile-email-change-limit");
+        if (emailLimitEl) {
+            const usedCount = state.user.lastEmailChangeMonth === currentMonth ? (state.user.emailChangeCountThisMonth || 0) : 0;
+            const remaining = Math.max(0, 5 - usedCount);
+            emailLimitEl.textContent = `Limit: ${remaining} changes remaining this month.`;
+            emailLimitEl.style.color = remaining === 0 ? "var(--danger)" : "var(--text-muted)";
+        }
+    };
+
+    // Helper to reset and show proper steps inline based on verification state
+    const resetVerificationFlows = () => {
+        if (!state.user) return;
+
+        // Reset Email Steps
+        if (state.user.email) {
+            document.getElementById("profile-email-status").textContent = "Verify your current email to unlock secure email change.";
+            document.getElementById("profile-email-current").textContent = state.user.email;
+            document.querySelectorAll("[data-email-step]").forEach(el => {
+                el.hidden = el.getAttribute("data-email-step") !== "old-request";
+            });
+        } else {
+            document.getElementById("profile-email-status").textContent = "Add a secure email address to your account.";
+            document.querySelectorAll("[data-email-step]").forEach(el => {
+                el.hidden = el.getAttribute("data-email-step") !== "new-request";
+            });
+        }
+
+        // Reset Mobile Steps
+        if (state.user.phone) {
+            document.getElementById("profile-mobile-status").textContent = "Verify your current mobile to unlock secure mobile change.";
+            document.getElementById("profile-mobile-current").textContent = state.user.phone.slice(-4).padStart(10, '*');
+            document.querySelectorAll("[data-mobile-step]").forEach(el => {
+                el.hidden = el.getAttribute("data-mobile-step") !== "old-request";
+            });
+        } else {
+            document.getElementById("profile-mobile-status").textContent = "Add a secure mobile number to your account.";
+            document.querySelectorAll("[data-mobile-step]").forEach(el => {
+                el.hidden = el.getAttribute("data-mobile-step") !== "new-request";
+            });
+        }
+
+        // Clear input values
+        ["profile-old-email-otp", "profile-new-email-input", "profile-new-email-otp",
+         "profile-old-mobile-otp", "profile-new-mobile-input", "profile-new-mobile-otp"].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.value = "";
+        });
+    };
+
+    // Toggle Settings & Security View
+    const showSettings = () => {
+        if (settingsSection) settingsSection.hidden = false;
+        if (viewSection) viewSection.hidden = true;
+        const heroSection = document.getElementById("profile-hero-section");
+        if (heroSection) heroSection.hidden = true;
+
+        // Populate and reset settings elements
+        const nameInput = document.getElementById("profile-name-input");
+        if (nameInput) nameInput.value = state.user?.name || "";
+        refreshLimitsUI();
+        resetVerificationFlows();
+
+        // Hide flow containers initially until user explicitly clicks "Add" or "Change"
+        const mobileFlow = document.getElementById("mobile-flow-area");
+        if (mobileFlow) mobileFlow.hidden = true;
+        const emailFlow = document.getElementById("email-flow-area");
+        if (emailFlow) emailFlow.hidden = true;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const showProfileView = () => {
+        if (settingsSection) settingsSection.hidden = true;
+        if (viewSection) viewSection.hidden = false;
+        const heroSection = document.getElementById("profile-hero-section");
+        if (heroSection) heroSection.hidden = false;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", showSettings);
+    }
+
+    const settingsBackBtn = document.getElementById("settings-back-btn");
+    if (settingsBackBtn) {
+        settingsBackBtn.addEventListener("click", showProfileView);
+    }
+
+    // Delete Account Button
+    const deleteBtn = document.getElementById("delete-account-btn");
+    deleteBtn?.addEventListener("click", async () => {
         const confirmed = await showDeleteAccountFlow();
         if (!confirmed) {
             return;
         }
 
-        await withButtonState(button, "Deleting...", async () => {
+        await withButtonState(deleteBtn, "Deleting...", async () => {
             const data = await requestFirst([
                 { path: "/profile/delete", method: "DELETE" },
                 { path: "/user", method: "DELETE" }
@@ -3789,7 +4001,30 @@ async function initProfilePage() {
         });
     });
 
-    // Handle display name edits
+    // Copy Referral Code Button
+    const copyBtn = document.getElementById("profile-copy-code-btn");
+    copyBtn?.addEventListener("click", () => {
+        const code = state.user?.referralCode || "";
+        if (code) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast("Referral code copied!", "success");
+            }).catch(() => {
+                showToast("Failed to copy code.", "error");
+            });
+        }
+    });
+
+    // Share Referral Code on WhatsApp Button
+    const whatsappBtn = document.getElementById("profile-share-whatsapp-btn");
+    whatsappBtn?.addEventListener("click", () => {
+        const code = state.user?.referralCode || "";
+        if (code) {
+            const text = encodeURIComponent(`Join AnviPayz with my invite code ${code} and earn rewards!`);
+            window.open(`https://wa.me/?text=${text}`, "_blank");
+        }
+    });
+
+    // Display Name Edit Form
     const nameForm = document.getElementById('profile-name-form');
     if (nameForm) {
         nameForm.addEventListener('submit', async (ev) => {
@@ -3807,8 +4042,14 @@ async function initProfilePage() {
                 return;
             }
 
+            const currentMonth = new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', timeZone:'Asia/Kolkata' }).format(new Date()).substring(0, 7);
+            const usedCount = state.user?.lastNameChangeMonth === currentMonth ? (state.user.nameChangeCountThisMonth || 0) : 0;
+            if (usedCount >= 5) {
+                showToast("Monthly name change limit reached. Try again next month.", "error");
+                return;
+            }
+
             await withButtonState(saveBtn, 'Saving...', async () => {
-                // Try both route variants for compatibility
                 const data = await requestFirst([
                     { path: '/user/update-profile', method: 'PATCH', body: { name: nextName } },
                     { path: '/profile/update', method: 'PATCH', body: { name: nextName } }
@@ -3821,20 +4062,249 @@ async function initProfilePage() {
                 }
 
                 renderCommonUserState();
-                // Close the edit modal without relying on page-scoped toggleModal
-                try {
-                    const modal = document.getElementById('profile-edit-modal');
-                    if (modal) {
-                        modal.setAttribute('hidden', '');
-                        document.body.style.overflow = '';
-                    }
-                } catch (err) {
-                    // ignore
-                }
+                refreshLimitsUI();
                 showToast('Profile updated successfully.', 'success');
             });
         });
     }
+
+    // ============================================
+    // SECURE EMAIL CHANGE FLOW (OTP-based)
+    // ============================================
+    // Step 1: Request OTP for current email
+    document.getElementById("profile-email-send-old-btn")?.addEventListener("click", async (e) => {
+        await withButtonState(e.currentTarget, "Sending...", async () => {
+            try {
+                const res = await requestJson("/user/request-email-change", {
+                    method: "POST",
+                    body: { step: "old-email" },
+                    auth: true
+                });
+                if (res.success) {
+                    document.getElementById("profile-email-status").textContent = "OTP sent to your current email.";
+                    document.querySelectorAll("[data-email-step]").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "old-verify");
+                }
+            } catch (err) {
+                showToast(err.message || "Failed to send OTP.", "error");
+            }
+        });
+    });
+
+    // Step 2: Verify OTP for current email
+    document.getElementById("profile-email-verify-old-btn")?.addEventListener("click", async (e) => {
+        const otp = document.getElementById("profile-old-email-otp")?.value?.trim();
+        if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
+
+        await withButtonState(e.currentTarget, "Verifying...", async () => {
+            try {
+                const res = await requestJson("/user/verify-email-change", {
+                    method: "POST",
+                    body: { step: "old-email", otp },
+                    auth: true
+                });
+                if (res.success) {
+                    document.getElementById("profile-email-status").textContent = "Verified. Enter your new email address.";
+                    document.querySelectorAll("[data-email-step]").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "new-request");
+                }
+            } catch (err) {
+                showToast(err.message || "Invalid OTP.", "error");
+            }
+        });
+    });
+
+    // Step 3: Request OTP for new email
+    document.getElementById("profile-email-send-new-btn")?.addEventListener("click", async (e) => {
+        const newEmail = document.getElementById("profile-new-email-input")?.value?.trim();
+        if (!newEmail || !newEmail.includes("@")) return showToast("Enter a valid new email.", "error");
+
+        await withButtonState(e.currentTarget, "Sending...", async () => {
+            try {
+                const res = await requestJson("/user/request-email-change", {
+                    method: "POST",
+                    body: { step: "new-email", newEmail },
+                    auth: true
+                });
+                if (res.success) {
+                    document.getElementById("profile-email-target").textContent = newEmail;
+                    document.getElementById("profile-email-status").textContent = "OTP sent to " + newEmail;
+                    document.querySelectorAll("[data-email-step]").forEach(el => el.hidden = el.getAttribute("data-email-step") !== "new-verify");
+                }
+            } catch (err) {
+                showToast(err.message || "Failed to send OTP.", "error");
+            }
+        });
+    });
+
+    // Step 4: Verify OTP for new email & Update
+    document.getElementById("profile-email-verify-new-btn")?.addEventListener("click", async (e) => {
+        const otp = document.getElementById("profile-new-email-otp")?.value?.trim();
+        if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
+
+        await withButtonState(e.currentTarget, "Updating Email...", async () => {
+            try {
+                const data = await requestJson("/user/verify-email-change", {
+                    method: "POST",
+                    body: { step: "new-email", otp },
+                    auth: true
+                });
+                if (data.success) {
+                    if (data.user) {
+                        state.user = normalizeUser(data.user);
+                        persistUser(state.user);
+                    }
+                    renderCommonUserState();
+                    resetVerificationFlows();
+                    showToast("Email updated successfully!", "success");
+                }
+            } catch (err) {
+                showToast(err.message || "Verification failed.", "error");
+            }
+        });
+    });
+
+
+    // ============================================
+    // SECURE MOBILE CHANGE FLOW (OTP-based)
+    // ============================================
+    // Step 1: Request OTP for current mobile
+    document.getElementById("profile-mobile-send-old-btn")?.addEventListener("click", async (e) => {
+        await withButtonState(e.currentTarget, "Sending...", async () => {
+            try {
+                const res = await requestJson("/user/request-mobile-change", {
+                    method: "POST",
+                    body: { step: "old-mobile" },
+                    auth: true
+                });
+                if (res.success) {
+                    document.getElementById("profile-mobile-status").textContent = "OTP sent to your registered mobile number.";
+                    document.querySelectorAll("[data-mobile-step]").forEach(el => el.hidden = el.getAttribute("data-mobile-step") !== "old-verify");
+                }
+            } catch (err) {
+                showToast(err.message || "Failed to send OTP.", "error");
+            }
+        });
+    });
+
+    // Step 2: Verify OTP for current mobile
+    document.getElementById("profile-mobile-verify-old-btn")?.addEventListener("click", async (e) => {
+        const otp = document.getElementById("profile-old-mobile-otp")?.value?.trim();
+        if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
+
+        await withButtonState(e.currentTarget, "Verifying...", async () => {
+            try {
+                const res = await requestJson("/user/verify-mobile-change", {
+                    method: "POST",
+                    body: { step: "old-mobile", otp },
+                    auth: true
+                });
+                if (res.success) {
+                    document.getElementById("profile-mobile-status").textContent = "Verified. Enter your new mobile number.";
+                    document.querySelectorAll("[data-mobile-step]").forEach(el => el.hidden = el.getAttribute("data-mobile-step") !== "new-request");
+                }
+            } catch (err) {
+                showToast(err.message || "Invalid OTP.", "error");
+            }
+        });
+    });
+
+    // Step 3: Request OTP for new mobile
+    document.getElementById("profile-mobile-send-new-btn")?.addEventListener("click", async (e) => {
+        const newMobile = document.getElementById("profile-new-mobile-input")?.value?.trim();
+        if (!newMobile || !/^[6-9]\d{9}$/.test(newMobile.replace(/\D/g, ''))) {
+            return showToast("Enter a valid 10-digit mobile number.", "error");
+        }
+
+        await withButtonState(e.currentTarget, "Sending...", async () => {
+            try {
+                const res = await requestJson("/user/request-mobile-change", {
+                    method: "POST",
+                    body: { step: "new-mobile", newMobile },
+                    auth: true
+                });
+                if (res.success) {
+                    document.getElementById("profile-mobile-target").textContent = newMobile;
+                    document.getElementById("profile-mobile-status").textContent = "OTP sent to " + newMobile;
+                    document.querySelectorAll("[data-mobile-step]").forEach(el => el.hidden = el.getAttribute("data-mobile-step") !== "new-verify");
+                }
+            } catch (err) {
+                showToast(err.message || "Failed to send OTP.", "error");
+            }
+        });
+    });
+
+    // Step 4: Verify OTP for new mobile & Update
+    document.getElementById("profile-mobile-verify-new-btn")?.addEventListener("click", async (e) => {
+        const otp = document.getElementById("profile-new-mobile-otp")?.value?.trim();
+        if (otp.length !== 6) return showToast("Enter 6-digit OTP.", "error");
+
+        await withButtonState(e.currentTarget, "Updating Mobile...", async () => {
+            try {
+                const data = await requestJson("/user/verify-mobile-change", {
+                    method: "POST",
+                    body: { step: "new-mobile", otp },
+                    auth: true
+                });
+                if (data.success) {
+                    if (data.user) {
+                        state.user = normalizeUser(data.user);
+                        persistUser(state.user);
+                    }
+                    renderCommonUserState();
+                    resetVerificationFlows();
+                    showToast("Mobile number updated successfully!", "success");
+                }
+            } catch (err) {
+                showToast(err.message || "Verification failed.", "error");
+            }
+        });
+    });
+
+    // Click delegation for inline Add/Change settings triggers
+    document.addEventListener("click", (e) => {
+        const mobileActionBtn = e.target.closest("#settings-mobile-action-btn");
+        if (mobileActionBtn) {
+            e.preventDefault();
+            const flowArea = document.getElementById("mobile-flow-area");
+            if (flowArea) {
+                flowArea.hidden = !flowArea.hidden;
+                if (!flowArea.hidden) {
+                    // Reset steps inside mobile card
+                    if (state.user?.phone) {
+                        document.querySelectorAll("[data-mobile-step]").forEach(el => {
+                            el.hidden = el.getAttribute("data-mobile-step") !== "old-request";
+                        });
+                    } else {
+                        document.querySelectorAll("[data-mobile-step]").forEach(el => {
+                            el.hidden = el.getAttribute("data-mobile-step") !== "new-request";
+                        });
+                    }
+                }
+            }
+            return;
+        }
+
+        const emailActionBtn = e.target.closest("#settings-email-action-btn");
+        if (emailActionBtn) {
+            e.preventDefault();
+            const flowArea = document.getElementById("email-flow-area");
+            if (flowArea) {
+                flowArea.hidden = !flowArea.hidden;
+                if (!flowArea.hidden) {
+                    // Reset steps inside email card
+                    if (state.user?.email) {
+                        document.querySelectorAll("[data-email-step]").forEach(el => {
+                            el.hidden = el.getAttribute("data-email-step") !== "old-request";
+                        });
+                    } else {
+                        document.querySelectorAll("[data-email-step]").forEach(el => {
+                            el.hidden = el.getAttribute("data-email-step") !== "new-request";
+                        });
+                    }
+                }
+            }
+            return;
+        }
+    });
 }
 
 function initSupportPage() {
@@ -5688,3 +6158,64 @@ function escapeHtml(value) {
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
 }
+
+function toggleModal(id, show) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        if (show) modal.removeAttribute('hidden');
+        else modal.setAttribute('hidden', '');
+        document.body.style.overflow = show ? 'hidden' : '';
+    }
+}
+
+const AVATAR_SEED_KEY = "anvi_avatar_seed";
+
+function guessGender(name) {
+    if (!name) return "male";
+    const femaleNames = new Set([
+        "aanya", "aarti", "aishwarya", "ananya", "anika", "ankita",
+        "avani", "bhavya", "deepika", "divya", "esha", "khushi",
+        "kriti", "kiran", "kavya", "manisha", "meera", "neha",
+        "nisha", "priya", "radhika", "riya", "sanya", "shreya",
+        "sneha", "sonam", "tanvi", "trisha"
+    ]);
+    const tokens = name.toLowerCase().split(/\s+/);
+    for (const token of tokens) {
+        if (femaleNames.has(token)) return "female";
+    }
+    return "male";
+}
+
+function hashString(value) {
+    let hash = 0;
+    for (let i = 0; i < value.length; i += 1) {
+        hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash);
+}
+
+function pickSeed(name, list) {
+    const hash = hashString(name || "anvipayz");
+    return list[hash % list.length];
+}
+
+function getFallbackSeed() {
+    let seed = localStorage.getItem(AVATAR_SEED_KEY);
+    if (!seed) {
+        const randomPart = Math.random().toString(36).slice(2, 10).toUpperCase();
+        seed = `AV-${randomPart}`;
+        localStorage.setItem(AVATAR_SEED_KEY, seed);
+    }
+    return seed;
+}
+
+function getAvatarUrl(name) {
+    const gender = guessGender(name);
+    const femaleSeeds = ["Lia", "Mira", "Tara", "Ava", "Ria"];
+    const maleSeeds = ["Arjun", "Kabir", "Vihaan", "Neil", "Rohan"];
+    const seedBase = name ? pickSeed(name, gender === "female" ? femaleSeeds : maleSeeds) : getFallbackSeed();
+    const seed = `${seedBase}-${hashString(name || seedBase) % 9999}`;
+    const set = gender === "female" ? "lorelei" : "adventurer";
+    return `https://api.dicebear.com/7.x/${set}/svg?seed=${encodeURIComponent(seed)}&radius=20`;
+}
+
